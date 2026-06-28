@@ -1,0 +1,2973 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pantale · Luxo não é pagar caro, é preservar o que é nosso</title>
+  <meta name="description" content="Pantale: moda consciente com alma brasileira. Wellness, prosperidade e orgulho nacional em cada peça.">
+
+  <!-- ASSET PENDENTE: favicon.png -->
+  <link rel="icon" href="assets/favicon.png" type="image/png">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+
+  <style>
+    /* ============================================================
+       RESET
+    ============================================================ */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    img, video { display: block; max-width: 100%; }
+    a { color: inherit; text-decoration: none; }
+    button { font-family: inherit; cursor: pointer; border: none; background: none; }
+    ul { list-style: none; }
+
+    /* ============================================================
+       VARIÁVEIS
+    ============================================================ */
+    :root {
+      /* Paleta da marca (preservada — identidade Pantale) */
+      --bege: #F5E6C8;
+      --manteiga: #E8C97A;
+      --caramelo: #C4853A;
+      --caramelo-fundo: #A86E2C;
+      --escuro: #241606;
+      --medio: #7A5C32;
+      --claro: #FBF5E8;
+      --branco: #FFFDF7;
+      --linha: rgba(36, 22, 6, 0.12);
+
+      --font-display: 'Playfair Display', serif;
+      --font-body: 'Inter', sans-serif;
+
+      /* Escala tipográfica fluida (mobile → desktop) */
+      --step-eyebrow: clamp(0.62rem, 0.58rem + 0.18vw, 0.72rem);
+      --step--1: clamp(0.8rem, 0.76rem + 0.18vw, 0.9rem);
+      --step-0: clamp(0.95rem, 0.9rem + 0.22vw, 1.06rem);
+      --step-1: clamp(1.1rem, 0.98rem + 0.6vw, 1.45rem);
+      --step-2: clamp(1.5rem, 1.2rem + 1.4vw, 2.3rem);
+      --step-3: clamp(2rem, 1.45rem + 2.6vw, 3.3rem);
+      --step-4: clamp(2.4rem, 1.5rem + 4vw, 4.4rem);
+
+      --container: 1240px;
+      --gap: 24px;
+
+      /* Ritmo vertical das seções */
+      --section-y: clamp(80px, 11vw, 150px);
+
+      --ease: cubic-bezier(0.16, 1, 0.3, 1);
+      --transition-fast: 0.25s var(--ease);
+      --transition-medium: 0.4s var(--ease);
+      --transition-slow: 0.7s var(--ease);
+
+      --radius-card: 18px 5px 18px 5px;
+      --radius-soft: 16px;
+      --shadow-soft: 0 14px 38px rgba(36, 22, 6, 0.13);
+      --shadow-lift: 0 30px 60px rgba(36, 22, 6, 0.22);
+    }
+
+    /* ============================================================
+       BASE
+    ============================================================ */
+    body {
+      font-family: var(--font-body);
+      font-weight: 300;
+      font-size: var(--step-0);
+      line-height: 1.6;
+      color: var(--escuro);
+      background: var(--bege);
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    h1, h2, h3, h4 {
+      font-family: var(--font-display);
+      font-weight: 600;
+      line-height: 1.12;
+    }
+
+    ::selection { background: var(--caramelo); color: var(--branco); }
+
+    .container {
+      width: 100%;
+      max-width: var(--container);
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* Rótulo pequeno acima de títulos (usado com parcimônia) */
+    .eyebrow {
+      display: inline-block;
+      font-family: var(--font-body);
+      font-weight: 500;
+      font-size: var(--step-eyebrow);
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      color: var(--caramelo);
+    }
+
+    /* Botões */
+    .btn {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 13px 28px;
+      font-family: var(--font-body);
+      font-weight: 500;
+      font-size: var(--step--1);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      border-radius: 999px;
+      transition: background var(--transition-fast), color var(--transition-fast),
+                  border-color var(--transition-fast), transform var(--transition-fast),
+                  box-shadow var(--transition-fast);
+      overflow: hidden;
+      white-space: nowrap;
+    }
+    .btn:hover { transform: translateY(-2px); }
+    .btn:active { transform: translateY(0) scale(0.98); }
+
+    .btn-primary {
+      background: var(--caramelo);
+      color: var(--branco);
+      box-shadow: 0 8px 22px rgba(196, 133, 58, 0.32);
+    }
+    .btn-primary:hover {
+      background: var(--caramelo-fundo);
+      box-shadow: 0 14px 30px rgba(196, 133, 58, 0.4);
+    }
+
+    .btn-outline {
+      background: rgba(245, 230, 200, 0.04);
+      color: var(--bege);
+      border: 1px solid rgba(245, 230, 200, 0.5);
+      backdrop-filter: blur(2px);
+    }
+    .btn-outline:hover {
+      border-color: var(--bege);
+      background: rgba(245, 230, 200, 0.14);
+    }
+
+    /* Ripple */
+    .btn .ripple {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.45);
+      transform: scale(0);
+      animation: ripple-anim 0.6s ease-out;
+      pointer-events: none;
+    }
+    @keyframes ripple-anim {
+      to { transform: scale(3); opacity: 0; }
+    }
+
+    /* Foco visível */
+    a:focus-visible,
+    button:focus-visible,
+    input:focus-visible {
+      outline: 2px solid var(--caramelo);
+      outline-offset: 3px;
+      border-radius: 4px;
+    }
+
+    /* ============================================================
+       [0] INTRO SCREEN
+    ============================================================ */
+    #intro {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      background: var(--bege);
+      overflow: hidden;
+    }
+    #intro.intro-hidden {
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.7s ease;
+    }
+    #intro.intro-hidden .intro-phase { display: none; }
+
+    .intro-phase {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+    }
+    .intro-phase.is-active { opacity: 1; }
+
+    /* Fase 1 — vídeo onça */
+    #intro-phase-1 {
+      transition: opacity 0.6s ease;
+    }
+    #intro-phase-1 video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .intro-progress {
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      width: 100%;
+      height: 2px;
+      background: rgba(42, 26, 6, 0.12);
+      z-index: 5;
+    }
+    .intro-progress-bar {
+      height: 100%;
+      width: 0%;
+      background: var(--caramelo);
+      transition: width 0.05s linear;
+    }
+
+    /* Fase 2 — transição pelagem */
+    #intro-phase-2 {
+      clip-path: circle(0% at 50% 50%);
+      transition: clip-path 1.2s ease-in-out;
+    }
+    #intro-phase-2.is-active {
+      clip-path: circle(150% at 50% 50%);
+    }
+    #intro-phase-2 img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* Fase 3 — reveal camiseta */
+    #intro-phase-3 {
+      flex-direction: column;
+      gap: 32px;
+      transition: opacity 0.6s ease;
+    }
+    #intro-phase-3 img {
+      max-width: 420px;
+      width: 70%;
+      transition: opacity 0.6s ease;
+    }
+    .intro-logo {
+      font-family: var(--font-display);
+      font-size: 42px;
+      letter-spacing: 0.08em;
+      color: var(--escuro);
+      transform: translateY(-16px);
+      opacity: 0;
+      transition: transform 0.6s ease, opacity 0.6s ease;
+    }
+    #intro-phase-3.is-active .intro-logo {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    .intro-cta {
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+      transition-delay: 0.4s;
+    }
+    #intro-phase-3.is-active .intro-cta {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* prefers-reduced-motion para a intro: pula direto para o site */
+    @media (prefers-reduced-motion: reduce) {
+      #intro { display: none !important; }
+    }
+
+    /* ============================================================
+       [1] NAVBAR
+    ============================================================ */
+    #navbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 0;
+      background: transparent;
+      transition: background var(--transition-medium), padding var(--transition-medium);
+    }
+    #navbar.scrolled {
+      background: var(--escuro);
+      padding: 14px 0;
+      box-shadow: var(--shadow-soft);
+    }
+    #navbar .container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .nav-logo {
+      font-family: var(--font-display);
+      font-size: 24px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      color: var(--bege);
+    }
+    .nav-account {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .nav-account .nav-user {
+      font-size: 12px;
+      letter-spacing: 0.06em;
+      color: var(--bege);
+    }
+    .nav-link-btn {
+      font-family: var(--font-body);
+      font-weight: 400;
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--bege);
+      background: transparent;
+      border: 1px solid rgba(245, 230, 200, 0.4);
+      padding: 8px 18px;
+      border-radius: 999px;
+      transition: background var(--transition-fast), border-color var(--transition-fast);
+    }
+    .nav-link-btn:hover {
+      border-color: var(--bege);
+      background: rgba(245, 230, 200, 0.08);
+    }
+
+    /* ============================================================
+       [AUTH] MODAL DE LOGIN / CADASTRO
+    ============================================================ */
+    #auth-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 500;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: rgba(42, 26, 6, 0.55);
+      backdrop-filter: blur(3px);
+    }
+    #auth-modal.is-open { display: flex; }
+    .auth-card {
+      position: relative;
+      width: 100%;
+      max-width: 380px;
+      background: var(--branco);
+      border-radius: 18px;
+      padding: 40px 32px 32px;
+      box-shadow: var(--shadow-soft);
+    }
+    .auth-close {
+      position: absolute;
+      top: 14px;
+      right: 16px;
+      font-size: 22px;
+      line-height: 1;
+      color: var(--medio);
+    }
+    .auth-title {
+      font-size: 22px;
+      font-weight: 400;
+      text-align: center;
+      margin-bottom: 4px;
+      color: var(--escuro);
+    }
+    .auth-sub {
+      font-size: 12px;
+      text-align: center;
+      color: var(--medio);
+      margin-bottom: 24px;
+    }
+    .auth-field { margin-bottom: 14px; }
+    .auth-field label {
+      display: block;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--medio);
+      margin-bottom: 6px;
+    }
+    .auth-field input {
+      width: 100%;
+      font-family: var(--font-body);
+      font-size: 14px;
+      padding: 11px 14px;
+      border: 1px solid rgba(42, 26, 6, 0.18);
+      border-radius: 10px;
+      background: var(--claro);
+      color: var(--escuro);
+    }
+    .auth-field input:focus {
+      outline: none;
+      border-color: var(--caramelo);
+    }
+    .auth-submit {
+      width: 100%;
+      margin-top: 8px;
+      padding: 13px;
+      background: var(--escuro);
+      color: var(--bege);
+      font-family: var(--font-body);
+      font-weight: 400;
+      font-size: 12px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      border-radius: 999px;
+      transition: background var(--transition-fast);
+    }
+    .auth-submit:hover { background: #3c2810; }
+    .auth-submit:disabled { opacity: 0.6; cursor: default; }
+    .auth-error {
+      display: none;
+      font-size: 12px;
+      color: #b03a2e;
+      text-align: center;
+      margin-top: 14px;
+    }
+    .auth-error.is-visible { display: block; }
+    .auth-ok {
+      display: none;
+      font-size: 12px;
+      color: #2f7d4f;
+      text-align: center;
+      margin-top: 14px;
+      line-height: 1.5;
+    }
+    .auth-ok.is-visible { display: block; }
+    .auth-switch {
+      text-align: center;
+      font-size: 12px;
+      color: var(--medio);
+      margin-top: 20px;
+    }
+    .auth-switch button,
+    .auth-forgot-link button {
+      color: var(--caramelo);
+      font-size: 12px;
+      text-decoration: underline;
+      background: none;
+    }
+    .auth-forgot-link {
+      text-align: center;
+      margin-top: 16px;
+    }
+
+    /* ---- Modos do modal: login / register / forgot / reset ---- */
+    .auth-mode-login,
+    .auth-mode-register,
+    .auth-mode-forgot,
+    .auth-mode-reset { display: none; }
+    #auth-modal[data-mode="login"]    .auth-mode-login,
+    #auth-modal[data-mode="register"] .auth-mode-register,
+    #auth-modal[data-mode="forgot"]   .auth-mode-forgot,
+    #auth-modal[data-mode="reset"]    .auth-mode-reset { display: inline; }
+    /* parágrafos (link "esqueci") usam block quando ativos */
+    #auth-modal[data-mode="login"] p.auth-mode-login { display: block; }
+
+    /* Campos visíveis por modo (todos escondidos por padrão) */
+    .auth-field[data-name-field],
+    .auth-field[data-email-field],
+    .auth-field[data-pass-field],
+    .auth-field[data-confirm-field] { display: none; }
+    #auth-modal[data-mode="register"] .auth-field[data-name-field],
+    #auth-modal[data-mode="login"]    .auth-field[data-email-field],
+    #auth-modal[data-mode="register"] .auth-field[data-email-field],
+    #auth-modal[data-mode="forgot"]   .auth-field[data-email-field],
+    #auth-modal[data-mode="login"]    .auth-field[data-pass-field],
+    #auth-modal[data-mode="register"] .auth-field[data-pass-field],
+    #auth-modal[data-mode="reset"]    .auth-field[data-pass-field],
+    #auth-modal[data-mode="reset"]    .auth-field[data-confirm-field] { display: block; }
+
+    /* ============================================================
+       [2] HERO
+    ============================================================ */
+    #hero {
+      position: relative;
+      min-height: 100svh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      overflow: hidden;
+    }
+    #hero video {
+      position: absolute;
+      top: -15%;
+      left: 0;
+      width: 100%;
+      height: 130%;
+      object-fit: cover;
+      z-index: 0;
+      will-change: transform;
+    }
+    /* Scrim cinematográfico: escurece em cima e embaixo, preserva o centro */
+    .hero-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      background:
+        linear-gradient(to bottom,
+          rgba(36, 22, 6, 0.55) 0%,
+          rgba(36, 22, 6, 0.30) 38%,
+          rgba(36, 22, 6, 0.40) 70%,
+          rgba(36, 22, 6, 0.72) 100%);
+    }
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 0 8px;
+    }
+    .hero-eyebrow {
+      color: var(--bege);
+      opacity: 0.78;
+      font-size: clamp(0.56rem, 0.52rem + 0.2vw, 0.66rem);
+      margin-bottom: 16px;
+    }
+    .hero-content h1 {
+      font-size: clamp(1.05rem, 0.92rem + 0.85vw, 1.6rem);
+      font-weight: 400;
+      line-height: 1.32;
+      letter-spacing: 0.005em;
+      color: var(--bege);
+      margin-bottom: 24px;
+      text-wrap: balance;
+    }
+    .hero-content h1 em {
+      font-style: italic;
+      color: var(--manteiga);
+    }
+    .hero-ctas {
+      display: flex;
+      justify-content: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    /* Entrada escalonada do hero */
+    .hero-anim {
+      opacity: 0;
+      transform: translateY(26px);
+    }
+    .hero-ready .hero-anim {
+      opacity: 1;
+      transform: none;
+      transition: opacity 1s var(--ease), transform 1s var(--ease);
+    }
+    .hero-ready .hero-anim[data-seq="1"] { transition-delay: 0.05s; }
+    .hero-ready .hero-anim[data-seq="2"] { transition-delay: 0.22s; }
+    .hero-ready .hero-anim[data-seq="3"] { transition-delay: 0.42s; }
+
+    @media (max-width: 600px) {
+      .hero-ctas .btn { width: 100%; max-width: 320px; }
+    }
+
+    /* ============================================================
+       RESPONSIVO
+    ============================================================ */
+    /* ============================================================
+       [3] COLEÇÃO
+    ============================================================ */
+    #colecao {
+      background: var(--claro);
+      padding: var(--section-y) 0;
+    }
+    .colecao-head {
+      text-align: center;
+      margin-bottom: clamp(40px, 6vw, 64px);
+    }
+    .colecao-head .eyebrow { margin-bottom: 16px; }
+    .colecao-titulo {
+      font-size: var(--step-3);
+      font-weight: 400;
+      letter-spacing: -0.015em;
+      text-align: center;
+      color: var(--escuro);
+      text-wrap: balance;
+    }
+    .colecao-tabs {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: clamp(40px, 6vw, 64px);
+      flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 11px 28px;
+      font-family: var(--font-body);
+      font-weight: 500;
+      font-size: var(--step--1);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      border-radius: 999px;
+      border: 1px solid var(--linha);
+      background: transparent;
+      color: var(--medio);
+      transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
+    }
+    .tab-btn:hover { border-color: var(--caramelo); color: var(--escuro); }
+    .tab-btn.is-active {
+      background: var(--escuro);
+      color: var(--bege);
+      border-color: var(--escuro);
+    }
+    .tab-btn.is-active:hover { color: var(--bege); }
+    .sub-tabs {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 36px;
+    }
+    .sub-tabs .tab-btn {
+      padding: 8px 20px;
+      font-size: var(--step-eyebrow);
+      letter-spacing: 0.12em;
+    }
+    .colecao-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--gap);
+    }
+    .colecao-grid[hidden] { display: none; }
+
+    /* ============================================================
+       [4] SOBRE / EXPLORAR
+    ============================================================ */
+    #sobre {
+      background: var(--branco);
+      padding: var(--section-y) 0;
+    }
+    .sobre-panel {
+      max-width: 720px;
+      margin: 0 auto;
+    }
+    .sobre-panel[hidden] { display: none; }
+    .sobre-panel h3 {
+      font-size: clamp(22px, 3vw, 32px);
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: var(--escuro);
+      text-align: center;
+    }
+    .sobre-panel p {
+      font-size: 16px;
+      line-height: 1.8;
+      color: var(--medio);
+      margin-bottom: 18px;
+    }
+    .sobre-panel .sobre-img {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background: var(--bege);
+      border-radius: var(--radius-card);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      color: var(--medio);
+      text-align: center;
+      padding: 16px;
+      margin-bottom: 24px;
+    }
+    .produto-card {
+      background: var(--branco);
+      border-radius: var(--radius-card);
+      overflow: hidden;
+      box-shadow: var(--shadow-soft);
+      cursor: pointer;
+      transition: transform 0.55s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .produto-card:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 28px 56px rgba(42, 26, 6, 0.20);
+    }
+    .produto-card:focus-visible {
+      outline: 2px solid var(--caramelo);
+      outline-offset: 3px;
+      border-radius: var(--radius-card);
+    }
+    .produto-card .produto-img {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 3 / 4;
+      background: var(--bege);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      color: var(--medio);
+      text-align: center;
+      padding: 16px;
+      overflow: hidden;
+    }
+    /* Zoom da foto no hover (quando a imagem real for inserida) */
+    .produto-card .produto-img img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.5s ease;
+    }
+    .produto-card:hover .produto-img img {
+      transform: scale(1.07);
+    }
+    /* Selo "Ver peça" que sobe no hover */
+    .produto-card .produto-img::after {
+      content: "Ver peça";
+      position: absolute;
+      left: 50%;
+      bottom: 14px;
+      transform: translate(-50%, 140%);
+      padding: 7px 16px;
+      background: var(--escuro);
+      color: var(--bege);
+      font-family: var(--font-body);
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      border-radius: 999px;
+      transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+      pointer-events: none;
+    }
+    .produto-card:hover .produto-img::after {
+      transform: translate(-50%, 0);
+    }
+    .produto-card .produto-info {
+      padding: 18px;
+    }
+    .produto-card h3 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .produto-card p {
+      font-size: 13px;
+      color: var(--medio);
+    }
+    .produto-card .produto-preco {
+      font-family: var(--font-display);
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--caramelo);
+    }
+    .colecao-grid:has(.produto-card:only-child) {
+      grid-template-columns: minmax(0, 360px);
+      justify-content: center;
+    }
+    @media (max-width: 900px) {
+      .colecao-grid { grid-template-columns: repeat(2, 1fr); }
+      .colecao-grid:has(.produto-card:only-child) { grid-template-columns: minmax(0, 360px); }
+    }
+    @media (max-width: 600px) {
+      .colecao-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ============================================================
+       [PRODUTO] MODAL DE DETALHES
+    ============================================================ */
+    #produto-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 500;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: rgba(42, 26, 6, 0.55);
+      backdrop-filter: blur(3px);
+    }
+    #produto-modal.is-open { display: flex; }
+    .produto-modal-card {
+      position: relative;
+      width: 100%;
+      max-width: 880px;
+      max-height: 90vh;
+      overflow-y: auto;
+      background: var(--branco);
+      border-radius: 18px;
+      padding: 40px;
+      box-shadow: var(--shadow-soft);
+    }
+    .produto-modal-grid {
+      display: grid;
+      grid-template-columns: 1.1fr 1fr;
+      gap: 40px;
+    }
+    .produto-modal-main {
+      width: 100%;
+      aspect-ratio: 3 / 2;
+      border-radius: var(--radius-card);
+      overflow: hidden;
+      background: var(--bege);
+    }
+    .produto-modal-main img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+    .produto-modal-placeholder {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      color: var(--medio);
+      text-align: center;
+      padding: 16px;
+    }
+    .produto-modal-thumbs {
+      display: flex;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .produto-modal-thumb {
+      width: 64px;
+      height: 64px;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 2px solid transparent;
+      padding: 0;
+      background: var(--bege);
+    }
+    .produto-modal-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .produto-modal-thumb.is-active { border-color: var(--caramelo); }
+    #produto-modal-title {
+      font-size: 26px;
+      font-weight: 400;
+      margin-bottom: 8px;
+    }
+    #produto-modal-preco {
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--caramelo);
+      margin-bottom: 24px;
+    }
+    .produto-modal-label {
+      display: block;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--medio);
+      margin-bottom: 10px;
+    }
+    .size-options {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 28px;
+    }
+    .size-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: 1px solid rgba(42, 26, 6, 0.2);
+      background: transparent;
+      font-size: 12px;
+      color: var(--escuro);
+      transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
+    }
+    .size-btn.is-active {
+      background: var(--escuro);
+      color: var(--bege);
+      border-color: var(--escuro);
+    }
+    .produto-modal-cta { width: 100%; }
+    .produto-modal-msg {
+      margin-top: 14px;
+      font-size: 13px;
+      color: var(--medio);
+      text-align: center;
+    }
+    .produto-modal-msg.is-error { color: #b03a2e; }
+    @media (max-width: 720px) {
+      .produto-modal-grid { grid-template-columns: 1fr; }
+      .produto-modal-card { padding: 24px; }
+    }
+
+    /* ============================================================
+       [SACOLA] BOTÃO + DRAWER
+    ============================================================ */
+    .nav-cart-btn {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--font-body);
+      font-weight: 500;
+      font-size: var(--step-eyebrow);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--bege);
+      background: var(--caramelo);
+      border: 1px solid var(--caramelo);
+      padding: 8px 16px;
+      border-radius: 999px;
+      transition: background var(--transition-fast), transform var(--transition-fast);
+    }
+    .nav-cart-btn:hover { background: var(--caramelo-fundo); transform: translateY(-1px); }
+    .cart-count {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 20px;
+      height: 20px;
+      padding: 0 5px;
+      border-radius: 999px;
+      background: var(--branco);
+      color: var(--escuro);
+      font-size: 11px;
+      font-weight: 600;
+      line-height: 1;
+    }
+
+    #cart-drawer {
+      position: fixed;
+      inset: 0;
+      z-index: 600;
+      display: none;
+    }
+    #cart-drawer.is-open { display: block; }
+    .cart-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(36, 22, 6, 0.5);
+      backdrop-filter: blur(3px);
+      opacity: 0;
+      transition: opacity var(--transition-medium);
+    }
+    #cart-drawer.is-open .cart-backdrop { opacity: 1; }
+    .cart-panel {
+      position: absolute;
+      top: 0;
+      right: 0;
+      height: 100%;
+      width: min(420px, 92vw);
+      background: var(--branco);
+      box-shadow: -20px 0 60px rgba(36, 22, 6, 0.25);
+      display: flex;
+      flex-direction: column;
+      transform: translateX(100%);
+      transition: transform 0.45s var(--ease);
+    }
+    #cart-drawer.is-open .cart-panel { transform: translateX(0); }
+    .cart-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 26px 26px 18px;
+      border-bottom: 1px solid var(--linha);
+    }
+    .cart-head h3 {
+      font-size: var(--step-1);
+      font-weight: 400;
+      color: var(--escuro);
+    }
+    .cart-head .auth-close { position: static; }
+    .cart-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 18px 26px;
+    }
+    .cart-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      gap: 8px;
+      text-align: center;
+      color: var(--medio);
+      font-size: var(--step--1);
+    }
+    .cart-empty strong {
+      font-family: var(--font-display);
+      font-weight: 400;
+      font-size: var(--step-1);
+      color: var(--escuro);
+    }
+    .cart-item {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 4px 12px;
+      padding: 16px 0;
+      border-bottom: 1px solid var(--linha);
+    }
+    .cart-item-name {
+      font-family: var(--font-display);
+      font-size: var(--step-0);
+      color: var(--escuro);
+    }
+    .cart-item-meta {
+      font-size: var(--step--1);
+      color: var(--medio);
+    }
+    .cart-item-price {
+      font-family: var(--font-display);
+      font-weight: 600;
+      color: var(--caramelo);
+      text-align: right;
+      white-space: nowrap;
+    }
+    .cart-item-qty {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 8px;
+    }
+    .qty-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 1px solid var(--linha);
+      background: transparent;
+      color: var(--escuro);
+      font-size: 15px;
+      line-height: 1;
+      transition: border-color var(--transition-fast), background var(--transition-fast);
+    }
+    .qty-btn:hover { border-color: var(--caramelo); }
+    .qty-val { min-width: 18px; text-align: center; font-size: var(--step--1); }
+    .cart-item-remove {
+      margin-left: auto;
+      font-size: var(--step-eyebrow);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--medio);
+      background: none;
+      text-decoration: underline;
+      transition: color var(--transition-fast);
+    }
+    .cart-item-remove:hover { color: #b03a2e; }
+    .cart-foot {
+      padding: 20px 26px 26px;
+      border-top: 1px solid var(--linha);
+    }
+    .cart-total {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      font-size: var(--step-0);
+    }
+    .cart-total span:last-child {
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: var(--step-1);
+      color: var(--escuro);
+    }
+    .cart-checkout { width: 100%; }
+    .cart-msg {
+      margin-top: 12px;
+      font-size: var(--step--1);
+      text-align: center;
+      color: var(--medio);
+    }
+    .cart-msg.is-error { color: #b03a2e; }
+    .cart-msg.is-success { color: #2f7d4f; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .cart-panel { transition: none; }
+      .cart-backdrop { transition: none; }
+    }
+
+    /* ============================================================
+       [PAGAMENTO] TELA DE PAGAMENTO
+    ============================================================ */
+    #pagamento-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 700;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: rgba(36, 22, 6, 0.6);
+      backdrop-filter: blur(4px);
+    }
+    #pagamento-modal.is-open { display: flex; }
+    .pagamento-card {
+      position: relative;
+      width: 100%;
+      max-width: 440px;
+      max-height: 92vh;
+      overflow-y: auto;
+      background: var(--branco);
+      border-radius: 18px;
+      padding: 36px 30px 30px;
+      box-shadow: var(--shadow-lift);
+    }
+    .pagamento-title {
+      font-size: var(--step-2);
+      font-weight: 400;
+      color: var(--escuro);
+      margin-bottom: 4px;
+    }
+    .pagamento-total {
+      font-size: var(--step--1);
+      color: var(--medio);
+      margin-bottom: 22px;
+    }
+    .pagamento-total strong {
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: var(--step-1);
+      color: var(--caramelo);
+      margin-left: 6px;
+    }
+    .pagamento-metodos {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 22px;
+    }
+    .metodo-btn {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      text-align: left;
+      padding: 14px 16px;
+      border: 1.5px solid var(--linha);
+      border-radius: 12px;
+      background: transparent;
+      transition: border-color var(--transition-fast), background var(--transition-fast);
+    }
+    .metodo-btn:hover { border-color: var(--caramelo); }
+    .metodo-btn.is-active {
+      border-color: var(--escuro);
+      background: var(--claro);
+    }
+    .metodo-nome {
+      font-family: var(--font-display);
+      font-size: var(--step-0);
+      color: var(--escuro);
+    }
+    .metodo-desc {
+      font-size: 11px;
+      line-height: 1.4;
+      color: var(--medio);
+    }
+    .pagamento-painel { margin-bottom: 8px; }
+    .pagamento-painel[hidden] { display: none; }
+    .pagamento-info {
+      font-size: var(--step--1);
+      line-height: 1.6;
+      color: var(--medio);
+      margin-bottom: 16px;
+    }
+    .pagamento-acao { width: 100%; }
+    .pagamento-acao.is-disabled {
+      pointer-events: none;
+      opacity: 0.5;
+    }
+    .pix-qr-wrap {
+      width: 200px;
+      max-width: 100%;
+      margin: 0 auto 16px;
+      border-radius: 12px;
+      overflow: hidden;
+      background: var(--claro);
+    }
+    .pix-qr-wrap img { width: 100%; height: auto; display: block; }
+    .pix-codigo {
+      background: var(--claro);
+      border: 1px solid var(--linha);
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-bottom: 12px;
+      max-height: 92px;
+      overflow-y: auto;
+    }
+    .pix-codigo code {
+      font-family: 'Inter', monospace;
+      font-size: 12px;
+      line-height: 1.5;
+      color: var(--escuro);
+      word-break: break-all;
+    }
+    .pix-resultado { margin-top: 16px; }
+    .pix-resultado[hidden] { display: none; }
+    .pagamento-sec {
+      width: 100%;
+      padding: 11px;
+      background: transparent;
+      color: var(--escuro);
+      border: 1.5px solid var(--linha);
+      font-family: var(--font-body);
+      font-weight: 500;
+      font-size: var(--step--1);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      border-radius: 999px;
+      transition: border-color var(--transition-fast), background var(--transition-fast);
+    }
+    .pagamento-sec:hover { border-color: var(--caramelo); background: var(--claro); }
+    .pagamento-acao:disabled { opacity: 0.55; cursor: default; pointer-events: none; }
+    .pagamento-msg {
+      margin-top: 14px;
+      font-size: var(--step--1);
+      text-align: center;
+      color: var(--medio);
+    }
+    .pagamento-msg.is-error { color: #b03a2e; }
+    .pagamento-msg.is-success { color: #2f7d4f; }
+
+    /* ============================================================
+       [DADOS] DADOS DE ENTREGA
+    ============================================================ */
+    #dados-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 680;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: rgba(36, 22, 6, 0.6);
+      backdrop-filter: blur(4px);
+    }
+    #dados-modal.is-open { display: flex; }
+    .dados-card {
+      position: relative;
+      width: 100%;
+      max-width: 520px;
+      max-height: 92vh;
+      overflow-y: auto;
+      background: var(--branco);
+      border-radius: 18px;
+      padding: 34px 30px 30px;
+      box-shadow: var(--shadow-lift);
+    }
+    .dados-title {
+      font-size: var(--step-2);
+      font-weight: 400;
+      color: var(--escuro);
+      margin-bottom: 4px;
+    }
+    .dados-sub {
+      font-size: var(--step--1);
+      color: var(--medio);
+      margin-bottom: 22px;
+    }
+    .dados-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    .campo { display: flex; flex-direction: column; position: relative; }
+    .campo-2 { grid-column: 1 / -1; }
+    .campo-uf { max-width: 90px; }
+    .campo label {
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--medio);
+      margin-bottom: 6px;
+    }
+    .campo input {
+      width: 100%;
+      font-family: var(--font-body);
+      font-size: 14px;
+      padding: 11px 13px;
+      border: 1px solid var(--linha);
+      border-radius: 10px;
+      background: var(--claro);
+      color: var(--escuro);
+      transition: border-color var(--transition-fast);
+    }
+    .campo input:focus { outline: none; border-color: var(--caramelo); }
+    .cep-status {
+      position: absolute;
+      right: 2px;
+      top: 0;
+      font-size: 10px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--medio);
+    }
+    .cep-status.is-ok { color: #2f7d4f; }
+    .cep-status.is-error { color: #b03a2e; }
+    .dados-erro {
+      display: none;
+      margin-top: 14px;
+      font-size: var(--step--1);
+      color: #b03a2e;
+      text-align: center;
+    }
+    .dados-erro.is-visible { display: block; }
+    .dados-continuar { width: 100%; margin-top: 20px; }
+    @media (max-width: 520px) {
+      .dados-grid { grid-template-columns: 1fr; }
+      .campo-uf { max-width: none; }
+    }
+
+    /* ============================================================
+       [MOV] REVEAL NO SCROLL  (assinatura ON)
+    ============================================================ */
+    .reveal {
+      opacity: 0;
+      transform: translateY(40px);
+      transition: opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1),
+                  transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+      will-change: opacity, transform;
+    }
+    .reveal.is-visible {
+      opacity: 1;
+      transform: none;
+    }
+    .reveal[data-delay="1"] { transition-delay: 0.09s; }
+    .reveal[data-delay="2"] { transition-delay: 0.18s; }
+    .reveal[data-delay="3"] { transition-delay: 0.27s; }
+
+    /* ============================================================
+       [MOV] MARQUEE / TICKER
+    ============================================================ */
+    .marquee {
+      background: var(--escuro);
+      color: var(--bege);
+      padding: 20px 0;
+      overflow: hidden;
+      white-space: nowrap;
+      border-top: 1px solid rgba(245, 230, 200, 0.08);
+      border-bottom: 1px solid rgba(245, 230, 200, 0.08);
+    }
+    .marquee-track {
+      display: inline-block;
+      animation: marquee 30s linear infinite;
+    }
+    .marquee-track span {
+      font-family: var(--font-display);
+      font-style: italic;
+      font-size: clamp(16px, 2.4vw, 22px);
+      letter-spacing: 0.04em;
+      padding: 0 24px;
+      opacity: 0.92;
+    }
+    .marquee-track span::after {
+      content: "✦";
+      font-style: normal;
+      margin-left: 48px;
+      font-size: 0.5em;
+      vertical-align: middle;
+      color: var(--caramelo);
+      opacity: 0.85;
+    }
+    .marquee:hover .marquee-track { animation-play-state: paused; }
+    @keyframes marquee {
+      to { transform: translateX(-50%); }
+    }
+
+    /* ============================================================
+       [MOV] SHOWCASE FIXO (sticky scroll — assinatura ON)
+    ============================================================ */
+    #showcase {
+      background: var(--bege);
+    }
+    .showcase-inner {
+      max-width: var(--container);
+      margin: 0 auto;
+      padding: 0 24px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 64px;
+    }
+    .showcase-media-col {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+    }
+    .showcase-media {
+      width: 100%;
+      aspect-ratio: 4 / 5;
+      border-radius: var(--radius-card);
+      background: var(--claro);
+      box-shadow: var(--shadow-soft);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      color: var(--medio);
+      text-align: center;
+      padding: 24px;
+      overflow: hidden;
+    }
+    .showcase-media img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .showcase-captions {
+      padding: 12vh 0;
+    }
+    .showcase-caption {
+      min-height: 72vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .showcase-caption .showcase-num {
+      display: block;
+      font-family: var(--font-display);
+      font-size: clamp(48px, 8vw, 96px);
+      font-weight: 400;
+      line-height: 1;
+      color: var(--caramelo);
+      opacity: 0.32;
+      margin-bottom: 8px;
+    }
+    .showcase-caption .showcase-label {
+      display: block;
+      font-family: var(--font-body);
+      font-weight: 500;
+      font-size: var(--step-eyebrow);
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--caramelo);
+      margin-bottom: 18px;
+    }
+    .showcase-caption h3 {
+      font-size: var(--step-2);
+      font-weight: 400;
+      letter-spacing: -0.015em;
+      color: var(--escuro);
+      margin-bottom: 18px;
+      text-wrap: balance;
+    }
+    .showcase-caption p {
+      font-size: 16px;
+      line-height: 1.8;
+      color: var(--medio);
+      max-width: 460px;
+    }
+    @media (max-width: 860px) {
+      .showcase-inner {
+        grid-template-columns: 1fr;
+        gap: 0;
+      }
+      .showcase-media-col {
+        position: relative;
+        height: auto;
+        padding: 80px 0 0;
+      }
+      .showcase-caption {
+        min-height: 0;
+        padding: 56px 0;
+      }
+    }
+
+    /* ============================================================
+       [5] RODAPÉ
+    ============================================================ */
+    #rodape {
+      background: var(--escuro);
+      color: var(--bege);
+      padding: clamp(64px, 9vw, 110px) 0 40px;
+    }
+    .rodape-top {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 32px;
+      flex-wrap: wrap;
+      padding-bottom: clamp(40px, 6vw, 72px);
+      border-bottom: 1px solid rgba(245, 230, 200, 0.14);
+    }
+    .rodape-marca {
+      font-family: var(--font-display);
+      font-size: clamp(40px, 9vw, 96px);
+      font-weight: 400;
+      line-height: 0.9;
+      letter-spacing: 0.02em;
+    }
+    .rodape-frase {
+      max-width: 340px;
+      font-size: var(--step-0);
+      line-height: 1.7;
+      color: rgba(245, 230, 200, 0.78);
+    }
+    .rodape-frase em { font-style: italic; color: var(--manteiga); }
+    .rodape-bottom {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      flex-wrap: wrap;
+      margin-top: 32px;
+      font-size: var(--step--1);
+      color: rgba(245, 230, 200, 0.6);
+    }
+    .rodape-tags {
+      display: flex;
+      gap: 22px;
+      flex-wrap: wrap;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      font-size: var(--step-eyebrow);
+    }
+    .rodape-back {
+      color: var(--bege);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-size: var(--step-eyebrow);
+      transition: color var(--transition-fast);
+    }
+    .rodape-back:hover { color: var(--manteiga); }
+    @media (max-width: 600px) {
+      .rodape-top { align-items: flex-start; }
+    }
+
+    @media (max-width: 1200px) {
+      .container { padding: 0 20px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .ripple { display: none; }
+      .reveal { opacity: 1; transform: none; transition: none; }
+      .marquee-track { animation: none; }
+      #hero video { transform: none !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ============================================================
+       [0] INTRO SCREEN
+  ============================================================ -->
+  <div id="intro" aria-hidden="true">
+    <!-- Fase 1: onça caminhando -->
+    <div id="intro-phase-1" class="intro-phase">
+      <!-- ASSET PENDENTE: hero_oncinha.mp4 -->
+      <video autoplay muted playsinline preload="auto" src="assets/hero_oncinha.mp4"></video>
+    </div>
+
+    <!-- Fase 2: transição pelagem -->
+    <div id="intro-phase-2" class="intro-phase">
+      <!-- ASSET PENDENTE: img_pelagem_close.jpg -->
+      <img src="assets/img_pelagem_close.jpg" alt="" loading="eager">
+    </div>
+
+    <!-- Fase 3: reveal da camiseta -->
+    <div id="intro-phase-3" class="intro-phase">
+      <!-- ASSET PENDENTE: img_camiseta_wellness_frente.jpg -->
+      <img src="assets/img_camiseta_wellness_frente.jpg" alt="Camiseta Pantale Wellness" loading="eager">
+      <div class="intro-logo">PANTALE</div>
+      <button class="btn btn-primary intro-cta" id="intro-cta" aria-label="Explorar coleção e entrar no site">Explorar coleção</button>
+    </div>
+
+    <div class="intro-progress"><div class="intro-progress-bar" id="intro-progress-bar"></div></div>
+  </div>
+
+  <!-- ============================================================
+       [1] NAVBAR
+  ============================================================ -->
+  <header id="navbar">
+    <div class="container">
+      <a href="#hero" class="nav-logo">PANTALE</a>
+      <div class="nav-account" id="nav-account">
+        <!-- Estado deslogado -->
+        <button class="nav-link-btn" id="btn-open-auth" data-auth-state="logged-out">Entrar</button>
+        <!-- Estado logado -->
+        <span class="nav-user" id="nav-user" data-auth-state="logged-in" hidden></span>
+        <button class="nav-link-btn" id="btn-logout" data-auth-state="logged-in" hidden>Sair</button>
+        <!-- Sacola (sempre visível) -->
+        <button class="nav-cart-btn" id="btn-open-cart" aria-label="Abrir sacola">
+          Sacola<span class="cart-count" id="cart-count" data-count="0">0</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============================================================
+       [AUTH] MODAL DE LOGIN / CADASTRO
+  ============================================================ -->
+  <div id="auth-modal" data-mode="login" role="dialog" aria-modal="true" aria-labelledby="auth-title">
+    <div class="auth-card">
+      <button class="auth-close" id="auth-close" aria-label="Fechar">&times;</button>
+
+      <h2 class="auth-title" id="auth-title">
+        <span class="auth-mode-login">Entrar</span>
+        <span class="auth-mode-register">Criar conta</span>
+        <span class="auth-mode-forgot">Recuperar senha</span>
+        <span class="auth-mode-reset">Nova senha</span>
+      </h2>
+      <p class="auth-sub">
+        <span class="auth-mode-login">Acesse sua conta Pantale.</span>
+        <span class="auth-mode-register">Junte-se à Pantale.</span>
+        <span class="auth-mode-forgot">Enviaremos um link de redefinição para o seu e-mail.</span>
+        <span class="auth-mode-reset">Defina uma nova senha para sua conta.</span>
+      </p>
+
+      <form id="auth-form" novalidate>
+        <div class="auth-field" data-name-field>
+          <label for="auth-name">Nome</label>
+          <input type="text" id="auth-name" name="name" autocomplete="name" placeholder="Seu nome">
+        </div>
+        <div class="auth-field" data-email-field>
+          <label for="auth-email">E-mail</label>
+          <input type="email" id="auth-email" name="email" autocomplete="email" placeholder="voce@email.com">
+        </div>
+        <div class="auth-field" data-pass-field>
+          <label for="auth-password">Senha</label>
+          <input type="password" id="auth-password" name="password" autocomplete="current-password" placeholder="••••••">
+        </div>
+        <div class="auth-field" data-confirm-field>
+          <label for="auth-password2">Confirmar nova senha</label>
+          <input type="password" id="auth-password2" name="password2" autocomplete="new-password" placeholder="••••••">
+        </div>
+
+        <button type="submit" class="auth-submit" id="auth-submit">
+          <span class="auth-mode-login">Entrar</span>
+          <span class="auth-mode-register">Cadastrar</span>
+          <span class="auth-mode-forgot">Enviar link</span>
+          <span class="auth-mode-reset">Redefinir senha</span>
+        </button>
+
+        <p class="auth-error" id="auth-error"></p>
+        <p class="auth-ok" id="auth-ok"></p>
+      </form>
+
+      <p class="auth-forgot-link auth-mode-login">
+        <button type="button" id="auth-forgot-btn">Esqueci minha senha</button>
+      </p>
+
+      <p class="auth-switch">
+        <span class="auth-mode-login">Não tem conta? <button type="button" id="auth-switch-btn">Criar conta</button></span>
+        <span class="auth-mode-register">Já tem conta? <button type="button" id="auth-switch-btn-2">Entrar</button></span>
+        <span class="auth-mode-forgot">Lembrou? <button type="button" id="auth-switch-btn-3">Voltar ao login</button></span>
+        <span class="auth-mode-reset">Lembrou? <button type="button" id="auth-switch-btn-4">Voltar ao login</button></span>
+      </p>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       [PRODUTO] MODAL DE DETALHES
+  ============================================================ -->
+  <div id="produto-modal" role="dialog" aria-modal="true" aria-labelledby="produto-modal-title">
+    <div class="produto-modal-card">
+      <button class="auth-close" id="produto-modal-close" aria-label="Fechar">&times;</button>
+      <div class="produto-modal-grid">
+        <div class="produto-modal-gallery">
+          <div class="produto-modal-main" id="produto-modal-main"></div>
+          <div class="produto-modal-thumbs" id="produto-modal-thumbs"></div>
+        </div>
+        <div class="produto-modal-info">
+          <h3 id="produto-modal-title"></h3>
+          <p class="produto-preco" id="produto-modal-preco"></p>
+
+          <span class="produto-modal-label">Tamanho</span>
+          <div class="size-options" id="produto-modal-sizes">
+            <button type="button" class="size-btn" data-size="P">P</button>
+            <button type="button" class="size-btn" data-size="M">M</button>
+            <button type="button" class="size-btn" data-size="G">G</button>
+            <button type="button" class="size-btn" data-size="GG">GG</button>
+          </div>
+
+          <button type="button" class="btn btn-primary produto-modal-cta" id="produto-modal-cta">Adicionar à sacola</button>
+          <p class="produto-modal-msg" id="produto-modal-msg"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       [SACOLA] DRAWER DO CARRINHO
+  ============================================================ -->
+  <div id="cart-drawer" role="dialog" aria-modal="true" aria-label="Sua sacola">
+    <div class="cart-backdrop" id="cart-backdrop"></div>
+    <aside class="cart-panel">
+      <div class="cart-head">
+        <h3>Sua sacola</h3>
+        <button class="auth-close" id="cart-close" aria-label="Fechar">&times;</button>
+      </div>
+      <div class="cart-body" id="cart-body"></div>
+      <div class="cart-foot" id="cart-foot" hidden>
+        <div class="cart-total">
+          <span>Total</span>
+          <span id="cart-total">R$ 0</span>
+        </div>
+        <button type="button" class="btn btn-primary cart-checkout" id="cart-checkout">Finalizar compra</button>
+        <p class="cart-msg" id="cart-msg"></p>
+      </div>
+    </aside>
+  </div>
+
+  <!-- ============================================================
+       [PAGAMENTO] TELA DE PAGAMENTO (Cartão / Pix)
+  ============================================================ -->
+  <div id="pagamento-modal" role="dialog" aria-modal="true" aria-labelledby="pagamento-title">
+    <div class="pagamento-card">
+      <button class="auth-close" id="pagamento-close" aria-label="Fechar">&times;</button>
+      <h3 class="pagamento-title" id="pagamento-title">Pagamento</h3>
+      <p class="pagamento-total">Total a pagar <strong id="pagamento-total">R$ 0</strong></p>
+
+      <div class="pagamento-metodos">
+        <button type="button" class="metodo-btn is-active" data-metodo="cartao">
+          <span class="metodo-nome">Cartão</span>
+          <span class="metodo-desc">Crédito ou débito via Mercado Pago</span>
+        </button>
+        <button type="button" class="metodo-btn" data-metodo="pix">
+          <span class="metodo-nome">Pix</span>
+          <span class="metodo-desc">Aprovação na hora</span>
+        </button>
+      </div>
+
+      <!-- Painel Cartão -->
+      <div class="pagamento-painel" data-painel="cartao">
+        <p class="pagamento-info">Ao pagar, você vai para o ambiente seguro do Mercado Pago e o pedido é registrado automaticamente.</p>
+        <button type="button" class="btn btn-primary pagamento-acao" id="pagar-cartao">Pagar com Mercado Pago</button>
+      </div>
+
+      <!-- Painel Pix -->
+      <div class="pagamento-painel" data-painel="pix" hidden>
+        <p class="pagamento-info">Ao pagar, geramos o código Pix e registramos o pedido automaticamente.</p>
+        <button type="button" class="btn btn-primary pagamento-acao" id="pagar-pix">Pagar com Pix</button>
+        <div class="pix-resultado" id="pix-resultado" hidden>
+          <div class="pix-qr-wrap" id="pix-qr-wrap" hidden>
+            <img id="pix-qr" alt="QR Code Pix">
+          </div>
+          <div class="pix-codigo">
+            <code id="pix-codigo-texto">—</code>
+          </div>
+          <button type="button" class="pagamento-sec" id="pix-copy">Copiar código Pix</button>
+        </div>
+      </div>
+
+      <p class="pagamento-msg" id="pagamento-msg"></p>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       [DADOS] DADOS DE ENTREGA (antes do pagamento)
+  ============================================================ -->
+  <div id="dados-modal" role="dialog" aria-modal="true" aria-labelledby="dados-title">
+    <div class="dados-card">
+      <button class="auth-close" id="dados-close" aria-label="Fechar">&times;</button>
+      <h3 class="dados-title" id="dados-title">Dados de entrega</h3>
+      <p class="dados-sub">Confirme seus dados para o envio. Eles ficam salvos para a próxima compra.</p>
+      <form id="dados-form" novalidate>
+        <div class="dados-grid">
+          <div class="campo campo-2">
+            <label for="d-nome">Nome completo</label>
+            <input id="d-nome" name="name" autocomplete="name" required>
+          </div>
+          <div class="campo campo-2">
+            <label for="d-email">E-mail</label>
+            <input id="d-email" name="email" type="email" autocomplete="email" required>
+          </div>
+          <div class="campo">
+            <label for="d-tel">Telefone / WhatsApp</label>
+            <input id="d-tel" name="phone" inputmode="tel" autocomplete="tel" placeholder="(00) 00000-0000" required>
+          </div>
+          <div class="campo">
+            <label for="d-cep">CEP</label>
+            <input id="d-cep" name="cep" inputmode="numeric" autocomplete="postal-code" placeholder="00000-000" maxlength="9" required>
+            <span class="cep-status" id="cep-status"></span>
+          </div>
+          <div class="campo campo-2">
+            <label for="d-end">Endereço</label>
+            <input id="d-end" name="address" autocomplete="address-line1" required>
+          </div>
+          <div class="campo">
+            <label for="d-num">Número</label>
+            <input id="d-num" name="number" inputmode="numeric" required>
+          </div>
+          <div class="campo">
+            <label for="d-comp">Complemento</label>
+            <input id="d-comp" name="complement" placeholder="opcional">
+          </div>
+          <div class="campo">
+            <label for="d-bairro">Bairro</label>
+            <input id="d-bairro" name="district" required>
+          </div>
+          <div class="campo">
+            <label for="d-cidade">Cidade</label>
+            <input id="d-cidade" name="city" required>
+          </div>
+          <div class="campo campo-uf">
+            <label for="d-uf">UF</label>
+            <input id="d-uf" name="uf" maxlength="2" placeholder="SP" required>
+          </div>
+        </div>
+        <p class="dados-erro" id="dados-erro"></p>
+        <button type="submit" class="btn btn-primary dados-continuar" id="dados-continuar">Continuar para pagamento</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       [2] HERO
+  ============================================================ -->
+  <section id="hero">
+    <video autoplay muted loop playsinline preload="auto" src="assets/hero_video_principal.mp4"></video>
+    <div class="hero-overlay"></div>
+    <div class="container hero-content">
+      <span class="eyebrow hero-eyebrow hero-anim" data-seq="1">Moda consciente · alma brasileira</span>
+      <h1 class="hero-anim" data-seq="2">Luxo não é pagar caro,<br>é preservar o que é <em>nosso.</em></h1>
+      <div class="hero-ctas hero-anim" data-seq="3">
+        <a href="#colecao" class="btn btn-primary">Ver coleção</a>
+        <a href="#sobre" class="btn btn-outline">Explorar</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       [MOV] MARQUEE / TICKER
+  ============================================================ -->
+  <div class="marquee" aria-hidden="true">
+    <div class="marquee-track">
+      <span>WELLNESS</span><span>PROSPERIDADE</span><span>ORGULHO NACIONAL</span><span>FEITO PARA DURAR</span><span>WELLNESS</span><span>PROSPERIDADE</span><span>ORGULHO NACIONAL</span><span>FEITO PARA DURAR</span>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       [3] COLEÇÃO
+  ============================================================ -->
+  <section id="colecao">
+    <div class="container">
+      <div class="colecao-head reveal">
+        <h2 class="colecao-titulo">Nossa coleção</h2>
+      </div>
+      <div class="colecao-tabs tabs reveal" data-delay="1">
+        <button class="tab-btn is-active" data-tab="casual">Casual</button>
+        <button class="tab-btn" data-tab="esporte">Esporte</button>
+      </div>
+
+      <div class="tabs-panels">
+      <div data-panel="casual">
+        <div class="sub-tabs tabs">
+          <button class="tab-btn is-active" data-tab="camisetas">Camisetas</button>
+          <button class="tab-btn" data-tab="moletons">Moletons</button>
+        </div>
+        <div class="tabs-panels">
+          <div class="colecao-grid" data-panel="camisetas">
+            <!-- ASSET PENDENTE: img_produto_camiseta.jpg -->
+            <div class="produto-card reveal" role="button" tabindex="0">
+              <div class="produto-img">ASSET PENDENTE: img_produto_camiseta.jpg</div>
+              <div class="produto-info">
+                <h3>Camiseta</h3>
+                <p class="produto-preco">R$ 159</p>
+              </div>
+            </div>
+          </div>
+          <div class="colecao-grid" data-panel="moletons" hidden>
+            <!-- ASSET PENDENTE: img_produto_moletom.jpg -->
+            <div class="produto-card reveal" role="button" tabindex="0">
+              <div class="produto-img">ASSET PENDENTE: img_produto_moletom.jpg</div>
+              <div class="produto-info">
+                <h3>Moletom</h3>
+                <p class="produto-preco">R$ 249</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div data-panel="esporte" hidden>
+        <div class="sub-tabs tabs">
+          <button class="tab-btn is-active" data-tab="camouflage">Camiseta Camouflage</button>
+        </div>
+        <div class="tabs-panels">
+          <div class="colecao-grid" data-panel="camouflage">
+            <div class="produto-card reveal" role="button" tabindex="0">
+              <div class="produto-img">
+                <img src="assets/img_produto_camiseta_camouflage_capa.png" alt="Camiseta Camouflage">
+                <img class="produto-gallery-img" src="assets/img_produto_camiseta_camouflage.jpg" alt="Camiseta Camouflage - modelo frente e verso" hidden>
+                <img class="produto-gallery-img" src="assets/img_produto_camiseta_camouflage_lisa.jpg" alt="Camiseta Camouflage - modelo lateral e verso" hidden>
+              </div>
+              <div class="produto-info">
+                <h3>Camiseta Camouflage</h3>
+                <p class="produto-preco">R$ 209</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       [MOV] SHOWCASE FIXO (sticky scroll)
+  ============================================================ -->
+  <section id="showcase">
+    <div class="showcase-inner">
+      <div class="showcase-media-col">
+        <div class="showcase-media">
+          <!-- ASSET PENDENTE: img_showcase.jpg -->
+          ASSET PENDENTE: img_showcase.jpg
+        </div>
+      </div>
+      <div class="showcase-captions">
+        <div class="showcase-caption reveal">
+          <span class="showcase-num">01</span>
+          <span class="showcase-label">Origem</span>
+          <h3>Da floresta para o seu corpo.</h3>
+          <p>Cada peça carrega a força da fauna brasileira. Design que nasce do respeito ao que é nosso e se traduz em caimento, conforto e propósito.</p>
+        </div>
+        <div class="showcase-caption reveal">
+          <span class="showcase-num">02</span>
+          <span class="showcase-label">Matéria</span>
+          <h3>Tecidos que respeitam o ciclo.</h3>
+          <p>Algodão orgânico, fibras recicladas e processos de baixo impacto. Materiais escolhidos para durar e para devolver menos resíduo ao planeta.</p>
+        </div>
+        <div class="showcase-caption reveal">
+          <span class="showcase-num">03</span>
+          <span class="showcase-label">Permanência</span>
+          <h3>Luxo é o que não se descarta.</h3>
+          <p>Peças atemporais, feitas para acompanhar você por anos. Menos pressa, mais presença. Essa é a nossa definição de prosperidade.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       [4] SOBRE / EXPLORAR
+  ============================================================ -->
+  <section id="sobre">
+    <div class="container">
+      <div class="colecao-head reveal">
+        <h2 class="colecao-titulo">Explorar</h2>
+      </div>
+      <div class="colecao-tabs tabs reveal" data-delay="1">
+        <button class="tab-btn is-active" data-tab="inovacoes">Inovações</button>
+        <button class="tab-btn" data-tab="manifesto">Manifesto</button>
+        <button class="tab-btn" data-tab="materiais">Materiais</button>
+      </div>
+
+      <div class="tabs-panels">
+        <div class="sobre-panel" data-panel="inovacoes">
+          <!-- ASSET PENDENTE: img_inovacoes.jpg -->
+          <div class="sobre-img">ASSET PENDENTE: img_inovacoes.jpg</div>
+          <h3>Inovações</h3>
+          <p>Cada peça Pantale nasce de processos que unem tecnologia e respeito à origem. Investimos em tingimentos de baixo impacto, tecidos de performance com fibras recicladas e uma cadeia produtiva rastreável do início ao fim.</p>
+          <p>É moda pensada para durar, não para descartar.</p>
+        </div>
+
+        <div class="sobre-panel" data-panel="manifesto" hidden>
+          <h3>Manifesto</h3>
+          <p>Acreditamos que luxo não é sobre preço, é sobre permanência. É sobre vestir algo que carrega identidade, origem e propósito.</p>
+          <p>A Pantale nasce do orgulho de ser brasileira: da nossa fauna, da nossa força e da nossa forma de fazer moda consciente, autêntica e duradoura.</p>
+          <p>Preservar o que é nosso é o nosso compromisso. Com você, com o próximo e com a natureza que nos inspira.</p>
+        </div>
+
+        <div class="sobre-panel" data-panel="materiais" hidden>
+          <!-- ASSET PENDENTE: img_materiais.jpg -->
+          <div class="sobre-img">ASSET PENDENTE: img_materiais.jpg</div>
+          <h3>Materiais</h3>
+          <p>Selecionamos algodão orgânico, fibras recicladas e tecidos certificados que reduzem o impacto ambiental sem abrir mão do caimento e da durabilidade.</p>
+          <p>Cada material é escolhido a dedo, priorizando fornecedores nacionais e processos que respeitam quem produz e o que é produzido.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       [5] RODAPÉ
+  ============================================================ -->
+  <footer id="rodape">
+    <div class="container">
+      <div class="rodape-top">
+        <div class="rodape-marca">PANTALE</div>
+        <p class="rodape-frase">Luxo não é pagar caro, é preservar o que é <em>nosso</em>. Moda consciente, feita no Brasil para durar.</p>
+      </div>
+      <div class="rodape-bottom">
+        <div class="rodape-tags">
+          <span>Wellness</span>
+          <span>Prosperidade</span>
+          <span>Orgulho nacional</span>
+        </div>
+        <a href="#hero" class="rodape-back">Voltar ao topo</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      'use strict';
+
+      var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      /* ============================================================
+         INTRO ANIMATION
+      ============================================================ */
+      function showHeroFrame() {
+        // Se o autoplay foi bloqueado, mostra um frame onde a onça já
+        // aparece (o início do vídeo é preto), em vez de tela escura.
+        var v = document.querySelector('#hero video');
+        if (!v || !v.paused) return;
+        if (v.readyState >= 1 && v.currentTime < 0.2) {
+          try { v.currentTime = 1.2; } catch (e) {}
+        }
+      }
+
+      function playHeroVideo() {
+        var v = document.querySelector('#hero video');
+        if (!v) return;
+        v.muted = true; // autoplay só é permitido mudo
+        var p = v.play();
+        if (p && p.catch) p.catch(function () { showHeroFrame(); });
+      }
+
+      function revealHero() {
+        var hero = document.getElementById('hero');
+        if (hero) hero.classList.add('hero-ready');
+        playHeroVideo();
+      }
+
+      /* Garante a onça no hero: tenta autoplay; se o navegador bloquear,
+         mostra um frame visível e retoma o play na primeira interação. */
+      (function initHeroVideo() {
+        var v = document.querySelector('#hero video');
+        if (!v) return;
+        playHeroVideo();
+        v.addEventListener('loadeddata', playHeroVideo, { once: true });
+        v.addEventListener('canplay', playHeroVideo, { once: true });
+        setTimeout(showHeroFrame, 800);
+
+        var kick = function () { playHeroVideo(); };
+        ['pointerdown', 'touchstart', 'keydown', 'scroll'].forEach(function (ev) {
+          window.addEventListener(ev, kick, { passive: true });
+        });
+        document.addEventListener('visibilitychange', function () {
+          if (!document.hidden) playHeroVideo();
+        });
+      })();
+
+      (function initIntro() {
+        var introEl = document.getElementById('intro');
+
+        if (reduceMotion) {
+          introEl.classList.add('intro-hidden');
+          revealHero();
+          return;
+        }
+
+        var phase1 = document.getElementById('intro-phase-1');
+        var phase2 = document.getElementById('intro-phase-2');
+        var phase3 = document.getElementById('intro-phase-3');
+        var progressBar = document.getElementById('intro-progress-bar');
+        var introCta = document.getElementById('intro-cta');
+
+        var TOTAL_DURATION = 7000;
+        var PHASE2_START = 4000;
+        var PHASE3_START = 5500;
+        var startTime = null;
+        var dismissed = false;
+
+        document.body.style.overflow = 'hidden';
+
+        function dismiss() {
+          if (dismissed) return;
+          dismissed = true;
+          introEl.classList.add('intro-hidden');
+          document.body.style.overflow = '';
+          revealHero();
+        }
+
+        /* Se a mídia da intro ainda não existe (ASSET PENDENTE / 404),
+           pula a intro imediatamente para o site não ficar travado.
+           Quando os arquivos reais forem adicionados, a intro toca normal. */
+        var introMedia = introEl.querySelectorAll('video, img');
+        introMedia.forEach(function (m) {
+          var jaFalhou =
+            (m.tagName === 'IMG' && m.complete && m.naturalWidth === 0) ||
+            (m.tagName === 'VIDEO' && m.error);
+          if (jaFalhou) { dismiss(); return; }
+          m.addEventListener('error', dismiss, { once: true });
+        });
+        // Salvaguarda: se em 2,5s o vídeo da intro não carregou nada, pula.
+        setTimeout(function () {
+          var vid = phase1.querySelector('video');
+          if (!dismissed && (!vid || vid.error || vid.readyState === 0)) dismiss();
+        }, 2500);
+
+        function tick(now) {
+          if (dismissed) return;
+          if (startTime === null) startTime = now;
+          var elapsed = now - startTime;
+          progressBar.style.width = Math.min((elapsed / TOTAL_DURATION) * 100, 100) + '%';
+
+          if (elapsed >= PHASE2_START) {
+            phase1.classList.remove('is-active');
+            phase2.classList.add('is-active');
+          }
+          if (elapsed >= PHASE3_START) {
+            phase2.classList.remove('is-active');
+            phase3.classList.add('is-active');
+          }
+          if (elapsed >= TOTAL_DURATION) {
+            dismiss();
+            return;
+          }
+          requestAnimationFrame(tick);
+        }
+
+        requestAnimationFrame(function () {
+          phase1.classList.add('is-active');
+          requestAnimationFrame(tick);
+        });
+
+        introCta.addEventListener('click', dismiss);
+      })();
+
+      /* ============================================================
+         NAVBAR SCROLL (sentinela via IntersectionObserver)
+      ============================================================ */
+      (function initNavbar() {
+        var navbar = document.getElementById('navbar');
+        var sentinel = document.createElement('div');
+        sentinel.setAttribute('aria-hidden', 'true');
+        sentinel.style.cssText = 'position:absolute;top:0;left:0;width:1px;height:48px;pointer-events:none;';
+        document.body.prepend(sentinel);
+
+        if (!('IntersectionObserver' in window)) return;
+        var io = new IntersectionObserver(function (entries) {
+          navbar.classList.toggle('scrolled', !entries[0].isIntersecting);
+        }, { threshold: 0 });
+        io.observe(sentinel);
+      })();
+
+      /* ============================================================
+         TABS DA COLEÇÃO
+      ============================================================ */
+      document.querySelectorAll('.tabs').forEach(function (tabsEl) {
+        var panelsEl = tabsEl.nextElementSibling;
+        var btns = tabsEl.querySelectorAll('.tab-btn');
+        btns.forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            var target = btn.getAttribute('data-tab');
+            btns.forEach(function (b) { b.classList.toggle('is-active', b === btn); });
+            panelsEl.querySelectorAll(':scope > [data-panel]').forEach(function (panel) {
+              panel.hidden = panel.getAttribute('data-panel') !== target;
+            });
+            // garante o reveal do conteúdo recém-exibido
+            var shown = panelsEl.querySelector(':scope > [data-panel="' + target + '"]');
+            if (shown) {
+              shown.querySelectorAll('.reveal').forEach(function (r) { r.classList.add('is-visible'); });
+            }
+          });
+        });
+      });
+
+      /* ============================================================
+         MOVIMENTO — REVEAL NO SCROLL (IntersectionObserver)
+      ============================================================ */
+      (function initReveals() {
+        var els = document.querySelectorAll('.reveal');
+        if (reduceMotion || !('IntersectionObserver' in window)) {
+          els.forEach(function (el) { el.classList.add('is-visible'); });
+          return;
+        }
+        // stagger entre os cards de um mesmo grid
+        document.querySelectorAll('.colecao-grid').forEach(function (grid) {
+          grid.querySelectorAll('.reveal').forEach(function (el, i) {
+            el.style.transitionDelay = (i * 0.09) + 's';
+          });
+        });
+        var io = new IntersectionObserver(function (entries) {
+          entries.forEach(function (e) {
+            if (e.isIntersecting) {
+              e.target.classList.add('is-visible');
+              io.unobserve(e.target);
+            }
+          });
+        }, { threshold: 0.15, rootMargin: '0px 0px -8% 0px' });
+        els.forEach(function (el) { io.observe(el); });
+      })();
+
+      /* ============================================================
+         MOVIMENTO — PARALLAX DO HERO
+      ============================================================ */
+      (function initParallax() {
+        if (reduceMotion) return;
+        var video = document.querySelector('#hero video');
+        if (!video) return;
+        var ticking = false;
+        function update() {
+          video.style.transform = 'translate3d(0,' + (window.scrollY * 0.12) + 'px,0)';
+          ticking = false;
+        }
+        window.addEventListener('scroll', function () {
+          if (!ticking) { requestAnimationFrame(update); ticking = true; }
+        }, { passive: true });
+        update();
+      })();
+
+      /* ============================================================
+         SACOLA (carrinho real — backend SQLite)
+      ============================================================ */
+      (function initCart() {
+        var API_BASE = (location.port && location.port !== '3000') ? 'http://localhost:3000' : '';
+        var TOKEN_KEY = 'pantale_token';
+
+        var drawer = document.getElementById('cart-drawer');
+        var backdrop = document.getElementById('cart-backdrop');
+        var bodyEl = document.getElementById('cart-body');
+        var footEl = document.getElementById('cart-foot');
+        var totalEl = document.getElementById('cart-total');
+        var countEl = document.getElementById('cart-count');
+        var msgEl = document.getElementById('cart-msg');
+        var checkoutBtn = document.getElementById('cart-checkout');
+        var lastPayload = { items: [], total: 0, count: 0 };
+
+        function token() { return localStorage.getItem(TOKEN_KEY); }
+        function brl(n) { return 'R$ ' + n; }
+
+        async function api(path, options) {
+          options = options || {};
+          options.headers = Object.assign(
+            { Authorization: 'Bearer ' + token() },
+            options.headers || {}
+          );
+          var res = await fetch(API_BASE + path, options);
+          var data = {};
+          try { data = await res.json(); } catch (e) {}
+          if (!res.ok) throw new Error(data.error || 'Algo deu errado.');
+          return data;
+        }
+
+        function setCount(n) {
+          countEl.textContent = n;
+          countEl.setAttribute('data-count', n);
+        }
+
+        function render(payload) {
+          lastPayload = payload || { items: [], total: 0, count: 0 };
+          var items = (payload && payload.items) || [];
+          setCount(payload ? payload.count : 0);
+          bodyEl.innerHTML = '';
+          if (!items.length) {
+            footEl.hidden = true;
+            var empty = document.createElement('div');
+            empty.className = 'cart-empty';
+            empty.innerHTML = '<strong>Sua sacola está vazia</strong><span>Escolha uma peça e o tamanho para começar.</span>';
+            bodyEl.appendChild(empty);
+            return;
+          }
+          var escHtml = function (s) {
+            return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+              return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+            });
+          };
+          items.forEach(function (it) {
+            var row = document.createElement('div');
+            row.className = 'cart-item';
+            row.innerHTML =
+              '<div class="cart-item-name">' + escHtml(it.product) + '</div>' +
+              '<div class="cart-item-price">' + brl(it.price * it.qty) + '</div>' +
+              '<div class="cart-item-meta">Tamanho ' + escHtml(it.size) + '</div>' +
+              '<div class="cart-item-qty">' +
+                '<button type="button" class="qty-btn" data-act="dec" aria-label="Diminuir">−</button>' +
+                '<span class="qty-val">' + it.qty + '</span>' +
+                '<button type="button" class="qty-btn" data-act="inc" aria-label="Aumentar">+</button>' +
+                '<button type="button" class="cart-item-remove" data-act="remove">Remover</button>' +
+              '</div>';
+            row.querySelector('[data-act="dec"]').addEventListener('click', function () { setQty(it.id, it.qty - 1); });
+            row.querySelector('[data-act="inc"]').addEventListener('click', function () { setQty(it.id, it.qty + 1); });
+            row.querySelector('[data-act="remove"]').addEventListener('click', function () { removeItem(it.id); });
+            bodyEl.appendChild(row);
+          });
+          footEl.hidden = false;
+          totalEl.textContent = brl(payload.total);
+        }
+
+        async function refresh() {
+          if (!token()) { render({ items: [], count: 0, total: 0 }); return; }
+          try { render(await api('/api/cart')); }
+          catch (e) { render({ items: [], count: 0, total: 0 }); }
+        }
+
+        async function setQty(id, qty) {
+          try { render(await api('/api/cart/' + id, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ qty: qty })
+          })); } catch (e) {}
+        }
+
+        async function removeItem(id) {
+          try { render(await api('/api/cart/' + id, { method: 'DELETE' })); } catch (e) {}
+        }
+
+        function openDrawer() { msgEl.textContent = ''; msgEl.className = 'cart-msg'; drawer.classList.add('is-open'); }
+        function closeDrawer() { drawer.classList.remove('is-open'); }
+
+        // API pública para o modal de produto
+        window.PantaleCart = {
+          add: async function (item) {
+            if (!token()) {
+              closeDrawer();
+              var openAuth = document.getElementById('btn-open-auth');
+              if (openAuth) openAuth.click();
+              return { needLogin: true };
+            }
+            try {
+              var payload = await api('/api/cart', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(item)
+              });
+              render(payload);
+              return { ok: true, payload: payload };
+            } catch (err) {
+              return { ok: false, error: err.message };
+            }
+          },
+          open: openDrawer,
+          close: closeDrawer,
+          refresh: refresh,
+          // Faz o pedido de verdade (chamado pela tela de pagamento)
+          doCheckout: async function (metodo, customer) {
+            var data = await api('/api/checkout', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ method: metodo, customer: customer || {} })
+            });
+            render(data.cart);
+            return data;
+          }
+        };
+
+        // "Finalizar compra" abre os dados de entrega (depois o pagamento)
+        checkoutBtn.addEventListener('click', function () {
+          if (!lastPayload.items.length) return;
+          closeDrawer();
+          window.PantaleDados.open(lastPayload.total);
+        });
+
+        document.getElementById('btn-open-cart').addEventListener('click', openDrawer);
+        document.getElementById('cart-close').addEventListener('click', closeDrawer);
+        backdrop.addEventListener('click', closeDrawer);
+        document.addEventListener('keydown', function (e) {
+          if (e.key === 'Escape' && drawer.classList.contains('is-open')) closeDrawer();
+        });
+
+        // Atualiza quando o login/logout acontece
+        document.addEventListener('pantale:auth', refresh);
+
+        refresh();
+      })();
+
+      /* ============================================================
+         PAGAMENTO (Cartão via Mercado Pago / Pix)
+         --------------------------------------------------------
+         >>> PREENCHA AQUI COM SEUS DADOS REAIS <<<
+      ============================================================ */
+      (function initPagamento() {
+        var PAGAMENTO = {
+          // Cole o link de pagamento do Mercado Pago (cartão):
+          mercadoPagoLink: '',   // ex: 'https://mpago.la/2xAbCd'
+          // Cole o Pix "copia e cola" (BR Code) OU sua chave Pix:
+          pixCodigo: '',         // ex: '00020126...5204000053039865802BR...'
+          // (opcional) imagem do QR Code do Pix em assets/:
+          pixQr: ''              // ex: 'assets/pix_qr.png'
+        };
+
+        var modal = document.getElementById('pagamento-modal');
+        var totalEl = document.getElementById('pagamento-total');
+        var metodoBtns = modal.querySelectorAll('.metodo-btn');
+        var paineis = modal.querySelectorAll('.pagamento-painel');
+        var pagarCartao = document.getElementById('pagar-cartao');
+        var pagarPix = document.getElementById('pagar-pix');
+        var pixResultado = document.getElementById('pix-resultado');
+        var pixTexto = document.getElementById('pix-codigo-texto');
+        var pixCopy = document.getElementById('pix-copy');
+        var pixQrWrap = document.getElementById('pix-qr-wrap');
+        var pixQrImg = document.getElementById('pix-qr');
+        var msgEl = document.getElementById('pagamento-msg');
+        var pedidoFeito = false;
+        var clienteAtual = {};
+
+        function setMsg(texto, tipo) {
+          msgEl.className = 'pagamento-msg' + (tipo ? ' is-' + tipo : '');
+          msgEl.textContent = texto;
+        }
+
+        function selectMetodo(m) {
+          metodoBtns.forEach(function (b) {
+            b.classList.toggle('is-active', b.getAttribute('data-metodo') === m);
+          });
+          paineis.forEach(function (p) {
+            p.hidden = p.getAttribute('data-painel') !== m;
+          });
+        }
+
+        function copiarPix() {
+          if (!PAGAMENTO.pixCodigo) return;
+          var feito = function () {
+            pixCopy.textContent = 'Código copiado!';
+            setTimeout(function () { pixCopy.textContent = 'Copiar código Pix'; }, 1800);
+          };
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(PAGAMENTO.pixCodigo).then(feito).catch(feito);
+          } else { feito(); }
+        }
+
+        // Registra o pedido no backend assim que o cliente inicia o pagamento
+        function registrarPedido(metodo) {
+          if (pedidoFeito) return;
+          pedidoFeito = true;
+          pagarCartao.disabled = true;
+          pagarPix.disabled = true;
+          setMsg('Registrando pedido...');
+          window.PantaleCart.doCheckout(metodo, clienteAtual).then(function (data) {
+            setMsg('Pedido #' + data.orderId + ' registrado · R$ ' + data.total +
+                   '. Assim que o pagamento for aprovado, ele entra em produção.', 'success');
+          }).catch(function (err) {
+            pedidoFeito = false;
+            pagarCartao.disabled = false;
+            pagarPix.disabled = false;
+            setMsg(err.message, 'error');
+          });
+        }
+
+        // CARTÃO: abre o Mercado Pago e registra o pedido
+        pagarCartao.addEventListener('click', function () {
+          if (!PAGAMENTO.mercadoPagoLink) {
+            setMsg('Configure o link do Mercado Pago no código.', 'error');
+            return;
+          }
+          // abre o link no gesto do clique (evita bloqueio de pop-up)
+          window.open(PAGAMENTO.mercadoPagoLink, '_blank', 'noopener');
+          registrarPedido('cartao');
+        });
+
+        // PIX: mostra o código/QR e registra o pedido
+        pagarPix.addEventListener('click', function () {
+          if (!PAGAMENTO.pixCodigo) {
+            setMsg('Configure o código Pix no código.', 'error');
+            return;
+          }
+          pixTexto.textContent = PAGAMENTO.pixCodigo;
+          if (PAGAMENTO.pixQr) { pixQrImg.src = PAGAMENTO.pixQr; pixQrWrap.hidden = false; }
+          else { pixQrWrap.hidden = true; }
+          pixResultado.hidden = false;
+          copiarPix();
+          registrarPedido('pix');
+        });
+
+        pixCopy.addEventListener('click', copiarPix);
+
+        function open(total, customer) {
+          clienteAtual = customer || {};
+          totalEl.textContent = 'R$ ' + total;
+          setMsg('');
+          pedidoFeito = false;
+          pagarCartao.disabled = false;
+          pagarPix.disabled = false;
+          pixResultado.hidden = true;
+          selectMetodo('cartao');
+          modal.classList.add('is-open');
+        }
+        function close() { modal.classList.remove('is-open'); }
+
+        window.PantalePagamento = { open: open };
+
+        metodoBtns.forEach(function (b) {
+          b.addEventListener('click', function () { selectMetodo(b.getAttribute('data-metodo')); });
+        });
+
+        document.getElementById('pagamento-close').addEventListener('click', close);
+        modal.addEventListener('click', function (e) { if (e.target === modal) close(); });
+        document.addEventListener('keydown', function (e) {
+          if (e.key === 'Escape' && modal.classList.contains('is-open')) close();
+        });
+      })();
+
+      /* ============================================================
+         DADOS DE ENTREGA (perfil do cliente + CEP automático)
+      ============================================================ */
+      (function initDados() {
+        var API_BASE = (location.port && location.port !== '3000') ? 'http://localhost:3000' : '';
+        var TOKEN_KEY = 'pantale_token';
+        function token() { return localStorage.getItem(TOKEN_KEY); }
+
+        var modal = document.getElementById('dados-modal');
+        var form = document.getElementById('dados-form');
+        var erroEl = document.getElementById('dados-erro');
+        var cepInput = document.getElementById('d-cep');
+        var cepStatus = document.getElementById('cep-status');
+        var totalAtual = 0;
+
+        var F = {
+          name: document.getElementById('d-nome'),
+          email: document.getElementById('d-email'),
+          phone: document.getElementById('d-tel'),
+          cep: cepInput,
+          address: document.getElementById('d-end'),
+          number: document.getElementById('d-num'),
+          complement: document.getElementById('d-comp'),
+          district: document.getElementById('d-bairro'),
+          city: document.getElementById('d-cidade'),
+          uf: document.getElementById('d-uf')
+        };
+
+        async function api(path, options) {
+          options = options || {};
+          options.headers = Object.assign(
+            { Authorization: 'Bearer ' + token() }, options.headers || {}
+          );
+          var res = await fetch(API_BASE + path, options);
+          var data = {};
+          try { data = await res.json(); } catch (e) {}
+          if (!res.ok) throw new Error(data.error || 'Erro.');
+          return data;
+        }
+
+        function preencher(p) {
+          p = p || {};
+          Object.keys(F).forEach(function (k) {
+            if (F[k] && p[k] != null && !F[k].value) F[k].value = p[k];
+          });
+          // nome/email sempre vêm da conta
+          if (p.name) F.name.value = p.name;
+          if (p.email) F.email.value = p.email;
+        }
+
+        // Busca CEP no ViaCEP e preenche endereço/bairro/cidade/UF
+        async function buscarCep() {
+          var cep = (cepInput.value || '').replace(/\D/g, '');
+          if (cep.length !== 8) return;
+          cepStatus.textContent = 'buscando...';
+          cepStatus.className = 'cep-status';
+          try {
+            var res = await fetch('https://viacep.com.br/ws/' + cep + '/json/');
+            var d = await res.json();
+            if (d.erro) {
+              cepStatus.textContent = 'CEP não encontrado';
+              cepStatus.className = 'cep-status is-error';
+              return;
+            }
+            if (d.logradouro) F.address.value = d.logradouro;
+            if (d.bairro) F.district.value = d.bairro;
+            if (d.localidade) F.city.value = d.localidade;
+            if (d.uf) F.uf.value = d.uf;
+            cepStatus.textContent = 'encontrado';
+            cepStatus.className = 'cep-status is-ok';
+            F.number.focus();
+          } catch (e) {
+            cepStatus.textContent = 'erro ao buscar';
+            cepStatus.className = 'cep-status is-error';
+          }
+        }
+
+        // Máscara simples de CEP (00000-000)
+        cepInput.addEventListener('input', function () {
+          var v = cepInput.value.replace(/\D/g, '').slice(0, 8);
+          cepInput.value = v.length > 5 ? v.slice(0, 5) + '-' + v.slice(5) : v;
+          cepStatus.textContent = '';
+          if (v.length === 8) buscarCep();
+        });
+        cepInput.addEventListener('blur', buscarCep);
+
+        function coletar() {
+          var c = {};
+          Object.keys(F).forEach(function (k) { c[k] = (F[k].value || '').trim(); });
+          c.uf = c.uf.toUpperCase();
+          return c;
+        }
+
+        function validar(c) {
+          var obrig = ['name', 'email', 'phone', 'cep', 'address', 'number', 'district', 'city', 'uf'];
+          for (var i = 0; i < obrig.length; i++) {
+            if (!c[obrig[i]]) return 'Preencha todos os campos obrigatórios.';
+          }
+          if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(c.email)) return 'E-mail inválido.';
+          return null;
+        }
+
+        async function open(total) {
+          totalAtual = total;
+          erroEl.classList.remove('is-visible');
+          cepStatus.textContent = '';
+          modal.classList.add('is-open');
+          // Pré-preenche com o perfil salvo do cliente
+          try {
+            var data = await api('/api/profile');
+            preencher(data.profile);
+          } catch (e) {}
+        }
+        function close() { modal.classList.remove('is-open'); }
+
+        window.PantaleDados = { open: open };
+
+        form.addEventListener('submit', async function (e) {
+          e.preventDefault();
+          erroEl.classList.remove('is-visible');
+          var c = coletar();
+          var erro = validar(c);
+          if (erro) {
+            erroEl.textContent = erro;
+            erroEl.classList.add('is-visible');
+            return;
+          }
+          // Salva no perfil para a próxima compra já vir preenchida
+          try {
+            await api('/api/profile', {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(c)
+            });
+          } catch (e) {}
+          close();
+          window.PantalePagamento.open(totalAtual, c);
+        });
+
+        document.getElementById('dados-close').addEventListener('click', close);
+        modal.addEventListener('click', function (e) { if (e.target === modal) close(); });
+        document.addEventListener('keydown', function (e) {
+          if (e.key === 'Escape' && modal.classList.contains('is-open')) close();
+        });
+      })();
+
+      /* ============================================================
+         MODAL DE PRODUTO (galeria, tamanhos)
+      ============================================================ */
+      (function initProdutoModal() {
+        var modal = document.getElementById('produto-modal');
+        var mainEl = document.getElementById('produto-modal-main');
+        var thumbsEl = document.getElementById('produto-modal-thumbs');
+        var titleEl = document.getElementById('produto-modal-title');
+        var precoEl = document.getElementById('produto-modal-preco');
+        var sizesEl = document.getElementById('produto-modal-sizes');
+        var ctaEl = document.getElementById('produto-modal-cta');
+        var msgEl = document.getElementById('produto-modal-msg');
+        var selectedSize = null;
+
+        function setMain(s) {
+          mainEl.innerHTML = '<img src="' + s.src + '" alt="' + (s.alt || '') + '">';
+        }
+
+        function openProduto(card) {
+          var nome = card.querySelector('h3').textContent;
+          var preco = card.querySelector('.produto-preco').textContent;
+          var imgs = card.querySelectorAll('.produto-img .produto-gallery-img');
+
+          titleEl.textContent = nome;
+          precoEl.textContent = preco;
+          selectedSize = null;
+          msgEl.textContent = '';
+          msgEl.classList.remove('is-error');
+          sizesEl.querySelectorAll('.size-btn').forEach(function (b) { b.classList.remove('is-active'); });
+
+          thumbsEl.innerHTML = '';
+          if (imgs.length) {
+            var sources = Array.prototype.map.call(imgs, function (img) {
+              return { src: img.getAttribute('src'), alt: img.getAttribute('alt') };
+            });
+            setMain(sources[0]);
+            sources.forEach(function (s, i) {
+              var thumb = document.createElement('button');
+              thumb.type = 'button';
+              thumb.className = 'produto-modal-thumb' + (i === 0 ? ' is-active' : '');
+              thumb.innerHTML = '<img src="' + s.src + '" alt="' + (s.alt || '') + '">';
+              thumb.addEventListener('click', function () {
+                setMain(s);
+                thumbsEl.querySelectorAll('.produto-modal-thumb').forEach(function (t) { t.classList.remove('is-active'); });
+                thumb.classList.add('is-active');
+              });
+              thumbsEl.appendChild(thumb);
+            });
+          } else {
+            var placeholderText = card.querySelector('.produto-img').textContent.trim();
+            mainEl.innerHTML = '<div class="produto-modal-placeholder">' + placeholderText + '</div>';
+          }
+
+          modal.classList.add('is-open');
+        }
+
+        function closeProduto() {
+          modal.classList.remove('is-open');
+        }
+
+        document.querySelectorAll('.produto-card').forEach(function (card) {
+          card.addEventListener('click', function () { openProduto(card); });
+          card.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openProduto(card); }
+          });
+        });
+
+        sizesEl.querySelectorAll('.size-btn').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            sizesEl.querySelectorAll('.size-btn').forEach(function (b) { b.classList.remove('is-active'); });
+            btn.classList.add('is-active');
+            selectedSize = btn.getAttribute('data-size');
+            msgEl.textContent = '';
+            msgEl.classList.remove('is-error');
+          });
+        });
+
+        ctaEl.addEventListener('click', function () {
+          if (!selectedSize) {
+            msgEl.textContent = 'Selecione um tamanho.';
+            msgEl.classList.add('is-error');
+            return;
+          }
+          var nome = titleEl.textContent;
+          var digits = (precoEl.textContent.match(/\d+/g) || ['0']).join('');
+          var precoNum = parseInt(digits, 10);
+
+          msgEl.classList.remove('is-error');
+          msgEl.textContent = 'Adicionando...';
+          ctaEl.disabled = true;
+
+          window.PantaleCart.add({ product: nome, price: precoNum, size: selectedSize })
+            .then(function (result) {
+              if (result && result.needLogin) {
+                msgEl.classList.add('is-error');
+                msgEl.textContent = 'Entre na sua conta para adicionar à sacola.';
+              } else if (result && result.ok) {
+                msgEl.classList.remove('is-error');
+                msgEl.textContent = 'Adicionado à sacola · Tamanho ' + selectedSize + '.';
+                setTimeout(function () {
+                  closeProduto();
+                  window.PantaleCart.open();
+                }, 650);
+              } else {
+                msgEl.classList.add('is-error');
+                msgEl.textContent = (result && result.error) || 'Erro ao adicionar.';
+              }
+            })
+            .finally(function () { ctaEl.disabled = false; });
+        });
+
+        document.getElementById('produto-modal-close').addEventListener('click', closeProduto);
+        modal.addEventListener('click', function (e) { if (e.target === modal) closeProduto(); });
+        document.addEventListener('keydown', function (e) {
+          if (e.key === 'Escape' && modal.classList.contains('is-open')) closeProduto();
+        });
+      })();
+
+      /* ============================================================
+         AUTENTICAÇÃO (login / cadastro)
+      ============================================================ */
+      (function initAuth() {
+        // Em dev o site abre na porta do preview; a API roda na 3000.
+        // Em produção (servido pelo próprio Node) usamos mesma origem.
+        var API_BASE = (location.port && location.port !== '3000') ? 'http://localhost:3000' : '';
+        var TOKEN_KEY = 'pantale_token';
+
+        var modal = document.getElementById('auth-modal');
+        var form = document.getElementById('auth-form');
+        var errorEl = document.getElementById('auth-error');
+        var okEl = document.getElementById('auth-ok');
+        var submitBtn = document.getElementById('auth-submit');
+        var navUser = document.getElementById('nav-user');
+        var resetToken = null;
+
+        function setMode(mode) {
+          modal.setAttribute('data-mode', mode);
+          hideError();
+          hideOk();
+        }
+        function openModal(mode) {
+          setMode(mode || 'login');
+          modal.classList.add('is-open');
+          // foca o primeiro campo visível do modo atual
+          var campos = form.querySelectorAll('.auth-field');
+          for (var i = 0; i < campos.length; i++) {
+            if (campos[i].offsetParent !== null) {
+              var inp = campos[i].querySelector('input');
+              if (inp) inp.focus();
+              break;
+            }
+          }
+        }
+        function closeModal() {
+          modal.classList.remove('is-open');
+          form.reset();
+          hideError();
+          hideOk();
+        }
+        function showError(msg) {
+          hideOk();
+          errorEl.textContent = msg;
+          errorEl.classList.add('is-visible');
+        }
+        function hideError() {
+          errorEl.classList.remove('is-visible');
+        }
+        function showOk(msg) {
+          hideError();
+          okEl.textContent = msg;
+          okEl.classList.add('is-visible');
+        }
+        function hideOk() {
+          okEl.classList.remove('is-visible');
+        }
+        function clearResetParam() {
+          resetToken = null;
+          if (history.replaceState) {
+            history.replaceState(null, '', location.pathname + location.hash);
+          }
+        }
+
+        function applyAuthState(user) {
+          var loggedIn = !!user;
+          document.querySelectorAll('[data-auth-state="logged-in"]').forEach(function (el) {
+            el.hidden = !loggedIn;
+          });
+          document.querySelectorAll('[data-auth-state="logged-out"]').forEach(function (el) {
+            el.hidden = loggedIn;
+          });
+          if (loggedIn) {
+            var first = (user.name || '').trim().split(/\s+/)[0] || 'Conta';
+            navUser.textContent = 'Olá, ' + first;
+          }
+          document.dispatchEvent(new CustomEvent('pantale:auth', { detail: { user: user || null } }));
+        }
+
+        function saveToken(t) { localStorage.setItem(TOKEN_KEY, t); }
+        function getToken() { return localStorage.getItem(TOKEN_KEY); }
+        function clearToken() { localStorage.removeItem(TOKEN_KEY); }
+
+        async function api(path, options) {
+          var res = await fetch(API_BASE + path, options);
+          var data = {};
+          try { data = await res.json(); } catch (e) {}
+          if (!res.ok) throw new Error(data.error || 'Algo deu errado.');
+          return data;
+        }
+
+        // Restaura sessão se houver token válido
+        (async function restoreSession() {
+          var token = getToken();
+          if (!token) return;
+          try {
+            var data = await api('/api/me', { headers: { Authorization: 'Bearer ' + token } });
+            applyAuthState(data.user);
+          } catch (e) {
+            clearToken();
+          }
+        })();
+
+        // Submit — login / cadastro / esqueci senha / redefinir senha
+        form.addEventListener('submit', async function (e) {
+          e.preventDefault();
+          hideError();
+          hideOk();
+          var mode = modal.getAttribute('data-mode');
+          submitBtn.disabled = true;
+          try {
+            if (mode === 'forgot') {
+              var data = await api('/api/forgot', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  email: document.getElementById('auth-email').value,
+                  origin: location.origin
+                })
+              });
+              var msg = data.message || 'Se este e-mail tiver conta, enviamos um link.';
+              if (data.aviso) msg += ' ' + data.aviso;
+              showOk(msg);
+            } else if (mode === 'reset') {
+              var p1 = document.getElementById('auth-password').value;
+              var p2 = document.getElementById('auth-password2').value;
+              if (p1 !== p2) { showError('As senhas não conferem.'); return; }
+              var rdata = await api('/api/reset', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token: resetToken, password: p1 })
+              });
+              saveToken(rdata.token);
+              applyAuthState(rdata.user);
+              clearResetParam();
+              showOk('Senha redefinida! Você já está conectado.');
+              setTimeout(closeModal, 1500);
+            } else {
+              var payload = {
+                email: document.getElementById('auth-email').value,
+                password: document.getElementById('auth-password').value
+              };
+              if (mode === 'register') payload.name = document.getElementById('auth-name').value;
+              var endpoint = mode === 'register' ? '/api/register' : '/api/login';
+              var data2 = await api(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+              });
+              saveToken(data2.token);
+              applyAuthState(data2.user);
+              closeModal();
+            }
+          } catch (err) {
+            showError(err.message);
+          } finally {
+            submitBtn.disabled = false;
+          }
+        });
+
+        // Logout
+        document.getElementById('btn-logout').addEventListener('click', function () {
+          clearToken();
+          applyAuthState(null);
+        });
+
+        // Abrir / fechar / alternar modo
+        document.getElementById('btn-open-auth').addEventListener('click', function () { openModal('login'); });
+        document.getElementById('auth-close').addEventListener('click', closeModal);
+        document.getElementById('auth-switch-btn').addEventListener('click', function () { setMode('register'); });
+        document.getElementById('auth-switch-btn-2').addEventListener('click', function () { setMode('login'); });
+        document.getElementById('auth-switch-btn-3').addEventListener('click', function () { setMode('login'); });
+        document.getElementById('auth-switch-btn-4').addEventListener('click', function () { setMode('login'); });
+        document.getElementById('auth-forgot-btn').addEventListener('click', function () { setMode('forgot'); });
+        modal.addEventListener('click', function (e) { if (e.target === modal) closeModal(); });
+        document.addEventListener('keydown', function (e) {
+          if (e.key === 'Escape' && modal.classList.contains('is-open')) closeModal();
+        });
+
+        // Link de redefinição vindo do e-mail: ?reset=TOKEN abre o modo "reset"
+        (function checkResetLink() {
+          var t = new URLSearchParams(location.search).get('reset');
+          if (t) {
+            resetToken = t;
+            openModal('reset');
+          }
+        })();
+      })();
+
+      /* ============================================================
+         RIPPLE EM BOTÕES
+      ============================================================ */
+      document.querySelectorAll('.btn').forEach(function (btn) {
+        btn.addEventListener('click', function (e) {
+          if (reduceMotion) return;
+          var rect = btn.getBoundingClientRect();
+          var ripple = document.createElement('span');
+          var size = Math.max(rect.width, rect.height);
+          ripple.className = 'ripple';
+          ripple.style.width = ripple.style.height = size + 'px';
+          ripple.style.left = (e.clientX - rect.left - size / 2) + 'px';
+          ripple.style.top = (e.clientY - rect.top - size / 2) + 'px';
+          btn.appendChild(ripple);
+          setTimeout(function () { ripple.remove(); }, 600);
+        });
+      });
+
+    })();
+  </script>
+</body>
+</html>

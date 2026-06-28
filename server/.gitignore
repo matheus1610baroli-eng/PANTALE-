@@ -1,0 +1,6 @@
+node_modules/
+pantale.db
+pantale.db-journal
+.jwt-secret
+.admin-key
+mail-config.json

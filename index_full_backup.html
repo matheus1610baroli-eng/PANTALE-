@@ -1,0 +1,2246 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pantale — Luxo não é pagar caro, é preservar o que é nosso</title>
+  <meta name="description" content="Pantale: moda consciente com alma brasileira. Wellness, prosperidade e orgulho nacional em cada peça.">
+
+  <!-- ASSET PENDENTE: favicon.png -->
+  <link rel="icon" href="assets/favicon.png" type="image/png">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+
+  <style>
+    /* ============================================================
+       RESET
+    ============================================================ */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    img, video { display: block; max-width: 100%; }
+    a { color: inherit; text-decoration: none; }
+    button { font-family: inherit; cursor: pointer; border: none; background: none; }
+    ul { list-style: none; }
+
+    /* ============================================================
+       VARIÁVEIS
+    ============================================================ */
+    :root {
+      --bege: #F5E6C8;
+      --manteiga: #E8C97A;
+      --caramelo: #C4853A;
+      --escuro: #2A1A06;
+      --medio: #7A5C32;
+      --claro: #FBF5E8;
+      --branco: #FFFDF7;
+
+      --font-display: 'Playfair Display', serif;
+      --font-body: 'Inter', sans-serif;
+
+      --container: 1280px;
+      --gap: 24px;
+
+      --transition-fast: 0.25s ease;
+      --transition-medium: 0.35s ease-out;
+      --transition-slow: 0.6s ease-in-out;
+
+      --radius-card: 16px 4px 16px 4px;
+      --shadow-soft: 0 12px 32px rgba(42, 26, 6, 0.12);
+    }
+
+    /* ============================================================
+       BASE
+    ============================================================ */
+    body {
+      font-family: var(--font-body);
+      font-weight: 300;
+      font-size: 16px;
+      line-height: 1.6;
+      color: var(--escuro);
+      background: var(--bege);
+      overflow-x: hidden;
+    }
+
+    h1, h2, h3, h4 {
+      font-family: var(--font-display);
+      font-weight: 600;
+      line-height: 1.15;
+    }
+
+    .container {
+      width: 100%;
+      max-width: var(--container);
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    .eyebrow {
+      display: inline-block;
+      font-family: var(--font-body);
+      font-weight: 400;
+      font-size: 11px;
+      letter-spacing: 0.26em;
+      text-transform: uppercase;
+      color: var(--caramelo);
+      margin-bottom: 16px;
+    }
+
+    .section-title {
+      font-size: 40px;
+      margin-bottom: 16px;
+    }
+
+    .section-title em {
+      font-style: italic;
+      color: var(--caramelo);
+    }
+
+    /* Botões */
+    .btn {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 16px 32px;
+      font-family: var(--font-body);
+      font-weight: 500;
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      border-radius: 999px;
+      transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast);
+      overflow: hidden;
+      white-space: nowrap;
+    }
+    .btn:active { transform: scale(0.97); }
+
+    .btn-primary {
+      background: var(--caramelo);
+      color: var(--branco);
+    }
+    .btn-primary:hover { background: #ad6f2f; }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--bege);
+      border: 1px solid rgba(245, 230, 200, 0.4);
+    }
+    .btn-outline:hover {
+      border-color: var(--bege);
+      background: rgba(245, 230, 200, 0.08);
+    }
+
+    /* Ripple */
+    .btn .ripple {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.45);
+      transform: scale(0);
+      animation: ripple-anim 0.6s ease-out;
+      pointer-events: none;
+    }
+    @keyframes ripple-anim {
+      to { transform: scale(3); opacity: 0; }
+    }
+
+    /* Foco visível */
+    a:focus-visible,
+    button:focus-visible,
+    input:focus-visible {
+      outline: 2px solid var(--caramelo);
+      outline-offset: 3px;
+      border-radius: 4px;
+    }
+
+    /* Reveal de seções via IntersectionObserver */
+    .reveal {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .reveal.is-visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Seções ocultas até a navegação a partir do Hero */
+    .section-locked {
+      display: none;
+    }
+
+    /* ============================================================
+       [0] INTRO SCREEN
+    ============================================================ */
+    #intro {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      background: var(--bege);
+      overflow: hidden;
+    }
+    #intro.intro-hidden {
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.7s ease;
+    }
+    #intro.intro-hidden .intro-phase { display: none; }
+
+    .intro-phase {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+    }
+    .intro-phase.is-active { opacity: 1; }
+
+    /* Fase 1 — vídeo onça */
+    #intro-phase-1 {
+      transition: opacity 0.6s ease;
+    }
+    #intro-phase-1 video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .intro-progress {
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      width: 100%;
+      height: 2px;
+      background: rgba(42, 26, 6, 0.12);
+      z-index: 5;
+    }
+    .intro-progress-bar {
+      height: 100%;
+      width: 0%;
+      background: var(--caramelo);
+      transition: width 0.05s linear;
+    }
+
+    /* Fase 2 — transição pelagem */
+    #intro-phase-2 {
+      clip-path: circle(0% at 50% 50%);
+      transition: clip-path 1.2s ease-in-out;
+    }
+    #intro-phase-2.is-active {
+      clip-path: circle(150% at 50% 50%);
+    }
+    #intro-phase-2 img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* Fase 3 — reveal camiseta */
+    #intro-phase-3 {
+      flex-direction: column;
+      gap: 32px;
+      transition: opacity 0.6s ease;
+    }
+    #intro-phase-3 img {
+      max-width: 420px;
+      width: 70%;
+      transition: opacity 0.6s ease;
+    }
+    .intro-logo {
+      font-family: var(--font-display);
+      font-size: 42px;
+      letter-spacing: 0.08em;
+      color: var(--escuro);
+      transform: translateY(-16px);
+      opacity: 0;
+      transition: transform 0.6s ease, opacity 0.6s ease;
+    }
+    #intro-phase-3.is-active .intro-logo {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    .intro-cta {
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+      transition-delay: 0.4s;
+    }
+    #intro-phase-3.is-active .intro-cta {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* prefers-reduced-motion para a intro: pula direto para o site */
+    @media (prefers-reduced-motion: reduce) {
+      #intro { display: none !important; }
+    }
+
+    /* ============================================================
+       [1] NAVBAR
+    ============================================================ */
+    #navbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 0;
+      background: transparent;
+      transition: background var(--transition-medium), padding var(--transition-medium);
+    }
+    #navbar.scrolled {
+      background: var(--escuro);
+      padding: 14px 0;
+      box-shadow: var(--shadow-soft);
+    }
+    #navbar .container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .nav-logo {
+      font-family: var(--font-display);
+      font-size: 24px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      color: var(--bege);
+    }
+    .nav-links {
+      display: flex;
+      gap: 40px;
+    }
+    .nav-links a {
+      font-size: 13px;
+      font-weight: 400;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--bege);
+      position: relative;
+      padding-bottom: 4px;
+      transition: color var(--transition-fast);
+    }
+    .nav-links a::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      width: 0;
+      height: 1px;
+      background: var(--caramelo);
+      transition: width var(--transition-fast);
+    }
+    .nav-links a:hover::after { width: 100%; }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+    .nav-icon-btn {
+      position: relative;
+      color: var(--bege);
+      display: inline-flex;
+      transition: color var(--transition-fast), transform var(--transition-fast);
+    }
+    .nav-icon-btn:hover { color: var(--caramelo); transform: translateY(-2px); }
+    .nav-icon-btn svg { width: 20px; height: 20px; }
+    .nav-badge {
+      position: absolute;
+      top: -6px;
+      right: -8px;
+      min-width: 16px;
+      height: 16px;
+      padding: 0 4px;
+      border-radius: 999px;
+      background: var(--caramelo);
+      color: var(--branco);
+      font-size: 10px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .nav-burger {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      color: var(--bege);
+    }
+    .nav-burger span {
+      display: block;
+      width: 24px;
+      height: 1px;
+      background: currentColor;
+      transition: transform var(--transition-fast), opacity var(--transition-fast);
+    }
+
+    /* Drawer mobile do menu */
+    #mobile-drawer {
+      position: fixed;
+      top: 0;
+      right: 0;
+      height: 100%;
+      width: min(320px, 86vw);
+      background: var(--escuro);
+      z-index: 200;
+      transform: translateX(100%);
+      transition: transform var(--transition-medium);
+      padding: 100px 32px 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+    #mobile-drawer.is-open { transform: translateX(0); }
+    #mobile-drawer a {
+      font-size: 16px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--bege);
+    }
+    #mobile-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(42, 26, 6, 0.6);
+      z-index: 150;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity var(--transition-medium);
+    }
+    #mobile-overlay.is-visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* ============================================================
+       [2] HERO
+    ============================================================ */
+    #hero {
+      position: relative;
+      height: 100vh;
+      min-height: 600px;
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+    }
+    #hero video {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: 0;
+    }
+    .hero-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(42, 26, 6, 0.55);
+      z-index: 1;
+    }
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      max-width: 640px;
+    }
+    .hero-content h1 {
+      font-size: 56px;
+      color: var(--bege);
+      margin-bottom: 20px;
+    }
+    .hero-content h1 em {
+      font-style: italic;
+      color: var(--manteiga);
+    }
+    .hero-content p {
+      font-size: 14px;
+      font-weight: 300;
+      color: var(--bege);
+      opacity: 0.75;
+      margin-bottom: 36px;
+      max-width: 420px;
+    }
+    .hero-ctas {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    @media (max-width: 768px) {
+      .hero-content h1 { font-size: 36px; }
+    }
+
+    /* ============================================================
+       [3] MANIFESTO — TRÊS PILARES
+    ============================================================ */
+    #valores {
+      background: var(--bege);
+      padding: 120px 0;
+    }
+    .manifesto-header {
+      max-width: 600px;
+      margin-bottom: 64px;
+    }
+    .manifesto-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--gap);
+    }
+    .pillar-card {
+      background: var(--branco);
+      border-radius: var(--radius-card);
+      padding: 40px 32px;
+      transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+    }
+    .pillar-card:hover {
+      transform: translateY(-6px);
+      box-shadow: var(--shadow-soft);
+    }
+    .pillar-icon {
+      width: 48px;
+      height: 48px;
+      margin-bottom: 24px;
+      color: var(--caramelo);
+    }
+    .pillar-icon svg { width: 100%; height: 100%; }
+    .pillar-card h3 { font-size: 22px; margin-bottom: 12px; }
+    .pillar-card p { font-size: 14px; font-weight: 300; color: var(--medio); }
+
+    @media (max-width: 1024px) {
+      .manifesto-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ============================================================
+       [4] PRODUTO DESTAQUE — CAMISETA ONÇA WELLNESS
+    ============================================================ */
+    #produto-destaque {
+      background: var(--claro);
+      padding: 120px 0;
+    }
+    .produto-destaque-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 64px;
+      align-items: center;
+    }
+    .produto-imagem-principal {
+      position: relative;
+      border-radius: var(--radius-card);
+      overflow: hidden;
+      aspect-ratio: 3 / 4;
+    }
+    .produto-imagem-principal img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: opacity var(--transition-medium);
+    }
+    .produto-imagem-principal img.img-hover {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+    }
+    .produto-imagem-principal:hover img.img-hover { opacity: 1; }
+    .produto-imagem-principal:hover img.img-base { opacity: 0; }
+    .produto-badge {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      z-index: 2;
+      background: var(--escuro);
+      color: var(--manteiga);
+      font-size: 11px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      padding: 8px 16px;
+      border-radius: 999px;
+    }
+    .produto-info h2 { font-size: 36px; margin-bottom: 12px; }
+    .produto-preco { font-size: 24px; font-weight: 500; color: var(--caramelo); margin-bottom: 24px; }
+    .produto-descricao { font-size: 15px; color: var(--medio); margin-bottom: 32px; max-width: 440px; }
+    .cor-seletor { display: flex; gap: 12px; align-items: center; margin-bottom: 32px; }
+    .cor-label {
+      font-size: 12px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--medio);
+      margin-right: 4px;
+    }
+    .cor-dot {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      box-shadow: 0 0 0 1px rgba(42,26,6,0.15);
+      transition: border-color var(--transition-fast), transform var(--transition-fast);
+    }
+    .cor-dot.is-active { border-color: var(--escuro); transform: scale(1.12); }
+    .cor-dot[data-cor="bege"] { background: var(--bege); }
+    .cor-dot[data-cor="caramelo"] { background: var(--caramelo); }
+    .cor-dot[data-cor="escuro"] { background: var(--escuro); }
+    .produto-add-cart.is-added { background: var(--escuro); }
+    .produto-galeria-secundaria {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 32px;
+    }
+    .produto-galeria-secundaria img {
+      border-radius: var(--radius-card);
+      aspect-ratio: 1 / 1;
+      object-fit: cover;
+      width: 100%;
+    }
+    @media (max-width: 1024px) {
+      .produto-destaque-grid { grid-template-columns: 1fr; gap: 40px; }
+    }
+
+    /* ============================================================
+       [5] GRID DE PRODUTOS — COLEÇÃO
+    ============================================================ */
+    #colecao {
+      background: var(--bege);
+      padding: 120px 0;
+    }
+    .colecao-header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 24px;
+      margin-bottom: 48px;
+    }
+    .colecao-filtros {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .filtro-btn {
+      padding: 10px 22px;
+      border-radius: 999px;
+      border: 1px solid var(--medio);
+      font-size: 12px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--medio);
+      transition: all var(--transition-fast);
+    }
+    .filtro-btn.is-active,
+    .filtro-btn:hover {
+      background: var(--escuro);
+      border-color: var(--escuro);
+      color: var(--bege);
+    }
+    .produtos-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: var(--gap);
+    }
+    .produto-card {
+      position: relative;
+      background: var(--branco);
+      border-radius: var(--radius-card);
+      overflow: hidden;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+    .produto-card.is-hidden { display: none; }
+    .produto-card-img-wrap {
+      position: relative;
+      aspect-ratio: 3 / 4;
+      overflow: hidden;
+    }
+    .produto-card-img-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform var(--transition-medium);
+    }
+    .produto-card:hover .produto-card-img-wrap img { transform: scale(1.06); }
+    .produto-card-badge {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      background: var(--caramelo);
+      color: var(--branco);
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      padding: 6px 12px;
+      border-radius: 999px;
+      z-index: 2;
+    }
+    .produto-card-fav {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(255, 253, 247, 0.85);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--escuro);
+      opacity: 0;
+      transform: translateY(-6px);
+      transition: opacity var(--transition-fast), transform var(--transition-fast), color var(--transition-fast);
+      z-index: 2;
+    }
+    .produto-card-fav svg { width: 18px; height: 18px; }
+    .produto-card:hover .produto-card-fav,
+    .produto-card-fav.is-active {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .produto-card-fav.is-active { color: var(--caramelo); }
+    .produto-card-info { padding: 20px; }
+    .produto-card-info h3 { font-size: 17px; margin-bottom: 6px; }
+    .produto-card-preco { font-size: 14px; color: var(--medio); margin-bottom: 14px; }
+    .produto-card-add {
+      width: 100%;
+      padding: 12px;
+      border-radius: 999px;
+      border: 1px solid var(--escuro);
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--escuro);
+      transition: all var(--transition-fast);
+    }
+    .produto-card-add:hover { background: var(--escuro); color: var(--bege); }
+    .produto-card-add.is-added { background: var(--caramelo); border-color: var(--caramelo); color: var(--branco); }
+    @media (max-width: 1024px) {
+      .produtos-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 600px) {
+      .produtos-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ============================================================
+       [6] SOBRE A MARCA — EDITORIAL
+    ============================================================ */
+    #sobre {
+      background: var(--branco);
+      padding: 120px 0;
+    }
+    .sobre-grid {
+      display: grid;
+      grid-template-columns: 1.5fr 1fr;
+      gap: 64px;
+      align-items: center;
+      margin-bottom: 80px;
+    }
+    .sobre-texto p {
+      font-size: 15px;
+      font-weight: 300;
+      color: var(--medio);
+      margin-bottom: 20px;
+      max-width: 560px;
+    }
+    .sobre-imagem img {
+      width: 100%;
+      border-radius: var(--radius-card);
+      aspect-ratio: 4 / 5;
+      object-fit: cover;
+    }
+    .timeline {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: var(--gap);
+      position: relative;
+      padding-top: 40px;
+    }
+    .timeline::before {
+      content: '';
+      position: absolute;
+      top: 8px;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: var(--medio);
+      opacity: 0.3;
+    }
+    .timeline-item { position: relative; padding-top: 24px; }
+    .timeline-item::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--caramelo);
+      border: 3px solid var(--branco);
+    }
+    .timeline-year { font-family: var(--font-display); font-size: 28px; color: var(--escuro); margin-bottom: 8px; }
+    .timeline-desc { font-size: 13px; color: var(--medio); }
+    @media (max-width: 1024px) {
+      .sobre-grid { grid-template-columns: 1fr; }
+      .sobre-imagem { order: -1; }
+      .timeline { grid-template-columns: repeat(2, 1fr); gap: 40px; }
+    }
+
+    /* ============================================================
+       [7] LOOKBOOK
+    ============================================================ */
+    #lookbook {
+      background: var(--claro);
+      padding: 120px 0;
+    }
+    .lookbook-header { max-width: 600px; margin-bottom: 48px; }
+    .lookbook-grid {
+      columns: 3;
+      column-gap: var(--gap);
+    }
+    .lookbook-item {
+      position: relative;
+      margin-bottom: var(--gap);
+      border-radius: var(--radius-card);
+      overflow: hidden;
+      break-inside: avoid;
+      cursor: pointer;
+    }
+    .lookbook-item img { width: 100%; display: block; transition: transform var(--transition-medium); }
+    .lookbook-item:hover img { transform: scale(1.04); }
+    .lookbook-item:nth-child(2) img,
+    .lookbook-item:nth-child(5) img { aspect-ratio: 3 / 4; object-fit: cover; }
+    .lookbook-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(42, 26, 6, 0.55);
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: flex-end;
+      padding: 24px;
+      opacity: 0;
+      transition: opacity var(--transition-fast);
+    }
+    .lookbook-item:hover .lookbook-overlay { opacity: 1; }
+    .lookbook-overlay h3 { color: var(--bege); font-size: 20px; margin-bottom: 8px; }
+    .lookbook-overlay span {
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--manteiga);
+      border-bottom: 1px solid var(--manteiga);
+      padding-bottom: 2px;
+    }
+    #lookbook-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 300;
+      background: rgba(42, 26, 6, 0.85);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity var(--transition-fast);
+    }
+    #lookbook-modal.is-open { opacity: 1; pointer-events: auto; }
+    #lookbook-modal img { max-width: 90vw; max-height: 85vh; border-radius: 8px; }
+    .lookbook-modal-close {
+      position: absolute;
+      top: 24px;
+      right: 24px;
+      color: var(--bege);
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(245, 230, 200, 0.4);
+      border-radius: 50%;
+      transition: background var(--transition-fast);
+    }
+    .lookbook-modal-close:hover { background: rgba(245, 230, 200, 0.1); }
+    @media (max-width: 1024px) {
+      .lookbook-grid { columns: 2; }
+    }
+    @media (max-width: 600px) {
+      .lookbook-grid { columns: 1; }
+    }
+
+    /* Utilitário de acessibilidade */
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+    }
+
+    /* ============================================================
+       [8] DEPOIMENTOS
+    ============================================================ */
+    #depoimentos {
+      background: var(--escuro);
+      padding: 120px 0;
+      color: var(--bege);
+    }
+    .depoimentos-header { max-width: 600px; margin-bottom: 56px; }
+    .depoimentos-header .eyebrow { color: var(--manteiga); }
+    .depoimentos-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--gap);
+    }
+    .depoimento-card {
+      background: rgba(245, 230, 200, 0.05);
+      border: 1px solid rgba(245, 230, 200, 0.12);
+      border-radius: var(--radius-card);
+      padding: 32px;
+    }
+    .depoimento-stars {
+      color: var(--manteiga);
+      font-size: 14px;
+      letter-spacing: 2px;
+      margin-bottom: 16px;
+    }
+    .depoimento-frase {
+      font-style: italic;
+      font-size: 15px;
+      font-weight: 300;
+      margin-bottom: 24px;
+    }
+    .depoimento-autor { display: flex; align-items: center; gap: 12px; }
+    .depoimento-autor img { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; }
+    .depoimento-autor-info strong { display: block; font-size: 14px; font-weight: 500; }
+    .depoimento-autor-info span { font-size: 12px; color: var(--medio); }
+    @media (max-width: 1024px) {
+      .depoimentos-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ============================================================
+       [9] NEWSLETTER
+    ============================================================ */
+    #newsletter {
+      background: var(--caramelo);
+      padding: 100px 0;
+      text-align: center;
+    }
+    #newsletter .section-title { color: var(--branco); }
+    #newsletter .eyebrow { color: var(--escuro); }
+    .newsletter-form {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      max-width: 480px;
+      margin: 32px auto 0;
+      flex-wrap: wrap;
+    }
+    .newsletter-form.is-hidden { display: none; }
+    .newsletter-form input {
+      flex: 1;
+      min-width: 220px;
+      padding: 16px 24px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 253, 247, 0.4);
+      background: rgba(255, 253, 247, 0.1);
+      color: var(--branco);
+      font-family: var(--font-body);
+      font-size: 14px;
+    }
+    .newsletter-form input::placeholder { color: rgba(255, 253, 247, 0.7); }
+    .newsletter-form button {
+      padding: 16px 36px;
+      border-radius: 999px;
+      background: var(--escuro);
+      color: var(--bege);
+      font-size: 13px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      font-weight: 500;
+      transition: background var(--transition-fast);
+    }
+    .newsletter-form button:hover { background: #1c1103; }
+    .newsletter-success {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 32px;
+      color: var(--branco);
+      font-size: 15px;
+    }
+    .newsletter-success.is-visible {
+      display: flex;
+      animation: fade-in-up 0.5s ease;
+    }
+    .newsletter-success svg {
+      width: 28px;
+      height: 28px;
+      color: var(--branco);
+      background: var(--escuro);
+      border-radius: 50%;
+      padding: 6px;
+    }
+    @keyframes fade-in-up {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ============================================================
+       [10] FOOTER
+    ============================================================ */
+    #footer {
+      background: var(--escuro);
+      color: var(--bege);
+      padding: 80px 0 32px;
+    }
+    .footer-top {
+      display: grid;
+      grid-template-columns: 1.5fr 1fr 1fr 1fr 1fr;
+      gap: var(--gap);
+      padding-bottom: 56px;
+      border-bottom: 1px solid rgba(245, 230, 200, 0.12);
+    }
+    .footer-brand .nav-logo { color: var(--bege); display: block; margin-bottom: 12px; }
+    .footer-brand p { font-size: 13px; color: var(--medio); max-width: 240px; }
+    .footer-col h4 {
+      font-family: var(--font-body);
+      font-size: 12px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--manteiga);
+      margin-bottom: 20px;
+      font-weight: 500;
+    }
+    .footer-col ul { display: flex; flex-direction: column; gap: 12px; }
+    .footer-col a { font-size: 14px; color: var(--bege); opacity: 0.8; transition: opacity var(--transition-fast), color var(--transition-fast); }
+    .footer-col a:hover { opacity: 1; color: var(--manteiga); }
+    .footer-bottom {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 24px;
+      padding-top: 32px;
+    }
+    .footer-selos { display: flex; flex-wrap: wrap; gap: 12px; }
+    .footer-selo {
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      border: 1px solid rgba(245, 230, 200, 0.25);
+      border-radius: 999px;
+      padding: 8px 16px;
+      color: var(--bege);
+      opacity: 0.85;
+    }
+    .footer-social { display: flex; gap: 16px; }
+    .footer-social a {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 1px solid rgba(245, 230, 200, 0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--bege);
+      transition: background var(--transition-fast), color var(--transition-fast);
+    }
+    .footer-social a:hover { background: var(--caramelo); color: var(--branco); }
+    .footer-social svg { width: 16px; height: 16px; }
+    .footer-copy { font-size: 12px; color: var(--medio); text-align: center; margin-top: 32px; }
+    @media (max-width: 1024px) {
+      .footer-top { grid-template-columns: repeat(2, 1fr); gap: 40px; }
+    }
+    @media (max-width: 600px) {
+      .footer-top { grid-template-columns: 1fr; }
+      .footer-bottom { flex-direction: column; align-items: flex-start; }
+    }
+
+    /* ============================================================
+       [11] CARRINHO — DRAWER LATERAL
+    ============================================================ */
+    #cart-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(42, 26, 6, 0.5);
+      z-index: 390;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity var(--transition-medium);
+    }
+    #cart-overlay.is-visible { opacity: 1; pointer-events: auto; }
+    #cart-drawer {
+      position: fixed;
+      top: 0;
+      right: 0;
+      height: 100%;
+      width: min(420px, 92vw);
+      background: var(--branco);
+      z-index: 400;
+      transform: translateX(100%);
+      transition: transform var(--transition-medium);
+      display: flex;
+      flex-direction: column;
+      box-shadow: -12px 0 40px rgba(42, 26, 6, 0.18);
+    }
+    #cart-drawer.is-open { transform: translateX(0); }
+    .cart-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 28px 28px 20px;
+      border-bottom: 1px solid rgba(42, 26, 6, 0.08);
+    }
+    .cart-header h3 { font-size: 22px; }
+    .cart-close {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--escuro);
+      transition: background var(--transition-fast);
+    }
+    .cart-close:hover { background: rgba(42, 26, 6, 0.06); }
+    .cart-items {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .cart-empty { text-align: center; color: var(--medio); font-size: 14px; padding: 60px 0; }
+    .cart-item {
+      display: grid;
+      grid-template-columns: 72px 1fr auto;
+      gap: 16px;
+      align-items: center;
+    }
+    .cart-item img {
+      width: 72px;
+      height: 90px;
+      object-fit: cover;
+      border-radius: 8px;
+      background: var(--claro);
+    }
+    .cart-item-info h4 { font-size: 14px; margin-bottom: 6px; }
+    .cart-item-preco { font-size: 13px; color: var(--medio); margin-bottom: 8px; }
+    .cart-item-qty { display: flex; align-items: center; gap: 8px; }
+    .cart-item-qty button {
+      width: 24px;
+      height: 24px;
+      border: 1px solid var(--medio);
+      border-radius: 50%;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--escuro);
+      transition: background var(--transition-fast);
+    }
+    .cart-item-qty button:hover { background: var(--claro); }
+    .cart-item-qty span { font-size: 13px; min-width: 16px; text-align: center; }
+    .cart-item-remove {
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--caramelo);
+      text-align: right;
+      align-self: start;
+    }
+    .cart-footer { padding: 24px 28px 32px; border-top: 1px solid rgba(42, 26, 6, 0.08); }
+    .cart-total {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 20px;
+      font-size: 16px;
+    }
+    .cart-total strong { font-family: var(--font-display); font-size: 22px; }
+    .cart-footer .btn { width: 100%; }
+
+    /* ============================================================
+       RESPONSIVO
+    ============================================================ */
+    @media (max-width: 1200px) {
+      .container { padding: 0 20px; }
+    }
+
+    @media (max-width: 768px) {
+      .nav-links { display: none; }
+      .nav-burger { display: flex; }
+      .section-title { font-size: 30px; }
+    }
+
+    /* ============================================================
+       EXTRAS — BUSCA, FAVORITOS (NAVBAR), BURGER, FEEDBACK
+    ============================================================ */
+    .nav-burger.is-open span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+    .nav-burger.is-open span:nth-child(2) { opacity: 0; }
+    .nav-burger.is-open span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
+    .nav-icon-btn.is-active { color: var(--caramelo); }
+
+    #search-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 99;
+      background: var(--escuro);
+      padding: 100px 0 28px;
+      transform: translateY(-100%);
+      transition: transform var(--transition-medium);
+    }
+    #search-overlay.is-open { transform: translateY(0); }
+    #search-overlay .container { display: flex; gap: 16px; align-items: center; }
+    #search-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid rgba(245, 230, 200, 0.3);
+      color: var(--bege);
+      font-family: var(--font-display);
+      font-size: 24px;
+      padding: 8px 0;
+    }
+    #search-input::placeholder { color: rgba(245, 230, 200, 0.4); }
+    #search-input:focus { outline: none; border-bottom-color: var(--caramelo); }
+    #search-close {
+      color: var(--bege);
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background var(--transition-fast);
+      flex-shrink: 0;
+    }
+    #search-close:hover { background: rgba(245, 230, 200, 0.08); }
+
+    @keyframes add-pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.04); }
+      100% { transform: scale(1); }
+    }
+    .produto-add-cart.is-added,
+    .produto-card-add.is-added {
+      animation: add-pulse 0.35s ease;
+    }
+
+    .btn:disabled { opacity: 0.6; pointer-events: none; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .ripple { display: none; }
+      .produto-add-cart.is-added,
+      .produto-card-add.is-added { animation: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ============================================================
+       [0] INTRO SCREEN
+  ============================================================ -->
+  <div id="intro" aria-hidden="true">
+    <!-- Fase 1: onça caminhando -->
+    <div id="intro-phase-1" class="intro-phase">
+      <!-- ASSET PENDENTE: hero_oncinha.mp4 -->
+      <video autoplay muted playsinline preload="auto" src="assets/hero_oncinha.mp4"></video>
+    </div>
+
+    <!-- Fase 2: transição pelagem -->
+    <div id="intro-phase-2" class="intro-phase">
+      <!-- ASSET PENDENTE: img_pelagem_close.jpg -->
+      <img src="assets/img_pelagem_close.jpg" alt="" loading="eager">
+    </div>
+
+    <!-- Fase 3: reveal da camiseta -->
+    <div id="intro-phase-3" class="intro-phase">
+      <!-- ASSET PENDENTE: img_camiseta_wellness_frente.jpg -->
+      <img src="assets/img_camiseta_wellness_frente.jpg" alt="Camiseta Pantale Wellness" loading="eager">
+      <div class="intro-logo">PANTALE</div>
+      <button class="btn btn-primary intro-cta" id="intro-cta" aria-label="Explorar coleção e entrar no site">Explorar coleção</button>
+    </div>
+
+    <div class="intro-progress"><div class="intro-progress-bar" id="intro-progress-bar"></div></div>
+  </div>
+
+  <!-- ============================================================
+       [1] NAVBAR
+  ============================================================ -->
+  <header id="navbar">
+    <div class="container">
+      <a href="#hero" class="nav-logo">PANTALE</a>
+
+      <nav class="nav-links" aria-label="Navegação principal">
+        <a href="#colecao">Coleção</a>
+        <a href="#sobre">Sobre</a>
+        <a href="#valores">Valores</a>
+        <a href="#contato">Contato</a>
+      </nav>
+
+      <div class="nav-actions">
+        <button class="nav-icon-btn" id="search-toggle" aria-label="Buscar" aria-expanded="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="22" y2="22"/></svg>
+        </button>
+        <button class="nav-icon-btn" id="favorites-toggle" aria-label="Mostrar favoritos" aria-pressed="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 21s-7-4.5-9.5-9C0.7 8.3 2.4 4 6.5 4 9 4 11 6 12 7.5 13 6 15 4 17.5 4 21.6 4 23.3 8.3 21.5 12 19 16.5 12 21 12 21z"/></svg>
+        </button>
+        <button class="nav-icon-btn" id="cart-toggle" aria-label="Carrinho de compras">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 4h2l2.4 12.4A2 2 0 0 0 9.36 18H18a2 2 0 0 0 1.95-1.57L21.5 8H6"/><circle cx="9" cy="21" r="1"/><circle cx="18" cy="21" r="1"/></svg>
+          <span class="nav-badge" id="cart-count">0</span>
+        </button>
+        <button class="nav-burger" id="burger-toggle" aria-label="Abrir menu" aria-expanded="false">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Drawer mobile -->
+  <nav id="mobile-drawer" aria-label="Menu mobile">
+    <a href="#colecao">Coleção</a>
+    <a href="#sobre">Sobre</a>
+    <a href="#valores">Valores</a>
+    <a href="#contato">Contato</a>
+  </nav>
+  <div id="mobile-overlay"></div>
+
+  <!-- Overlay de busca -->
+  <div id="search-overlay" role="search">
+    <div class="container">
+      <label for="search-input" class="sr-only">Buscar produtos</label>
+      <input type="text" id="search-input" placeholder="Buscar produtos da coleção...">
+      <button id="search-close" aria-label="Fechar busca">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="4" y1="4" x2="20" y2="20"/><line x1="20" y1="4" x2="4" y2="20"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       [2] HERO
+  ============================================================ -->
+  <section id="hero">
+    <video autoplay muted loop playsinline preload="metadata" src="assets/hero_video_principal.mp4"></video>
+    <div class="hero-overlay"></div>
+    <div class="container hero-content">
+      <h1>Luxo não é pagar caro,<br>é preservar o que é <em>nosso.</em></h1>
+      <p>Moda que respeita você, o outro e a natureza.</p>
+      <div class="hero-ctas">
+        <a href="#colecao" class="btn btn-primary">Ver coleção</a>
+        <a href="#sobre" class="btn btn-outline">Nossa história</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       [3] MANIFESTO — TRÊS PILARES
+  ============================================================ -->
+  <section id="valores" class="reveal section-locked">
+    <div class="container">
+      <div class="manifesto-header">
+        <span class="eyebrow">O que nos move</span>
+        <h2 class="section-title">Três pilares, uma alma.</h2>
+      </div>
+      <div class="manifesto-grid">
+        <div class="pillar-card">
+          <div class="pillar-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 21c0-6 4-9 8-11-1 6-3 11-8 11z"/><path d="M12 21c0-7-4-11-9-13 0 8 3 13 9 13z"/></svg>
+          </div>
+          <h3>Wellness</h3>
+          <p>Corpo e mente em equilíbrio. Peças que respiram com você.</p>
+        </div>
+        <div class="pillar-card">
+          <div class="pillar-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2l2.9 6.3 6.9.9-5 4.9 1.2 6.9L12 17.8 5.9 21l1.2-6.9-5-4.9 6.9-.9z"/></svg>
+          </div>
+          <h3>Wealth</h3>
+          <p>Prosperidade que se compartilha. Qualidade premium, produção justa.</p>
+        </div>
+        <div class="pillar-card">
+          <div class="pillar-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 6l5-2 6 2 6-2v14l-6 2-6-2-5 2z"/><path d="M8 4v14M14 6v14"/></svg>
+          </div>
+          <h3>Brasil</h3>
+          <p>Raízes que nos unem. Da floresta ao tecido, orgulho em cada ponto.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       [4] PRODUTO DESTAQUE — CAMISETA ONÇA WELLNESS
+  ============================================================ -->
+  <section id="produto-destaque" class="reveal section-locked">
+    <div class="container produto-destaque-grid">
+      <div class="produto-imagem-principal">
+        <span class="produto-badge">Exclusivo</span>
+        <!-- ASSET PENDENTE: produto_oncinha_frente.jpg -->
+        <img class="img-base" src="assets/produto_oncinha_frente.jpg" alt="Camiseta Onça Wellness, vista de frente" loading="lazy">
+        <!-- ASSET PENDENTE: produto_oncinha_detalhe_ombro.jpg -->
+        <img class="img-hover" src="assets/produto_oncinha_detalhe_ombro.jpg" alt="Detalhe das pintas no ombro da Camiseta Onça Wellness" loading="lazy">
+      </div>
+      <div class="produto-info">
+        <span class="eyebrow">Peça em destaque</span>
+        <h2>Camiseta Onça Wellness</h2>
+        <p class="produto-preco">R$ 249,00</p>
+        <p class="produto-descricao">Inspirada na pelagem da onça-pintada, símbolo de força e harmonia com a natureza brasileira. Tecido em algodão orgânico, toque leve e caimento que acompanha o corpo em movimento — para o dia a dia, a prática esportiva ou um café à tarde.</p>
+
+        <div class="cor-seletor" role="group" aria-label="Selecionar cor">
+          <span class="cor-label">Cor</span>
+          <!-- ASSET PENDENTE: produto_oncinha_frente_caramelo.jpg -->
+          <!-- ASSET PENDENTE: produto_oncinha_frente_escuro.jpg -->
+          <button class="cor-dot is-active" data-cor="bege" data-img="assets/produto_oncinha_frente.jpg" data-img-hover="assets/produto_oncinha_detalhe_ombro.jpg" aria-label="Cor bege" aria-pressed="true"></button>
+          <button class="cor-dot" data-cor="caramelo" data-img="assets/produto_oncinha_frente_caramelo.jpg" data-img-hover="assets/produto_oncinha_detalhe_ombro.jpg" aria-label="Cor caramelo" aria-pressed="false"></button>
+          <button class="cor-dot" data-cor="escuro" data-img="assets/produto_oncinha_frente_escuro.jpg" data-img-hover="assets/produto_oncinha_detalhe_ombro.jpg" aria-label="Cor escura" aria-pressed="false"></button>
+        </div>
+
+        <button class="btn btn-primary produto-add-cart" data-nome="Camiseta Onça Wellness" data-preco="249.00" data-img="assets/produto_oncinha_frente.jpg">Adicionar ao carrinho</button>
+
+        <div class="produto-galeria-secundaria">
+          <!-- ASSET PENDENTE: produto_oncinha_costas.jpg -->
+          <img src="assets/produto_oncinha_costas.jpg" alt="Camiseta Onça Wellness, vista de costas" loading="lazy">
+          <!-- ASSET PENDENTE: produto_oncinha_detalhe_logo.jpg -->
+          <img src="assets/produto_oncinha_detalhe_logo.jpg" alt="Detalhe do logo da Camiseta Onça Wellness" loading="lazy">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       [5] GRID DE PRODUTOS — COLEÇÃO
+  ============================================================ -->
+  <section id="colecao" class="reveal section-locked">
+    <div class="container">
+      <div class="colecao-header">
+        <div>
+          <span class="eyebrow">Coleção completa</span>
+          <h2 class="section-title">Peças com <em>raiz</em>.</h2>
+        </div>
+        <div class="colecao-filtros" role="group" aria-label="Filtrar por categoria">
+          <button class="filtro-btn is-active" data-filtro="todos">Todos</button>
+          <button class="filtro-btn" data-filtro="masculino">Masculino</button>
+          <button class="filtro-btn" data-filtro="feminino">Feminino</button>
+          <button class="filtro-btn" data-filtro="acessorios">Acessórios</button>
+        </div>
+      </div>
+
+      <div class="produtos-grid">
+        <!-- ASSET PENDENTE: produto_camisa_ipe.jpg -->
+        <article class="produto-card" data-categoria="masculino">
+          <div class="produto-card-img-wrap">
+            <img src="assets/produto_camisa_ipe.jpg" alt="Camisa Ipê Amarelo" loading="lazy">
+            <span class="produto-card-badge">Novo</span>
+            <button class="produto-card-fav" aria-label="Adicionar Camisa Ipê Amarelo aos favoritos" aria-pressed="false">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 21s-7-4.5-9.5-9C0.7 8.3 2.4 4 6.5 4 9 4 11 6 12 7.5 13 6 15 4 17.5 4 21.6 4 23.3 8.3 21.5 12 19 16.5 12 21 12 21z"/></svg>
+            </button>
+          </div>
+          <div class="produto-card-info">
+            <h3>Camisa Ipê Amarelo</h3>
+            <p class="produto-card-preco">R$ 219,00</p>
+            <button class="produto-card-add" data-nome="Camisa Ipê Amarelo" data-preco="219.00" data-img="assets/produto_camisa_ipe.jpg">Adicionar</button>
+          </div>
+        </article>
+
+        <!-- ASSET PENDENTE: produto_calca_pantanal.jpg -->
+        <article class="produto-card" data-categoria="feminino">
+          <div class="produto-card-img-wrap">
+            <img src="assets/produto_calca_pantanal.jpg" alt="Calça Pantanal" loading="lazy">
+            <button class="produto-card-fav" aria-label="Adicionar Calça Pantanal aos favoritos" aria-pressed="false">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 21s-7-4.5-9.5-9C0.7 8.3 2.4 4 6.5 4 9 4 11 6 12 7.5 13 6 15 4 17.5 4 21.6 4 23.3 8.3 21.5 12 19 16.5 12 21 12 21z"/></svg>
+            </button>
+          </div>
+          <div class="produto-card-info">
+            <h3>Calça Pantanal</h3>
+            <p class="produto-card-preco">R$ 289,00</p>
+            <button class="produto-card-add" data-nome="Calça Pantanal" data-preco="289.00" data-img="assets/produto_calca_pantanal.jpg">Adicionar</button>
+          </div>
+        </article>
+
+        <!-- ASSET PENDENTE: produto_jaqueta_cerrado.jpg -->
+        <article class="produto-card" data-categoria="masculino">
+          <div class="produto-card-img-wrap">
+            <img src="assets/produto_jaqueta_cerrado.jpg" alt="Jaqueta Cerrado" loading="lazy">
+            <span class="produto-card-badge">Exclusivo</span>
+            <button class="produto-card-fav" aria-label="Adicionar Jaqueta Cerrado aos favoritos" aria-pressed="false">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 21s-7-4.5-9.5-9C0.7 8.3 2.4 4 6.5 4 9 4 11 6 12 7.5 13 6 15 4 17.5 4 21.6 4 23.3 8.3 21.5 12 19 16.5 12 21 12 21z"/></svg>
+            </button>
+          </div>
+          <div class="produto-card-info">
+            <h3>Jaqueta Cerrado</h3>
+            <p class="produto-card-preco">R$ 459,00</p>
+            <button class="produto-card-add" data-nome="Jaqueta Cerrado" data-preco="459.00" data-img="assets/produto_jaqueta_cerrado.jpg">Adicionar</button>
+          </div>
+        </article>
+
+        <!-- ASSET PENDENTE: produto_04.jpg -->
+        <article class="produto-card" data-categoria="feminino">
+          <div class="produto-card-img-wrap">
+            <img src="assets/produto_04.jpg" alt="Vestido Mata Atlântica" loading="lazy">
+            <span class="produto-card-badge">Novo</span>
+            <button class="produto-card-fav" aria-label="Adicionar Vestido Mata Atlântica aos favoritos" aria-pressed="false">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 21s-7-4.5-9.5-9C0.7 8.3 2.4 4 6.5 4 9 4 11 6 12 7.5 13 6 15 4 17.5 4 21.6 4 23.3 8.3 21.5 12 19 16.5 12 21 12 21z"/></svg>
+            </button>
+          </div>
+          <div class="produto-card-info">
+            <h3>Vestido Mata Atlântica</h3>
+            <p class="produto-card-preco">R$ 329,00</p>
+            <button class="produto-card-add" data-nome="Vestido Mata Atlântica" data-preco="329.00" data-img="assets/produto_04.jpg">Adicionar</button>
+          </div>
+        </article>
+
+        <!-- ASSET PENDENTE: produto_05.jpg -->
+        <article class="produto-card" data-categoria="acessorios">
+          <div class="produto-card-img-wrap">
+            <img src="assets/produto_05.jpg" alt="Boné Amazônia" loading="lazy">
+            <button class="produto-card-fav" aria-label="Adicionar Boné Amazônia aos favoritos" aria-pressed="false">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 21s-7-4.5-9.5-9C0.7 8.3 2.4 4 6.5 4 9 4 11 6 12 7.5 13 6 15 4 17.5 4 21.6 4 23.3 8.3 21.5 12 19 16.5 12 21 12 21z"/></svg>
+            </button>
+          </div>
+          <div class="produto-card-info">
+            <h3>Boné Amazônia</h3>
+            <p class="produto-card-preco">R$ 99,00</p>
+            <button class="produto-card-add" data-nome="Boné Amazônia" data-preco="99.00" data-img="assets/produto_05.jpg">Adicionar</button>
+          </div>
+        </article>
+
+        <!-- ASSET PENDENTE: produto_06.jpg -->
+        <article class="produto-card" data-categoria="masculino">
+          <div class="produto-card-img-wrap">
+            <img src="assets/produto_06.jpg" alt="Bermuda Caatinga" loading="lazy">
+            <button class="produto-card-fav" aria-label="Adicionar Bermuda Caatinga aos favoritos" aria-pressed="false">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 21s-7-4.5-9.5-9C0.7 8.3 2.4 4 6.5 4 9 4 11 6 12 7.5 13 6 15 4 17.5 4 21.6 4 23.3 8.3 21.5 12 19 16.5 12 21 12 21z"/></svg>
+            </button>
+          </div>
+          <div class="produto-card-info">
+            <h3>Bermuda Caatinga</h3>
+            <p class="produto-card-preco">R$ 189,00</p>
+            <button class="produto-card-add" data-nome="Bermuda Caatinga" data-preco="189.00" data-img="assets/produto_06.jpg">Adicionar</button>
+          </div>
+        </article>
+
+        <!-- ASSET PENDENTE: produto_07.jpg -->
+        <article class="produto-card" data-categoria="feminino">
+          <div class="produto-card-img-wrap">
+            <img src="assets/produto_07.jpg" alt="Blusa Cerrado Flor" loading="lazy">
+            <span class="produto-card-badge">Favorito</span>
+            <button class="produto-card-fav" aria-label="Adicionar Blusa Cerrado Flor aos favoritos" aria-pressed="false">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 21s-7-4.5-9.5-9C0.7 8.3 2.4 4 6.5 4 9 4 11 6 12 7.5 13 6 15 4 17.5 4 21.6 4 23.3 8.3 21.5 12 19 16.5 12 21 12 21z"/></svg>
+            </button>
+          </div>
+          <div class="produto-card-info">
+            <h3>Blusa Cerrado Flor</h3>
+            <p class="produto-card-preco">R$ 199,00</p>
+            <button class="produto-card-add" data-nome="Blusa Cerrado Flor" data-preco="199.00" data-img="assets/produto_07.jpg">Adicionar</button>
+          </div>
+        </article>
+
+        <!-- ASSET PENDENTE: produto_08.jpg -->
+        <article class="produto-card" data-categoria="acessorios">
+          <div class="produto-card-img-wrap">
+            <img src="assets/produto_08.jpg" alt="Bolsa Tecelagem" loading="lazy">
+            <button class="produto-card-fav" aria-label="Adicionar Bolsa Tecelagem aos favoritos" aria-pressed="false">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 21s-7-4.5-9.5-9C0.7 8.3 2.4 4 6.5 4 9 4 11 6 12 7.5 13 6 15 4 17.5 4 21.6 4 23.3 8.3 21.5 12 19 16.5 12 21 12 21z"/></svg>
+            </button>
+          </div>
+          <div class="produto-card-info">
+            <h3>Bolsa Tecelagem</h3>
+            <p class="produto-card-preco">R$ 259,00</p>
+            <button class="produto-card-add" data-nome="Bolsa Tecelagem" data-preco="259.00" data-img="assets/produto_08.jpg">Adicionar</button>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       [6] SOBRE A MARCA — EDITORIAL
+  ============================================================ -->
+  <section id="sobre" class="reveal section-locked">
+    <div class="container">
+      <div class="sobre-grid">
+        <div class="sobre-texto">
+          <span class="eyebrow">Nossa história</span>
+          <h2 class="section-title">Do tecido à <em>terra</em>.</h2>
+          <p>A Pantale nasceu de uma pergunta simples: por que vestir bem precisa custar caro para o planeta? Em 2020, um pequeno grupo de pessoas apaixonadas por moda e natureza decidiu criar peças que carregassem a identidade do Brasil — suas cores, suas texturas, sua força — sem abrir mão do cuidado com quem produz e com quem usa.</p>
+          <p>Cada coleção parte de um bioma. Cada estampa nasce de uma história real. Trabalhamos com ateliês parceiros que valorizam mão de obra justa, tecidos de origem certificada e processos que reduzem o impacto ambiental em cada etapa — do fio à etiqueta.</p>
+          <p>Hoje, a Pantale é mais do que uma marca de roupas: é um convite para enxergar a moda como um gesto de cuidado — com o corpo, com o próximo e com a floresta que nos inspira todos os dias.</p>
+        </div>
+        <div class="sobre-imagem">
+          <!-- ASSET PENDENTE: sobre_marca_atelier.jpg -->
+          <img src="assets/sobre_marca_atelier.jpg" alt="Ateliê Pantale, bastidores da produção" loading="lazy">
+        </div>
+      </div>
+
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="timeline-year">2020</div>
+          <div class="timeline-desc">Fundação</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-year">2022</div>
+          <div class="timeline-desc">Primeira coleção lançada</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-year">2024</div>
+          <div class="timeline-desc">Expansão nacional</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-year">2025</div>
+          <div class="timeline-desc">Wellness Collection</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       [7] LOOKBOOK
+  ============================================================ -->
+  <section id="lookbook" class="reveal section-locked">
+    <div class="container">
+      <div class="lookbook-header">
+        <span class="eyebrow">Editorial</span>
+        <h2 class="section-title">O Brasil em cada <em>look</em>.</h2>
+      </div>
+      <div class="lookbook-grid" id="lookbook-grid">
+        <!-- ASSET PENDENTE: look_01.jpg -->
+        <div class="lookbook-item" data-img="assets/look_01.jpg" data-nome="Look Amazônia" role="button" tabindex="0">
+          <img src="assets/look_01.jpg" alt="Look editorial Amazônia" loading="lazy">
+          <div class="lookbook-overlay"><h3>Look Amazônia</h3><span>Ver peça</span></div>
+        </div>
+        <!-- ASSET PENDENTE: look_02.jpg -->
+        <div class="lookbook-item" data-img="assets/look_02.jpg" data-nome="Look Cerrado" role="button" tabindex="0">
+          <img src="assets/look_02.jpg" alt="Look editorial Cerrado" loading="lazy">
+          <div class="lookbook-overlay"><h3>Look Cerrado</h3><span>Ver peça</span></div>
+        </div>
+        <!-- ASSET PENDENTE: look_03.jpg -->
+        <div class="lookbook-item" data-img="assets/look_03.jpg" data-nome="Look Pantanal" role="button" tabindex="0">
+          <img src="assets/look_03.jpg" alt="Look editorial Pantanal" loading="lazy">
+          <div class="lookbook-overlay"><h3>Look Pantanal</h3><span>Ver peça</span></div>
+        </div>
+        <!-- ASSET PENDENTE: look_04.jpg -->
+        <div class="lookbook-item" data-img="assets/look_04.jpg" data-nome="Look Mata Atlântica" role="button" tabindex="0">
+          <img src="assets/look_04.jpg" alt="Look editorial Mata Atlântica" loading="lazy">
+          <div class="lookbook-overlay"><h3>Look Mata Atlântica</h3><span>Ver peça</span></div>
+        </div>
+        <!-- ASSET PENDENTE: look_05.jpg -->
+        <div class="lookbook-item" data-img="assets/look_05.jpg" data-nome="Look Caatinga" role="button" tabindex="0">
+          <img src="assets/look_05.jpg" alt="Look editorial Caatinga" loading="lazy">
+          <div class="lookbook-overlay"><h3>Look Caatinga</h3><span>Ver peça</span></div>
+        </div>
+        <!-- ASSET PENDENTE: look_06.jpg -->
+        <div class="lookbook-item" data-img="assets/look_06.jpg" data-nome="Look Litoral" role="button" tabindex="0">
+          <img src="assets/look_06.jpg" alt="Look editorial Litoral" loading="lazy">
+          <div class="lookbook-overlay"><h3>Look Litoral</h3><span>Ver peça</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Modal Lookbook -->
+  <div id="lookbook-modal" role="dialog" aria-modal="true" aria-label="Imagem do look ampliada">
+    <button class="lookbook-modal-close" id="lookbook-modal-close" aria-label="Fechar imagem">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="4" y1="4" x2="20" y2="20"/><line x1="20" y1="4" x2="4" y2="20"/></svg>
+    </button>
+    <img id="lookbook-modal-img" src="" alt="">
+  </div>
+
+  <!-- ============================================================
+       [8] DEPOIMENTOS
+  ============================================================ -->
+  <section id="depoimentos" class="reveal section-locked">
+    <div class="container">
+      <div class="depoimentos-header">
+        <span class="eyebrow">Quem veste, sente</span>
+        <h2 class="section-title">Histórias que vestem a <em>marca</em>.</h2>
+      </div>
+      <div class="depoimentos-grid">
+        <div class="depoimento-card">
+          <div class="depoimento-stars" aria-label="Avaliação 5 de 5 estrelas">★★★★★</div>
+          <p class="depoimento-frase">"Nunca uma camiseta me fez sentir tão conectada com o Brasil. O tecido é incrível e o caimento é perfeito."</p>
+          <div class="depoimento-autor">
+            <!-- ASSET PENDENTE: depo_01.jpg -->
+            <img src="assets/depo_01.jpg" alt="" loading="lazy">
+            <div class="depoimento-autor-info">
+              <strong>Marina Alves</strong>
+              <span>São Paulo, SP</span>
+            </div>
+          </div>
+        </div>
+        <div class="depoimento-card">
+          <div class="depoimento-stars" aria-label="Avaliação 5 de 5 estrelas">★★★★★</div>
+          <p class="depoimento-frase">"Qualidade premium de verdade. Já é a terceira peça que compro e todas chegaram impecáveis."</p>
+          <div class="depoimento-autor">
+            <!-- ASSET PENDENTE: depo_02.jpg -->
+            <img src="assets/depo_02.jpg" alt="" loading="lazy">
+            <div class="depoimento-autor-info">
+              <strong>Rafael Souza</strong>
+              <span>Florianópolis, SC</span>
+            </div>
+          </div>
+        </div>
+        <div class="depoimento-card">
+          <div class="depoimento-stars" aria-label="Avaliação 5 de 5 estrelas">★★★★★</div>
+          <p class="depoimento-frase">"Amei saber que a produção é justa e sustentável. Vestir a Pantale é vestir um propósito."</p>
+          <div class="depoimento-autor">
+            <!-- ASSET PENDENTE: depo_03.jpg -->
+            <img src="assets/depo_03.jpg" alt="" loading="lazy">
+            <div class="depoimento-autor-info">
+              <strong>Clara Mendes</strong>
+              <span>Belo Horizonte, MG</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       [9] NEWSLETTER
+  ============================================================ -->
+  <section id="newsletter" class="reveal section-locked">
+    <div class="container">
+      <span class="eyebrow">Comunidade Pantale</span>
+      <h2 class="section-title">Faça parte do <em>movimento</em></h2>
+      <form class="newsletter-form" id="newsletter-form" novalidate>
+        <label for="newsletter-email" class="sr-only">E-mail</label>
+        <input type="email" id="newsletter-email" name="email" placeholder="Seu melhor e-mail" required aria-required="true">
+        <button type="submit">Entrar</button>
+      </form>
+      <div class="newsletter-success" id="newsletter-success" role="status" aria-live="polite">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7"/></svg>
+        <span>Bem-vindo à comunidade Pantale</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       [10] FOOTER
+  ============================================================ -->
+  <footer id="footer" class="section-locked">
+    <div class="container">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <span class="nav-logo">PANTALE</span>
+          <p>Moda consciente com alma brasileira. Wellness, prosperidade e orgulho nacional em cada peça.</p>
+        </div>
+        <div class="footer-col">
+          <h4>Loja</h4>
+          <ul>
+            <li><a href="#colecao">Coleção</a></li>
+            <li><a href="#produto-destaque">Destaques</a></li>
+            <li><a href="#lookbook">Lookbook</a></li>
+            <li><a href="#">Guia de tamanhos</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Empresa</h4>
+          <ul>
+            <li><a href="#sobre">Sobre nós</a></li>
+            <li><a href="#valores">Valores</a></li>
+            <li><a href="#">Trabalhe conosco</a></li>
+            <li><a href="#">Imprensa</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Sustentabilidade</h4>
+          <ul>
+            <li><a href="#">Nossos materiais</a></li>
+            <li><a href="#">Produção justa</a></li>
+            <li><a href="#">Carbono neutro</a></li>
+            <li><a href="#">Relatório de impacto</a></li>
+          </ul>
+        </div>
+        <div class="footer-col" id="contato">
+          <h4>Ajuda</h4>
+          <ul>
+            <li><a href="#">Trocas e devoluções</a></li>
+            <li><a href="#">Frete e entregas</a></li>
+            <li><a href="#">Fale conosco</a></li>
+            <li><a href="#">Perguntas frequentes</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <div class="footer-selos">
+          <span class="footer-selo">100% Algodão Orgânico</span>
+          <span class="footer-selo">Made in Brazil</span>
+          <span class="footer-selo">Carbono Neutro</span>
+        </div>
+        <div class="footer-social">
+          <a href="#" aria-label="Instagram da Pantale">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="0.6" fill="currentColor"/></svg>
+          </a>
+          <a href="#" aria-label="TikTok da Pantale">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 3v10.5a3.5 3.5 0 1 1-3.5-3.5"/><path d="M14 3c0 2.5 2 4.5 4.5 4.5"/></svg>
+          </a>
+          <a href="#" aria-label="Pinterest da Pantale">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M9 17l2-9c2 0 4 1 4 3.5S13 16 11 16"/></svg>
+          </a>
+        </div>
+      </div>
+      <p class="footer-copy">© 2026 Pantale. Todos os direitos reservados.</p>
+    </div>
+  </footer>
+
+  <!-- ============================================================
+       [11] CARRINHO — DRAWER LATERAL
+  ============================================================ -->
+  <div id="cart-overlay"></div>
+  <aside id="cart-drawer" aria-label="Carrinho de compras" aria-hidden="true">
+    <div class="cart-header">
+      <h3>Seu carrinho</h3>
+      <button class="cart-close" id="cart-close" aria-label="Fechar carrinho">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="4" y1="4" x2="20" y2="20"/><line x1="20" y1="4" x2="4" y2="20"/></svg>
+      </button>
+    </div>
+    <div class="cart-items" id="cart-items">
+      <p class="cart-empty" id="cart-empty">Seu carrinho está vazio.</p>
+    </div>
+    <div class="cart-footer">
+      <div class="cart-total">
+        <span>Total</span>
+        <strong id="cart-total">R$ 0,00</strong>
+      </div>
+      <button class="btn btn-primary" id="cart-checkout">Finalizar compra</button>
+    </div>
+  </aside>
+
+  <script>
+    (function () {
+      'use strict';
+
+      var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      var cart = [];
+
+      /* ============================================================
+         REVELAÇÃO PROGRESSIVA DE SEÇÕES
+         Abaixo do Hero, tudo começa oculto (.section-locked). O acesso
+         acontece a partir dos botões "Ver coleção" / "Nossa história"
+         (ou de qualquer link interno que aponte para uma seção ainda
+         oculta), revelando a seção de destino e tudo o que vem depois.
+      ============================================================ */
+      var SECTION_ORDER = ['valores', 'produto-destaque', 'colecao', 'sobre', 'lookbook', 'depoimentos', 'newsletter', 'footer'];
+
+      function revealFrom(sectionId) {
+        var idx = SECTION_ORDER.indexOf(sectionId);
+        if (idx === -1) return;
+        for (var i = idx; i < SECTION_ORDER.length; i++) {
+          var el = document.getElementById(SECTION_ORDER[i]);
+          if (el) el.classList.remove('section-locked');
+        }
+      }
+
+      document.addEventListener('click', function (e) {
+        var link = e.target.closest('a[href^="#"]');
+        if (!link) return;
+        var targetId = link.getAttribute('href').slice(1);
+        var target = targetId && document.getElementById(targetId);
+        if (!target) return;
+        var lockedSection = target.closest('.section-locked');
+        if (!lockedSection) return;
+        e.preventDefault();
+        revealFrom(lockedSection.id);
+        requestAnimationFrame(function () {
+          requestAnimationFrame(function () {
+            target.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+          });
+        });
+      });
+
+      /* ============================================================
+         INTRO ANIMATION
+      ============================================================ */
+      (function initIntro() {
+        var introEl = document.getElementById('intro');
+
+        if (reduceMotion) {
+          introEl.classList.add('intro-hidden');
+          return;
+        }
+
+        var phase1 = document.getElementById('intro-phase-1');
+        var phase2 = document.getElementById('intro-phase-2');
+        var phase3 = document.getElementById('intro-phase-3');
+        var progressBar = document.getElementById('intro-progress-bar');
+        var introCta = document.getElementById('intro-cta');
+
+        var TOTAL_DURATION = 7000;
+        var PHASE2_START = 4000;
+        var PHASE3_START = 5500;
+        var startTime = null;
+        var dismissed = false;
+
+        document.body.style.overflow = 'hidden';
+
+        function dismiss() {
+          if (dismissed) return;
+          dismissed = true;
+          introEl.classList.add('intro-hidden');
+          document.body.style.overflow = '';
+        }
+
+        function tick(now) {
+          if (dismissed) return;
+          if (startTime === null) startTime = now;
+          var elapsed = now - startTime;
+          progressBar.style.width = Math.min((elapsed / TOTAL_DURATION) * 100, 100) + '%';
+
+          if (elapsed >= PHASE2_START) {
+            phase1.classList.remove('is-active');
+            phase2.classList.add('is-active');
+          }
+          if (elapsed >= PHASE3_START) {
+            phase2.classList.remove('is-active');
+            phase3.classList.add('is-active');
+          }
+          if (elapsed >= TOTAL_DURATION) {
+            dismiss();
+            return;
+          }
+          requestAnimationFrame(tick);
+        }
+
+        requestAnimationFrame(function () {
+          phase1.classList.add('is-active');
+          requestAnimationFrame(tick);
+        });
+
+        introCta.addEventListener('click', dismiss);
+      })();
+
+      /* ============================================================
+         NAVBAR SCROLL + MOBILE DRAWER + BUSCA + FAVORITOS
+      ============================================================ */
+      var navbar = document.getElementById('navbar');
+      window.addEventListener('scroll', function () {
+        navbar.classList.toggle('scrolled', window.scrollY > 40);
+      }, { passive: true });
+
+      var burger = document.getElementById('burger-toggle');
+      var drawer = document.getElementById('mobile-drawer');
+      var mobileOverlay = document.getElementById('mobile-overlay');
+
+      function toggleDrawer(open) {
+        drawer.classList.toggle('is-open', open);
+        mobileOverlay.classList.toggle('is-visible', open);
+        burger.classList.toggle('is-open', open);
+        burger.setAttribute('aria-expanded', open ? 'true' : 'false');
+      }
+      burger.addEventListener('click', function () {
+        toggleDrawer(!drawer.classList.contains('is-open'));
+      });
+      mobileOverlay.addEventListener('click', function () { toggleDrawer(false); });
+      drawer.querySelectorAll('a').forEach(function (a) {
+        a.addEventListener('click', function () { toggleDrawer(false); });
+      });
+
+      /* Busca */
+      var searchToggle = document.getElementById('search-toggle');
+      var searchOverlay = document.getElementById('search-overlay');
+      var searchInput = document.getElementById('search-input');
+      var searchClose = document.getElementById('search-close');
+
+      function toggleSearch(open) {
+        searchOverlay.classList.toggle('is-open', open);
+        searchToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+        if (open) {
+          setTimeout(function () { searchInput.focus(); }, 350);
+        } else {
+          searchInput.value = '';
+          filterProdutos();
+        }
+      }
+      searchToggle.addEventListener('click', function () {
+        toggleSearch(!searchOverlay.classList.contains('is-open'));
+      });
+      searchClose.addEventListener('click', function () { toggleSearch(false); });
+      searchInput.addEventListener('input', function () { filterProdutos(); });
+
+      /* Favoritos (navbar) */
+      var favoritesToggle = document.getElementById('favorites-toggle');
+      var favoritosViewActive = false;
+      favoritesToggle.addEventListener('click', function () {
+        favoritosViewActive = !favoritosViewActive;
+        favoritesToggle.classList.toggle('is-active', favoritosViewActive);
+        favoritesToggle.setAttribute('aria-pressed', favoritosViewActive ? 'true' : 'false');
+        filterProdutos();
+        if (favoritosViewActive) {
+          revealFrom('colecao');
+          document.getElementById('colecao').scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth' });
+        }
+      });
+
+      /* ============================================================
+         REVEAL ON SCROLL (IntersectionObserver)
+      ============================================================ */
+      if (reduceMotion) {
+        document.querySelectorAll('.reveal').forEach(function (el) { el.classList.add('is-visible'); });
+      } else {
+        var revealObserver = new IntersectionObserver(function (entries) {
+          entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('is-visible');
+              revealObserver.unobserve(entry.target);
+            }
+          });
+        }, { threshold: 0.15 });
+        document.querySelectorAll('.reveal').forEach(function (el) { revealObserver.observe(el); });
+      }
+
+      /* ============================================================
+         RIPPLE EM BOTÕES
+      ============================================================ */
+      document.querySelectorAll('.btn').forEach(function (btn) {
+        btn.addEventListener('click', function (e) {
+          if (reduceMotion) return;
+          var rect = btn.getBoundingClientRect();
+          var ripple = document.createElement('span');
+          var size = Math.max(rect.width, rect.height);
+          ripple.className = 'ripple';
+          ripple.style.width = ripple.style.height = size + 'px';
+          ripple.style.left = (e.clientX - rect.left - size / 2) + 'px';
+          ripple.style.top = (e.clientY - rect.top - size / 2) + 'px';
+          btn.appendChild(ripple);
+          setTimeout(function () { ripple.remove(); }, 600);
+        });
+      });
+
+      /* ============================================================
+         PRODUTO DESTAQUE — SELETOR DE COR
+      ============================================================ */
+      var corDots = document.querySelectorAll('.cor-dot');
+      var produtoImgBase = document.querySelector('#produto-destaque .img-base');
+      var produtoImgHover = document.querySelector('#produto-destaque .img-hover');
+      var produtoAddCart = document.querySelector('.produto-add-cart');
+
+      corDots.forEach(function (dot) {
+        dot.addEventListener('click', function () {
+          corDots.forEach(function (d) {
+            d.classList.remove('is-active');
+            d.setAttribute('aria-pressed', 'false');
+          });
+          dot.classList.add('is-active');
+          dot.setAttribute('aria-pressed', 'true');
+          produtoImgBase.src = dot.dataset.img;
+          produtoImgHover.src = dot.dataset.imgHover;
+          produtoAddCart.dataset.img = dot.dataset.img;
+        });
+      });
+
+      /* ============================================================
+         GRID DE PRODUTOS — FILTROS, FAVORITOS, BUSCA
+      ============================================================ */
+      var filtroBtns = document.querySelectorAll('.filtro-btn');
+      var produtoCards = document.querySelectorAll('.produto-card');
+      var filtroAtivo = 'todos';
+
+      filtroBtns.forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          filtroBtns.forEach(function (b) { b.classList.remove('is-active'); });
+          btn.classList.add('is-active');
+          filtroAtivo = btn.dataset.filtro;
+          if (favoritosViewActive) {
+            favoritosViewActive = false;
+            favoritesToggle.classList.remove('is-active');
+            favoritesToggle.setAttribute('aria-pressed', 'false');
+          }
+          filterProdutos();
+        });
+      });
+
+      function filterProdutos() {
+        var termo = searchInput.value.trim().toLowerCase();
+        produtoCards.forEach(function (card) {
+          var categoria = card.dataset.categoria;
+          var nome = card.querySelector('h3').textContent.toLowerCase();
+          var matchCategoria = filtroAtivo === 'todos' || categoria === filtroAtivo;
+          var matchBusca = !termo || nome.indexOf(termo) > -1;
+          var matchFavoritos = !favoritosViewActive || card.querySelector('.produto-card-fav').classList.contains('is-active');
+          card.classList.toggle('is-hidden', !(matchCategoria && matchBusca && matchFavoritos));
+        });
+      }
+
+      /* Favoritar produto */
+      document.querySelectorAll('.produto-card-fav').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var active = btn.classList.toggle('is-active');
+          btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+          if (favoritosViewActive) filterProdutos();
+        });
+      });
+
+      /* Adicionar ao carrinho (grid + destaque) */
+      document.querySelectorAll('.produto-card-add, .produto-add-cart').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          addToCart({
+            nome: btn.dataset.nome,
+            preco: parseFloat(btn.dataset.preco),
+            img: btn.dataset.img
+          });
+          btn.classList.add('is-added');
+          var originalText = btn.textContent;
+          btn.textContent = 'Adicionado ✓';
+          setTimeout(function () {
+            btn.classList.remove('is-added');
+            btn.textContent = originalText;
+          }, 1200);
+        });
+      });
+
+      /* ============================================================
+         LOOKBOOK — MODAL
+      ============================================================ */
+      var lookbookItems = document.querySelectorAll('.lookbook-item');
+      var lookbookModal = document.getElementById('lookbook-modal');
+      var lookbookModalImg = document.getElementById('lookbook-modal-img');
+      var lookbookModalClose = document.getElementById('lookbook-modal-close');
+
+      function openLookbookModal(item) {
+        lookbookModalImg.src = item.dataset.img;
+        lookbookModalImg.alt = item.dataset.nome;
+        lookbookModal.classList.add('is-open');
+        document.body.style.overflow = 'hidden';
+      }
+      function closeLookbookModal() {
+        lookbookModal.classList.remove('is-open');
+        document.body.style.overflow = '';
+      }
+      lookbookItems.forEach(function (item) {
+        item.addEventListener('click', function () { openLookbookModal(item); });
+        item.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            openLookbookModal(item);
+          }
+        });
+      });
+      lookbookModalClose.addEventListener('click', closeLookbookModal);
+      lookbookModal.addEventListener('click', function (e) {
+        if (e.target === lookbookModal) closeLookbookModal();
+      });
+      document.addEventListener('keydown', function (e) {
+        if (e.key !== 'Escape') return;
+        if (lookbookModal.classList.contains('is-open')) closeLookbookModal();
+        if (cartDrawer.classList.contains('is-open')) toggleCart(false);
+        if (searchOverlay.classList.contains('is-open')) toggleSearch(false);
+      });
+
+      /* ============================================================
+         NEWSLETTER
+      ============================================================ */
+      var newsletterForm = document.getElementById('newsletter-form');
+      var newsletterSuccess = document.getElementById('newsletter-success');
+      newsletterForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        newsletterForm.classList.add('is-hidden');
+        newsletterSuccess.classList.add('is-visible');
+      });
+
+      /* ============================================================
+         CARRINHO — DRAWER LATERAL
+      ============================================================ */
+      var cartToggle = document.getElementById('cart-toggle');
+      var cartDrawer = document.getElementById('cart-drawer');
+      var cartOverlay = document.getElementById('cart-overlay');
+      var cartClose = document.getElementById('cart-close');
+      var cartItemsEl = document.getElementById('cart-items');
+      var cartEmptyEl = document.getElementById('cart-empty');
+      var cartTotalEl = document.getElementById('cart-total');
+      var cartCountEl = document.getElementById('cart-count');
+      var cartCheckout = document.getElementById('cart-checkout');
+
+      function toggleCart(open) {
+        cartDrawer.classList.toggle('is-open', open);
+        cartOverlay.classList.toggle('is-visible', open);
+        cartDrawer.setAttribute('aria-hidden', open ? 'false' : 'true');
+        document.body.style.overflow = open ? 'hidden' : '';
+      }
+      cartToggle.addEventListener('click', function () { toggleCart(true); });
+      cartClose.addEventListener('click', function () { toggleCart(false); });
+      cartOverlay.addEventListener('click', function () { toggleCart(false); });
+
+      function formatBRL(value) {
+        return 'R$ ' + value.toFixed(2).replace('.', ',');
+      }
+
+      function addToCart(item) {
+        var existing = cart.find(function (i) { return i.nome === item.nome; });
+        if (existing) {
+          existing.qtd += 1;
+        } else {
+          cart.push({ nome: item.nome, preco: item.preco, img: item.img, qtd: 1 });
+        }
+        renderCart();
+      }
+
+      function renderCart() {
+        cartItemsEl.innerHTML = '';
+        if (cart.length === 0) {
+          cartItemsEl.appendChild(cartEmptyEl);
+        } else {
+          cart.forEach(function (item, index) {
+            var row = document.createElement('div');
+            row.className = 'cart-item';
+            row.innerHTML =
+              '<img src="' + item.img + '" alt="' + item.nome + '">' +
+              '<div class="cart-item-info">' +
+                '<h4>' + item.nome + '</h4>' +
+                '<p class="cart-item-preco">' + formatBRL(item.preco) + '</p>' +
+                '<div class="cart-item-qty">' +
+                  '<button type="button" data-action="dec" aria-label="Diminuir quantidade">−</button>' +
+                  '<span>' + item.qtd + '</span>' +
+                  '<button type="button" data-action="inc" aria-label="Aumentar quantidade">+</button>' +
+                '</div>' +
+              '</div>' +
+              '<button type="button" class="cart-item-remove" data-action="remove">Remover</button>';
+
+            row.querySelector('[data-action="inc"]').addEventListener('click', function () {
+              item.qtd += 1;
+              renderCart();
+            });
+            row.querySelector('[data-action="dec"]').addEventListener('click', function () {
+              item.qtd -= 1;
+              if (item.qtd <= 0) cart.splice(index, 1);
+              renderCart();
+            });
+            row.querySelector('[data-action="remove"]').addEventListener('click', function () {
+              cart.splice(index, 1);
+              renderCart();
+            });
+            cartItemsEl.appendChild(row);
+          });
+        }
+
+        var total = cart.reduce(function (sum, i) { return sum + i.preco * i.qtd; }, 0);
+        var count = cart.reduce(function (sum, i) { return sum + i.qtd; }, 0);
+        cartTotalEl.textContent = formatBRL(total);
+        cartCountEl.textContent = String(count);
+      }
+
+      cartCheckout.addEventListener('click', function () {
+        if (cart.length === 0) return;
+        var originalText = cartCheckout.textContent;
+        cartCheckout.textContent = 'Pedido recebido!';
+        cartCheckout.disabled = true;
+        setTimeout(function () {
+          cart = [];
+          renderCart();
+          cartCheckout.textContent = originalText;
+          cartCheckout.disabled = false;
+          toggleCart(false);
+        }, 1600);
+      });
+
+      renderCart();
+
+    })();
+  </script>
+</body>
+</html>

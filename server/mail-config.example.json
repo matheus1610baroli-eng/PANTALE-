@@ -1,0 +1,7 @@
+{
+  "_instrucoes": "Copie este arquivo para mail-config.json e preencha. Para Gmail, ative a verificacao em 2 etapas e gere uma 'Senha de app' em https://myaccount.google.com/apppasswords (use os 16 caracteres em 'pass', sem espacos).",
+  "user": "seu-email@gmail.com",
+  "pass": "senha-de-app-de-16-digitos",
+  "to": "matheus1610.baroli@gmail.com",
+  "from": "seu-email@gmail.com"
+}
