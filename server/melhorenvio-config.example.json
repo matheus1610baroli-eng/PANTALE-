@@ -1,0 +1,46 @@
+{
+  "_leia": [
+    "Copie para melhorenvio-config.json (esse sim é ignorado pelo git) e preencha.",
+    "SÃO DOIS TOKENS DIFERENTES, gerados em melhorenvio.com.br > Integrações > Tokens:",
+    "  token          -> escopo: shipping-calculate. Só cota o frete na loja.",
+    "  shipmentToken  -> escopos: cart-read cart-write shipping-checkout",
+    "                    shipping-generate shipping-print shipping-tracking.",
+    "                    É o que compra a etiqueta, então debita seu saldo.",
+    "Deixe shipmentToken vazio até querer emitir etiqueta — a loja funciona igual,",
+    "só a rota de etiqueta fica desligada.",
+    "O bloco 'from' é o REMETENTE (você). Use document (CPF) OU company_document (CNPJ)."
+  ],
+
+  "token": "",
+  "shipmentToken": "",
+
+  "environment": "production",
+  "originCep": "79031907",
+  "freeShippingMin": 397,
+  "allowedCarriers": ["Correios"],
+  "handlingDays": 2,
+  "userAgent": "Pantale (pantalecg@gmail.com)",
+
+  "package": {
+    "weightPerItemKg": 0.35,
+    "heightCm": 4,
+    "widthCm": 22,
+    "lengthCm": 30
+  },
+
+  "from": {
+    "name": "Nome de quem envia",
+    "phone": "67999999999",
+    "email": "pantalecg@gmail.com",
+    "document": "",
+    "company_document": "",
+    "state_register": "",
+    "address": "Rua Exemplo",
+    "number": "123",
+    "complement": "",
+    "district": "Centro",
+    "city": "Campo Grande",
+    "state_abbr": "MS",
+    "postal_code": "79031907"
+  }
+}

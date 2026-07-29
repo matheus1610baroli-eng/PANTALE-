@@ -1,0 +1,66 @@
+# ============================================================
+# Publicação no Render (render.com)
+# ------------------------------------------------------------
+# Por que Render/Railway/Fly e não Vercel: este projeto é um
+# servidor Node que fica ligado o tempo todo e guarda o banco
+# (pantale.db) em arquivo. Na Vercel o código roda em funções
+# que nascem e morrem a cada visita, e o disco é apagado a cada
+# publicação — o banco com os clientes e pedidos iria junto.
+#
+# Como usar:
+#   1. Suba este repositório para o GitHub
+#   2. render.com > New > Blueprint > aponte para este repositório
+#   3. O Render lê este arquivo e cria o serviço
+#   4. Preencha as variáveis marcadas como sync:false no painel
+#
+# ATENÇÃO: o disco (disk) é o que mantém o banco vivo entre as
+# publicações. Ele exige plano pago (Starter, ~US$7/mês). No
+# plano gratuito o disco some e você perde os pedidos.
+# ============================================================
+services:
+  - type: web
+    name: pantale
+    runtime: node
+    plan: starter          # necessário para ter disco persistente
+    region: oregon
+    rootDir: server        # onde está o package.json
+    buildCommand: npm ci --omit=dev
+    startCommand: npm start
+    healthCheckPath: /robots.txt
+
+    # Disco que sobrevive às publicações. O banco, os backups e as
+    # chaves de sessão moram aqui.
+    disk:
+      name: pantale-dados
+      mountPath: /var/data
+      sizeGB: 1
+
+    envVars:
+      - key: NODE_VERSION
+        value: "22.5.0"
+
+      # Aponta o banco, as chaves e os backups para o disco acima.
+      # SEM ISTO o disco não serve de nada: o código gravaria dentro
+      # da pasta do projeto, que o Render apaga a cada publicação.
+      - key: DATA_DIR
+        value: /var/data
+
+      # Endereço público do site. Ajuste se o domínio mudar.
+      - key: SITE_URL
+        value: https://www.pantale.com.br
+
+      # --- Preencher no painel do Render (nunca aqui no arquivo) ---
+      # sync:false = o Render pede o valor na primeira publicação e
+      # guarda criptografado, sem passar pelo git.
+      - key: MP_ACCESS_TOKEN
+        sync: false
+      - key: MP_WEBHOOK_SECRET
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: MAIL_TO
+        sync: false

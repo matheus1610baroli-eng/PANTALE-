@@ -8,6 +8,74 @@
 
   <!-- ASSET PENDENTE: favicon.png -->
   <link rel="icon" href="assets/favicon.png" type="image/png">
+  <link rel="apple-touch-icon" href="assets/favicon.png">
+
+  <!-- ============================================================
+       SEO E COMPARTILHAMENTO
+       ------------------------------------------------------------
+       MUDOU DE DOMÍNIO? Troque https://www.pantale.com.br nas tags
+       abaixo E na variável SITE_URL do server/server.js (que gera o
+       robots.txt e o sitemap.xml).
+
+       Por que URL absoluta: WhatsApp, Instagram e Facebook não
+       resolvem caminho relativo — com "assets/og-image.jpg" o card
+       sai sem imagem. Tem que ser o endereço completo.
+  ============================================================ -->
+  <link rel="canonical" href="https://www.pantale.com.br/">
+  <meta name="robots" content="index, follow, max-image-preview:large">
+  <meta name="theme-color" content="#241606">
+
+  <!-- Open Graph — o card que aparece ao colar o link no WhatsApp/Insta -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Pantale">
+  <meta property="og:locale" content="pt_BR">
+  <meta property="og:url" content="https://www.pantale.com.br/">
+  <meta property="og:title" content="Pantale · Luxo não é pagar caro, é preservar o que é nosso">
+  <meta property="og:description" content="Moda consciente com alma brasileira. Tecido PANTECH, estampas autorais e o orgulho de vestir o que é nosso.">
+  <!-- ASSET PENDENTE: assets/og-image.jpg — 1200×630px, peso < 1 MB.
+       Sem esse arquivo o link compartilhado aparece SEM imagem. -->
+  <meta property="og:image" content="https://www.pantale.com.br/assets/og-image.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Pantale — moda consciente com alma brasileira">
+
+  <!-- X / Twitter -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Pantale · Luxo não é pagar caro, é preservar o que é nosso">
+  <meta name="twitter:description" content="Moda consciente com alma brasileira. Tecido PANTECH, estampas autorais e o orgulho de vestir o que é nosso.">
+  <meta name="twitter:image" content="https://www.pantale.com.br/assets/og-image.jpg">
+
+  <!-- Dados estruturados: ensinam o Google que isto é uma loja.
+       Os PRODUTOS não entram aqui — são gerados a partir dos próprios
+       cards lá embaixo, para o preço da vitrine e o preço declarado ao
+       Google nunca divergirem (divergir derruba o rich result). -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "OnlineStore",
+        "@id": "https://www.pantale.com.br/#loja",
+        "name": "Pantale",
+        "url": "https://www.pantale.com.br/",
+        "description": "Moda consciente com alma brasileira. Wellness, prosperidade e orgulho nacional em cada peça.",
+        "email": "pantalecg@gmail.com",
+        "sameAs": ["https://instagram.com/pantale.co"],
+        "areaServed": { "@type": "Country", "name": "Brasil" },
+        "currenciesAccepted": "BRL",
+        "paymentAccepted": "Pix, Cartão de crédito"
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://www.pantale.com.br/#site",
+        "url": "https://www.pantale.com.br/",
+        "name": "Pantale",
+        "inLanguage": "pt-BR",
+        "publisher": { "@id": "https://www.pantale.com.br/#loja" }
+      }
+    ]
+  }
+  </script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -18,8 +86,9 @@
        RESET
     ============================================================ */
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-    html { scroll-behavior: smooth; }
+    html { scroll-behavior: smooth; scroll-padding-top: calc(var(--announce-h) + 70px); }
     img, video { display: block; max-width: 100%; }
+    img[hidden], video[hidden] { display: none; }
     a { color: inherit; text-decoration: none; }
     button { font-family: inherit; cursor: pointer; border: none; background: none; }
     ul { list-style: none; }
@@ -53,6 +122,7 @@
 
       --container: 1240px;
       --gap: 24px;
+      --announce-h: 38px;
 
       /* Ritmo vertical das seções */
       --section-y: clamp(80px, 11vw, 150px);
@@ -283,11 +353,35 @@
     }
 
     /* ============================================================
+       [0b] BARRA DE ANÚNCIO
+    ============================================================ */
+    #announce-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 101;
+      height: var(--announce-h);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--escuro);
+      color: var(--bege);
+      font-family: var(--font-body);
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      text-align: center;
+      padding: 0 12px;
+    }
+
+    /* ============================================================
        [1] NAVBAR
     ============================================================ */
     #navbar {
       position: fixed;
-      top: 0;
+      top: var(--announce-h);
       left: 0;
       right: 0;
       z-index: 100;
@@ -304,11 +398,90 @@
       box-shadow: var(--shadow-soft);
     }
     #navbar .container {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 16px;
+    }
+    .nav-links {
+      grid-column: 1;
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      gap: 26px;
+    }
+    .nav-links a {
+      font-family: var(--font-body);
+      font-weight: 400;
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--bege);
+      opacity: 0.88;
+      transition: opacity var(--transition-fast);
+    }
+    .nav-links a:hover { opacity: 1; }
+    .nav-toggle {
+      display: none;
+      grid-column: 1;
+      justify-self: start;
+      width: 40px;
+      height: 40px;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      border: none;
+      padding: 0;
+      cursor: pointer;
+    }
+    .nav-toggle span {
+      position: relative;
+      display: block;
+      width: 20px;
+      height: 2px;
+      background: var(--bege);
+      transition: transform var(--transition-fast), opacity var(--transition-fast);
+    }
+    .nav-toggle span::before,
+    .nav-toggle span::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      width: 20px;
+      height: 2px;
+      background: var(--bege);
+      transition: transform var(--transition-fast), top var(--transition-fast);
+    }
+    .nav-toggle span::before { top: -6px; }
+    .nav-toggle span::after { top: 6px; }
+    .nav-toggle.is-active span { background: transparent; }
+    .nav-toggle.is-active span::before { top: 0; transform: rotate(45deg); }
+    .nav-toggle.is-active span::after { top: 0; transform: rotate(-45deg); }
+    @media (max-width: 760px) {
+      .nav-toggle { display: flex; }
+      .nav-links {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0;
+        background: var(--escuro);
+        padding: 4px 24px 18px;
+        box-shadow: var(--shadow-soft);
+      }
+      .nav-links.is-open { display: flex; }
+      .nav-links a {
+        width: 100%;
+        padding: 14px 0;
+        border-bottom: 1px solid rgba(245, 230, 200, 0.1);
+        opacity: 1;
+      }
     }
     .nav-logo {
+      grid-column: 2;
+      justify-self: center;
       font-family: var(--font-display);
       font-size: 24px;
       font-weight: 600;
@@ -316,8 +489,10 @@
       color: var(--bege);
     }
     .nav-account {
+      grid-column: 3;
       display: flex;
       align-items: center;
+      justify-content: flex-end;
       gap: 14px;
     }
     .nav-account .nav-user {
@@ -489,16 +664,88 @@
     #auth-modal[data-mode="reset"]    .auth-field[data-confirm-field] { display: block; }
 
     /* ============================================================
-       [2] HERO
+       [2] HERO CARROSSEL
     ============================================================ */
+    .hero-carousel {
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-carousel-track {
+      display: flex;
+      /* 3 slides: largura = 3× a viewport */
+      width: 300%;
+      transition: transform 0.7s var(--ease, ease);
+    }
+    .hero-carousel-track.is-dragging {
+      transition: none;
+    }
+    .hero-slide {
+      flex: 0 0 33.3333%;
+      width: 33.3333%;
+      min-width: 0;
+    }
+    .hero-carousel-nav {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: clamp(16px, 3vw, 28px);
+      z-index: 5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 18px;
+    }
+    .hero-carousel-dots {
+      display: flex;
+      gap: 8px;
+    }
+    .hero-carousel-dot {
+      width: 22px;
+      height: 2px;
+      background: rgba(245, 230, 200, 0.35);
+      border: none;
+      padding: 0;
+      cursor: pointer;
+      transition: background var(--transition-fast), width var(--transition-fast);
+    }
+    .hero-carousel-dot.is-active {
+      background: var(--bege);
+      width: 34px;
+    }
+    .hero-carousel-arrow {
+      width: 36px;
+      height: 36px;
+      flex: none;
+      border-radius: 50%;
+      border: 1px solid rgba(245, 230, 200, 0.5);
+      background: rgba(245, 230, 200, 0.06);
+      color: var(--bege);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      line-height: 1;
+      cursor: pointer;
+      backdrop-filter: blur(2px);
+      transition: background var(--transition-fast), border-color var(--transition-fast);
+    }
+    .hero-carousel-arrow:hover {
+      background: rgba(245, 230, 200, 0.16);
+      border-color: var(--bege);
+    }
+    @media (max-width: 600px) {
+      .hero-carousel-arrow { display: none; }
+    }
+
     #hero {
       position: relative;
       min-height: 100svh;
       display: flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
+      align-items: flex-end;
+      justify-content: flex-start;
+      text-align: left;
       overflow: hidden;
+      padding-bottom: clamp(48px, 8vw, 96px);
     }
     #hero video {
       position: absolute;
@@ -525,8 +772,8 @@
     .hero-content {
       position: relative;
       z-index: 2;
-      max-width: 720px;
-      margin: 0 auto;
+      max-width: 620px;
+      margin: 0;
       padding: 0 8px;
     }
     .hero-eyebrow {
@@ -550,9 +797,24 @@
     }
     .hero-ctas {
       display: flex;
-      justify-content: center;
+      justify-content: flex-start;
       gap: 14px;
       flex-wrap: wrap;
+    }
+    .hero-dots {
+      display: flex;
+      gap: 8px;
+      margin-top: 28px;
+    }
+    .hero-dots span {
+      width: 22px;
+      height: 2px;
+      background: rgba(245, 230, 200, 0.35);
+      transition: background var(--transition-fast), width var(--transition-fast);
+    }
+    .hero-dots span.is-active {
+      background: var(--bege);
+      width: 34px;
     }
 
     /* Entrada escalonada do hero */
@@ -571,6 +833,98 @@
 
     @media (max-width: 600px) {
       .hero-ctas .btn { width: 100%; max-width: 320px; }
+    }
+
+    /* ============================================================
+       [2b/2c] BANNERS SECUNDÁRIOS — lançamento (imagem) e vídeo
+    ============================================================ */
+    #lancamento-banner,
+    #garanta-banner {
+      position: relative;
+      min-height: 100svh;
+      display: flex;
+      align-items: flex-end;
+      justify-content: flex-start;
+      text-align: left;
+      overflow: hidden;
+      padding-bottom: clamp(48px, 8vw, 96px);
+    }
+    #lancamento-banner img,
+    #garanta-banner video {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: 0;
+    }
+    #lancamento-banner img { object-position: 0% 42%; }
+    #garanta-banner video { object-position: 50% 30%; }
+    .lancamento-content {
+      position: relative;
+      z-index: 2;
+      max-width: 620px;
+      margin: 0;
+      padding: 0 8px;
+    }
+    .lancamento-cta {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 14px;
+    }
+    .lancamento-cta .btn-outline {
+      background: rgba(20, 12, 4, 0.28);
+    }
+
+    /* Tipografia compartilhada dos banners */
+    .lancamento-scrim {
+      display: none;
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      background: linear-gradient(to bottom,
+        rgba(36, 22, 6, 0.28) 0%,
+        rgba(36, 22, 6, 0) 34%,
+        rgba(36, 22, 6, 0.48) 70%,
+        rgba(36, 22, 6, 0.82) 100%);
+    }
+    .lancamento-text { display: none; margin-bottom: 22px; }
+    .lancamento-eyebrow {
+      color: var(--bege);
+      opacity: 0.85;
+      margin-bottom: 10px;
+    }
+    .lancamento-titulo {
+      font-family: var(--font-display);
+      font-weight: 400;
+      font-size: clamp(2rem, 1.4rem + 3.4vw, 3rem);
+      line-height: 1.08;
+      letter-spacing: 0.01em;
+      color: var(--bege);
+    }
+    .lancamento-titulo em {
+      font-style: italic;
+      color: var(--manteiga);
+    }
+    /* Banner de vídeo não tem texto embutido: escrita sempre visível */
+    #garanta-banner .lancamento-scrim,
+    #garanta-banner .lancamento-text { display: block; }
+
+    @media (max-width: 700px) {
+      #lancamento-banner,
+      #garanta-banner { padding-bottom: clamp(40px, 12vw, 72px); }
+      /* Enquadra as camisetas (centro-direita da imagem) no recorte vertical */
+      #lancamento-banner img { object-position: 64% 40%; }
+      /* No mobile, o banner de imagem também mostra a escrita/scrim */
+      #lancamento-banner .lancamento-scrim,
+      #lancamento-banner .lancamento-text { display: block; }
+      .lancamento-content { max-width: 100%; }
+      .lancamento-cta { align-items: stretch; }
+      .lancamento-cta .btn {
+        width: 100%;
+        max-width: 340px;
+      }
     }
 
     /* ============================================================
@@ -636,9 +990,14 @@
       letter-spacing: 0.12em;
     }
     .colecao-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
       gap: var(--gap);
+    }
+    .colecao-grid .produto-card {
+      flex: 1 1 260px;
+      max-width: 340px;
     }
     .colecao-grid[hidden] { display: none; }
 
@@ -680,23 +1039,29 @@
       text-align: center;
       padding: 16px;
       margin-bottom: 24px;
+      overflow: hidden;
+    }
+    .sobre-panel .sobre-img img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
     }
     .produto-card {
       background: var(--branco);
-      border-radius: var(--radius-card);
+      border-radius: 2px;
       overflow: hidden;
-      box-shadow: var(--shadow-soft);
+      box-shadow: none;
       cursor: pointer;
-      transition: transform 0.55s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: box-shadow 0.4s var(--ease);
     }
     .produto-card:hover {
-      transform: translateY(-10px);
-      box-shadow: 0 28px 56px rgba(42, 26, 6, 0.20);
+      box-shadow: 0 10px 26px rgba(42, 26, 6, 0.12);
     }
     .produto-card:focus-visible {
       outline: 2px solid var(--caramelo);
       outline-offset: 3px;
-      border-radius: var(--radius-card);
+      border-radius: 2px;
     }
     .produto-card .produto-img {
       position: relative;
@@ -746,12 +1111,15 @@
       transform: translate(-50%, 0);
     }
     .produto-card .produto-info {
-      padding: 18px;
+      padding: 16px 2px 6px;
     }
     .produto-card h3 {
-      font-size: 16px;
-      font-weight: 600;
-      margin-bottom: 4px;
+      font-family: var(--font-body);
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
     }
     .produto-card p {
       font-size: 13px;
@@ -763,16 +1131,95 @@
       font-weight: 600;
       color: var(--caramelo);
     }
-    .colecao-grid:has(.produto-card:only-child) {
-      grid-template-columns: minmax(0, 360px);
-      justify-content: center;
+    .produto-card .produto-preco-original {
+      font-family: var(--font-display);
+      font-size: 13px;
+      font-weight: 400;
+      color: var(--medio);
+      text-decoration: line-through;
+      margin-right: 6px;
     }
-    @media (max-width: 900px) {
-      .colecao-grid { grid-template-columns: repeat(2, 1fr); }
-      .colecao-grid:has(.produto-card:only-child) { grid-template-columns: minmax(0, 360px); }
+    .produto-card .produto-cor {
+      font-size: 12px;
+      margin-bottom: 2px;
     }
     @media (max-width: 600px) {
-      .colecao-grid { grid-template-columns: 1fr; }
+      .colecao-grid .produto-card { flex-basis: 100%; max-width: 360px; }
+    }
+
+    /* ============================================================
+       [3b] DESTAQUES DE CATEGORIA
+    ============================================================ */
+    #destaques {
+      background: var(--claro);
+      padding-bottom: var(--section-y);
+    }
+    .destaques-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: var(--gap);
+    }
+    .destaque-tile {
+      position: relative;
+      display: block;
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .destaque-img {
+      width: 100%;
+      aspect-ratio: 4 / 5;
+      background: var(--bege);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      color: var(--medio);
+      text-align: center;
+      padding: 16px;
+      overflow: hidden;
+    }
+    .destaque-img img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .destaque-tile::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(36, 22, 6, 0.65) 0%, rgba(36, 22, 6, 0) 45%);
+      pointer-events: none;
+    }
+    .destaque-info {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 1;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .destaque-info .eyebrow { color: var(--manteiga); }
+    .destaque-info h3 {
+      font-size: var(--step-2);
+      font-weight: 400;
+      color: var(--bege);
+    }
+    .destaque-link {
+      font-family: var(--font-body);
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--bege);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+    @media (max-width: 700px) {
+      .destaques-grid { grid-template-columns: 1fr; }
     }
 
     /* ============================================================
@@ -808,15 +1255,16 @@
     }
     .produto-modal-main {
       width: 100%;
-      aspect-ratio: 3 / 2;
+      aspect-ratio: 4 / 3;
       border-radius: var(--radius-card);
       overflow: hidden;
-      background: var(--bege);
+      background: var(--branco);
     }
     .produto-modal-main img {
       width: 100%;
       height: 100%;
-      object-fit: contain;
+      object-fit: cover;
+      object-position: center top;
       display: block;
     }
     .produto-modal-placeholder {
@@ -863,6 +1311,20 @@
       color: var(--caramelo);
       margin-bottom: 24px;
     }
+    .produto-modal-desc { margin-bottom: 24px; }
+    .produto-modal-desc p {
+      font-size: 14px;
+      line-height: 1.7;
+      color: var(--escuro);
+      margin-bottom: 10px;
+    }
+    .produto-modal-desc p:last-child {
+      margin-bottom: 0;
+      font-family: var(--font-display);
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      color: var(--caramelo);
+    }
     .produto-modal-label {
       display: block;
       font-size: 11px;
@@ -891,7 +1353,55 @@
       color: var(--bege);
       border-color: var(--escuro);
     }
+    /* Tamanho esgotado: riscado e sem clique */
+    .size-btn.is-esgotado {
+      position: relative;
+      color: rgba(42, 26, 6, 0.32);
+      border-color: rgba(42, 26, 6, 0.12);
+      background: transparent;
+      cursor: not-allowed;
+    }
+    .size-btn.is-esgotado::after {
+      content: "";
+      position: absolute;
+      left: 8px;
+      right: 8px;
+      top: 50%;
+      height: 1px;
+      background: rgba(42, 26, 6, 0.3);
+      transform: rotate(-45deg);
+    }
+    .produto-modal-estoque {
+      font-size: 12px;
+      color: #a35a1f;
+      margin: -18px 0 22px;
+    }
+    .produto-modal-estoque[hidden] { display: none; }
     .produto-modal-cta { width: 100%; }
+    .produto-modal-cta[disabled] {
+      opacity: 0.5;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+    .produto-modal-cta[disabled]:hover { transform: none; }
+
+    /* Selo de esgotado no card da coleção */
+    .produto-card .produto-esgotado-selo {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      z-index: 2;
+      background: rgba(36, 22, 6, 0.88);
+      color: var(--bege);
+      font-family: var(--font-body);
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      padding: 6px 12px;
+      border-radius: 999px;
+    }
+    .produto-card.is-esgotado .produto-img img { opacity: 0.55; }
     .produto-modal-msg {
       margin-top: 14px;
       font-size: 13px;
@@ -902,6 +1412,149 @@
     @media (max-width: 720px) {
       .produto-modal-grid { grid-template-columns: 1fr; }
       .produto-modal-card { padding: 24px; }
+    }
+
+    /* ============================================================
+       [PANTECH] MODAL "O QUE É PANTECH"
+    ============================================================ */
+    #pantech-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 500;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: rgba(42, 26, 6, 0.55);
+      backdrop-filter: blur(3px);
+    }
+    #pantech-modal.is-open { display: flex; }
+    .pantech-modal-card {
+      position: relative;
+      width: 100%;
+      max-width: 720px;
+      max-height: 90vh;
+      overflow-y: auto;
+      background: var(--branco);
+      border-radius: 18px;
+      padding: 48px;
+      box-shadow: var(--shadow-soft);
+    }
+    .pantech-modal-eyebrow {
+      display: block;
+      margin-bottom: 6px;
+    }
+    #pantech-modal-title {
+      font-size: clamp(1.6rem, 1.3rem + 1.2vw, 2.2rem);
+      font-weight: 400;
+      margin-bottom: 24px;
+    }
+    .pantech-modal-body p {
+      font-size: 15px;
+      line-height: 1.75;
+      color: var(--escuro);
+      margin-bottom: 18px;
+    }
+    .pantech-modal-body p:last-of-type {
+      font-family: var(--font-display);
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+    .pantech-modal-gallery {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-top: 28px;
+    }
+    .pantech-modal-gallery-item {
+      aspect-ratio: 3 / 4;
+      border-radius: 10px;
+      overflow: hidden;
+      background: var(--bege);
+    }
+    .pantech-modal-gallery-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .pantech-modal-gallery-item .produto-modal-placeholder {
+      font-size: 10px;
+      padding: 8px;
+    }
+    @media (max-width: 640px) {
+      .pantech-modal-card { padding: 28px; }
+      .pantech-modal-gallery { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    /* ============================================================
+       [LEGAL] MODAL DE POLÍTICAS (privacidade, trocas, termos, frete)
+    ============================================================ */
+    #policy-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 600;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: rgba(42, 26, 6, 0.55);
+      backdrop-filter: blur(3px);
+    }
+    #policy-modal.is-open { display: flex; }
+    .policy-modal-card {
+      position: relative;
+      width: 100%;
+      max-width: 720px;
+      max-height: 88vh;
+      overflow-y: auto;
+      background: var(--branco);
+      border-radius: 18px;
+      padding: 48px;
+      box-shadow: var(--shadow-soft);
+    }
+    .policy-modal-eyebrow { display: block; margin-bottom: 8px; }
+    .policy-doc h3 {
+      font-size: clamp(1.5rem, 1.2rem + 1.2vw, 2.1rem);
+      font-weight: 400;
+      margin-bottom: 8px;
+    }
+    .policy-updated {
+      font-size: 12px;
+      color: var(--medio);
+      margin-bottom: 24px;
+    }
+    .policy-body { color: var(--escuro); }
+    .policy-body h4 {
+      font-family: var(--font-body);
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--caramelo);
+      margin: 26px 0 10px;
+    }
+    .policy-body p {
+      font-size: 14.5px;
+      line-height: 1.75;
+      margin-bottom: 12px;
+    }
+    .policy-body ul,
+    .policy-body ol {
+      margin: 0 0 12px;
+      padding-left: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+    .policy-body li {
+      font-size: 14.5px;
+      line-height: 1.6;
+    }
+    .policy-body a { color: var(--caramelo); text-decoration: underline; }
+    .policy-body a:hover { color: var(--caramelo-fundo); }
+    @media (max-width: 640px) {
+      .policy-modal-card { padding: 28px 22px; max-height: 90vh; }
     }
 
     /* ============================================================
@@ -1316,6 +1969,67 @@
     }
     .dados-erro.is-visible { display: block; }
     .dados-continuar { width: 100%; margin-top: 20px; }
+
+    /* Frete (Melhor Envio) */
+    .frete-box { margin-top: 22px; }
+    .frete-titulo {
+      display: block;
+      font-family: var(--font-body);
+      font-weight: 600;
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--caramelo);
+      margin-bottom: 10px;
+    }
+    .frete-status { font-size: 13px; color: var(--medio); }
+    .frete-status.is-error { color: #b03a2e; }
+    .frete-opcoes { display: flex; flex-direction: column; gap: 8px; }
+    .frete-opcao {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      border: 1px solid var(--linha);
+      border-radius: 10px;
+      background: var(--claro);
+      cursor: pointer;
+      transition: border-color var(--transition-fast), background var(--transition-fast);
+    }
+    .frete-opcao:hover { border-color: var(--caramelo); }
+    .frete-opcao.is-active {
+      border-color: var(--caramelo);
+      background: rgba(196, 133, 58, 0.07);
+    }
+    .frete-opcao input { accent-color: var(--caramelo); }
+    .frete-opcao-info { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+    .frete-opcao-nome { font-size: 14px; color: var(--escuro); font-weight: 500; }
+    .frete-opcao-prazo { font-size: 12px; color: var(--medio); }
+    .frete-opcao-preco { font-family: var(--font-display); font-weight: 600; font-size: 15px; color: var(--caramelo); }
+    .frete-opcao-preco.is-free { color: #2f7d4f; }
+
+    .dados-resumo {
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px solid var(--linha);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .dados-resumo-linha {
+      display: flex;
+      justify-content: space-between;
+      font-size: 14px;
+      color: var(--medio);
+    }
+    .dados-resumo-total {
+      font-family: var(--font-display);
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--escuro);
+      padding-top: 6px;
+    }
+
     @media (max-width: 520px) {
       .dados-grid { grid-template-columns: 1fr; }
       .campo-uf { max-width: none; }
@@ -1378,103 +2092,30 @@
     }
 
     /* ============================================================
-       [MOV] SHOWCASE FIXO (sticky scroll — assinatura ON)
+       [3c] MANIFESTO (citação full-bleed + bloco escuro)
     ============================================================ */
-    #showcase {
-      background: var(--bege);
-    }
-    .showcase-inner {
-      max-width: var(--container);
-      margin: 0 auto;
-      padding: 0 24px;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 64px;
-    }
-    .showcase-media-col {
-      position: sticky;
-      top: 0;
-      height: 100vh;
-      display: flex;
-      align-items: center;
-    }
-    .showcase-media {
-      width: 100%;
-      aspect-ratio: 4 / 5;
-      border-radius: var(--radius-card);
-      background: var(--claro);
-      box-shadow: var(--shadow-soft);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 12px;
-      color: var(--medio);
+    .manifesto-statement {
+      background: var(--escuro);
+      color: var(--bege);
+      padding: var(--section-y) 0;
       text-align: center;
-      padding: 24px;
-      overflow: hidden;
+      border-top: 1px solid rgba(245, 230, 200, 0.14);
     }
-    .showcase-media img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-    .showcase-captions {
-      padding: 12vh 0;
-    }
-    .showcase-caption {
-      min-height: 72vh;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-    }
-    .showcase-caption .showcase-num {
-      display: block;
-      font-family: var(--font-display);
-      font-size: clamp(48px, 8vw, 96px);
+    .manifesto-statement-eyebrow { color: var(--manteiga); margin-bottom: 18px; }
+    .manifesto-statement h2 {
+      font-size: var(--step-3);
       font-weight: 400;
-      line-height: 1;
-      color: var(--caramelo);
-      opacity: 0.32;
-      margin-bottom: 8px;
+      margin-bottom: clamp(24px, 4vw, 40px);
     }
-    .showcase-caption .showcase-label {
-      display: block;
-      font-family: var(--font-body);
-      font-weight: 500;
-      font-size: var(--step-eyebrow);
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: var(--caramelo);
-      margin-bottom: 18px;
+    .manifesto-statement-texto {
+      max-width: 560px;
+      margin: 0 auto clamp(28px, 4vw, 44px);
     }
-    .showcase-caption h3 {
-      font-size: var(--step-2);
-      font-weight: 400;
-      letter-spacing: -0.015em;
-      color: var(--escuro);
-      margin-bottom: 18px;
-      text-wrap: balance;
-    }
-    .showcase-caption p {
+    .manifesto-statement-texto p {
       font-size: 16px;
       line-height: 1.8;
-      color: var(--medio);
-      max-width: 460px;
-    }
-    @media (max-width: 860px) {
-      .showcase-inner {
-        grid-template-columns: 1fr;
-        gap: 0;
-      }
-      .showcase-media-col {
-        position: relative;
-        height: auto;
-        padding: 80px 0 0;
-      }
-      .showcase-caption {
-        min-height: 0;
-        padding: 56px 0;
-      }
+      color: rgba(245, 230, 200, 0.78);
+      margin-bottom: 10px;
     }
 
     /* ============================================================
@@ -1534,12 +2175,162 @@
       transition: color var(--transition-fast);
     }
     .rodape-back:hover { color: var(--manteiga); }
+    .rodape-copyright {
+      margin-top: 24px;
+      font-size: 11px;
+      color: rgba(245, 230, 200, 0.45);
+    }
     @media (max-width: 600px) {
       .rodape-top { align-items: flex-start; }
     }
 
+    .rodape-meio {
+      display: grid;
+      grid-template-columns: 1.2fr repeat(3, 1fr);
+      gap: 32px;
+      padding: clamp(36px, 5vw, 56px) 0;
+      border-bottom: 1px solid rgba(245, 230, 200, 0.14);
+    }
+    .rodape-contato {
+      font-size: var(--step--1);
+      color: rgba(245, 230, 200, 0.72);
+      line-height: 2;
+    }
+    .rodape-contato strong {
+      display: block;
+      font-weight: 500;
+      color: var(--bege);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      font-size: 11px;
+      margin-bottom: 6px;
+    }
+    .rodape-contato a { transition: color var(--transition-fast); }
+    .rodape-contato a:hover { color: var(--manteiga); }
+    .rodape-coluna h4 {
+      font-family: var(--font-body);
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--bege);
+      margin-bottom: 16px;
+    }
+    .rodape-coluna ul { display: flex; flex-direction: column; gap: 11px; }
+    .rodape-coluna a,
+    .rodape-coluna button {
+      font-size: var(--step--1);
+      color: rgba(245, 230, 200, 0.72);
+      transition: color var(--transition-fast);
+    }
+    .rodape-coluna a:hover,
+    .rodape-coluna button:hover { color: var(--manteiga); }
+    @media (max-width: 860px) {
+      .rodape-meio { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 560px) {
+      .rodape-meio { grid-template-columns: 1fr; }
+    }
+
     @media (max-width: 1200px) {
       .container { padding: 0 20px; }
+    }
+
+    @media (max-width: 760px) {
+      #navbar .container { gap: 8px; }
+      .nav-toggle { width: 26px; }
+      .nav-logo { font-size: 17px; letter-spacing: 0.02em; }
+      .nav-account { gap: 6px; }
+      .nav-link-btn {
+        padding: 6px 10px;
+        font-size: 10px;
+        letter-spacing: 0.06em;
+      }
+      .nav-cart-btn {
+        padding: 6px 10px;
+        gap: 5px;
+        font-size: 10px;
+        letter-spacing: 0.06em;
+      }
+      .cart-count { min-width: 16px; height: 16px; font-size: 10px; }
+    }
+
+    /* ============================================================
+       [LGPD] BANNER DE COOKIES
+    ============================================================ */
+    #cookie-banner {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 700;
+      display: none;
+      background: var(--escuro);
+      color: var(--bege);
+      border-top: 1px solid rgba(245, 230, 200, 0.14);
+      box-shadow: 0 -10px 34px rgba(36, 22, 6, 0.28);
+      padding: 18px 0 calc(18px + env(safe-area-inset-bottom, 0px));
+      transform: translateY(100%);
+      transition: transform 0.5s var(--ease);
+    }
+    #cookie-banner.is-open { display: block; }
+    #cookie-banner.is-visible { transform: translateY(0); }
+    /* Some enquanto um modal está aberto: nunca cobre o botão de compra */
+    #cookie-banner.is-recolhido { transform: translateY(100%); }
+    .cookie-inner {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+    .cookie-texto {
+      flex: 1 1 320px;
+      font-size: 13px;
+      line-height: 1.6;
+      color: rgba(245, 230, 200, 0.86);
+    }
+    .cookie-texto button {
+      background: none;
+      border: none;
+      padding: 0;
+      font: inherit;
+      color: var(--manteiga);
+      text-decoration: underline;
+      cursor: pointer;
+    }
+    .cookie-acoes {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .cookie-btn {
+      font-family: var(--font-body);
+      font-weight: 500;
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 10px 20px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: background var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
+    }
+    .cookie-btn-aceitar {
+      background: var(--caramelo);
+      border: 1px solid var(--caramelo);
+      color: var(--branco);
+    }
+    .cookie-btn-aceitar:hover { background: var(--caramelo-fundo); border-color: var(--caramelo-fundo); }
+    .cookie-btn-recusar {
+      background: transparent;
+      border: 1px solid rgba(245, 230, 200, 0.42);
+      color: var(--bege);
+    }
+    .cookie-btn-recusar:hover { border-color: var(--bege); background: rgba(245, 230, 200, 0.08); }
+    @media (max-width: 640px) {
+      .cookie-inner { gap: 14px; }
+      .cookie-texto { flex-basis: 100%; font-size: 12.5px; }
+      .cookie-acoes { width: 100%; }
+      .cookie-btn { flex: 1; text-align: center; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -1547,6 +2338,7 @@
       .reveal { opacity: 1; transform: none; transition: none; }
       .marquee-track { animation: none; }
       #hero video { transform: none !important; }
+      #cookie-banner { transition: none; }
     }
   </style>
 </head>
@@ -1580,10 +2372,22 @@
   </div>
 
   <!-- ============================================================
+       [0b] BARRA DE ANÚNCIO
+  ============================================================ -->
+  <div id="announce-bar">Frete grátis acima de R$ 397</div>
+
+  <!-- ============================================================
        [1] NAVBAR
   ============================================================ -->
   <header id="navbar">
     <div class="container">
+      <button type="button" class="nav-toggle" id="nav-toggle" aria-label="Abrir menu" aria-expanded="false" aria-controls="nav-links">
+        <span></span>
+      </button>
+      <nav class="nav-links" id="nav-links">
+        <a href="#colecao">Coleção</a>
+        <a href="#sobre">Sobre</a>
+      </nav>
       <a href="#hero" class="nav-logo">PANTALE</a>
       <div class="nav-account" id="nav-account">
         <!-- Estado deslogado -->
@@ -1675,18 +2479,47 @@
         <div class="produto-modal-info">
           <h3 id="produto-modal-title"></h3>
           <p class="produto-preco" id="produto-modal-preco"></p>
+          <div class="produto-modal-desc" id="produto-modal-desc"></div>
 
           <span class="produto-modal-label">Tamanho</span>
           <div class="size-options" id="produto-modal-sizes">
             <button type="button" class="size-btn" data-size="P">P</button>
             <button type="button" class="size-btn" data-size="M">M</button>
             <button type="button" class="size-btn" data-size="G">G</button>
-            <button type="button" class="size-btn" data-size="GG">GG</button>
           </div>
+          <p class="produto-modal-estoque" id="produto-modal-estoque" hidden></p>
 
           <button type="button" class="btn btn-primary produto-modal-cta" id="produto-modal-cta">Adicionar à sacola</button>
           <p class="produto-modal-msg" id="produto-modal-msg"></p>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       [PANTECH] MODAL "O QUE É PANTECH"
+  ============================================================ -->
+  <div id="pantech-modal" role="dialog" aria-modal="true" aria-labelledby="pantech-modal-title">
+    <div class="pantech-modal-card">
+      <button class="auth-close" id="pantech-modal-close" aria-label="Fechar">&times;</button>
+      <span class="eyebrow pantech-modal-eyebrow">Tecnologia têxtil Pantale</span>
+      <h3 id="pantech-modal-title">O que é PANTECH</h3>
+      <div class="pantech-modal-body">
+        <p>PANTECH é a tecnologia têxtil da PANTALE criada para elevar a camiseta a um novo padrão de conforto, estética e significado.</p>
+        <p>Desenvolvida em modal, uma fibra reconhecida pelo toque excepcionalmente macio, pela respirabilidade e pelo caimento sofisticado, a PANTECH acompanha o corpo com leveza e proporciona bem-estar ao longo de todo o dia.</p>
+        <p>A coleção nasce em duas estampas: Tennis e Golf. Inspiradas em esportes que atravessam gerações, elas representam uma riqueza que não se compra — o tempo bem vivido, o contato com a natureza, o cuidado com a saúde e a elegância de uma vida em movimento.</p>
+        <p>Mais do que camisetas, Tennis e Golf traduzem uma maneira autêntica e refinada de vestir.</p>
+        <p>PANTECH. O Brasil que veste diferente.</p>
+      </div>
+      <div class="pantech-modal-gallery" id="pantech-modal-gallery">
+        <!-- ASSET PENDENTE: assets/modal_foto_1.jpg -->
+        <div class="pantech-modal-gallery-item"><div class="produto-modal-placeholder">ASSET PENDENTE: modal_foto_1</div></div>
+        <!-- ASSET PENDENTE: assets/modal_foto_2.jpg -->
+        <div class="pantech-modal-gallery-item"><div class="produto-modal-placeholder">ASSET PENDENTE: modal_foto_2</div></div>
+        <!-- ASSET PENDENTE: assets/modal_foto_3.jpg -->
+        <div class="pantech-modal-gallery-item"><div class="produto-modal-placeholder">ASSET PENDENTE: modal_foto_3</div></div>
+        <!-- ASSET PENDENTE: assets/modal_foto_4.jpg -->
+        <div class="pantech-modal-gallery-item"><div class="produto-modal-placeholder">ASSET PENDENTE: modal_foto_4</div></div>
       </div>
     </div>
   </div>
@@ -1777,6 +2610,11 @@
             <input id="d-email" name="email" type="email" autocomplete="email" required>
           </div>
           <div class="campo">
+            <label for="d-cpf">CPF</label>
+            <input id="d-cpf" name="cpf" inputmode="numeric" autocomplete="off" placeholder="000.000.000-00" maxlength="14" required>
+            <span class="cep-status" id="cpf-status"></span>
+          </div>
+          <div class="campo">
             <label for="d-tel">Telefone / WhatsApp</label>
             <input id="d-tel" name="phone" inputmode="tel" autocomplete="tel" placeholder="(00) 00000-0000" required>
           </div>
@@ -1810,6 +2648,18 @@
             <input id="d-uf" name="uf" maxlength="2" placeholder="SP" required>
           </div>
         </div>
+        <div class="frete-box" id="frete-box" hidden>
+          <span class="frete-titulo">Frete</span>
+          <p class="frete-status" id="frete-status">Informe o CEP para calcular o frete.</p>
+          <div class="frete-opcoes" id="frete-opcoes"></div>
+        </div>
+
+        <div class="dados-resumo" id="dados-resumo" hidden>
+          <div class="dados-resumo-linha"><span>Subtotal</span><span id="resumo-subtotal">R$ 0</span></div>
+          <div class="dados-resumo-linha"><span>Frete</span><span id="resumo-frete">—</span></div>
+          <div class="dados-resumo-linha dados-resumo-total"><span>Total</span><span id="resumo-total">R$ 0</span></div>
+        </div>
+
         <p class="dados-erro" id="dados-erro"></p>
         <button type="submit" class="btn btn-primary dados-continuar" id="dados-continuar">Continuar para pagamento</button>
       </form>
@@ -1817,20 +2667,68 @@
   </div>
 
   <!-- ============================================================
-       [2] HERO
+       [2] HERO CARROSSEL
   ============================================================ -->
-  <section id="hero">
-    <video autoplay muted loop playsinline preload="auto" src="assets/hero_video_principal.mp4"></video>
-    <div class="hero-overlay"></div>
-    <div class="container hero-content">
-      <span class="eyebrow hero-eyebrow hero-anim" data-seq="1">Moda consciente · alma brasileira</span>
-      <h1 class="hero-anim" data-seq="2">Luxo não é pagar caro,<br>é preservar o que é <em>nosso.</em></h1>
-      <div class="hero-ctas hero-anim" data-seq="3">
-        <a href="#colecao" class="btn btn-primary">Ver coleção</a>
-        <a href="#sobre" class="btn btn-outline">Explorar</a>
-      </div>
+  <div class="hero-carousel" id="hero-carousel">
+    <div class="hero-carousel-track" id="hero-carousel-track">
+      <section id="hero" class="hero-slide">
+        <video autoplay muted playsinline preload="auto" src="assets/hero_video_principal.mp4"></video>
+        <div class="hero-overlay"></div>
+        <div class="container hero-content">
+          <span class="eyebrow hero-eyebrow hero-anim" data-seq="1">Moda consciente · alma brasileira</span>
+          <h1 class="hero-anim" data-seq="2">Luxo não é pagar caro,<br>é preservar o que é <em>nosso.</em></h1>
+          <div class="hero-ctas hero-anim" data-seq="3">
+            <a href="#colecao" class="btn btn-primary">Ver coleção</a>
+            <a href="#sobre" class="btn btn-outline">Explorar</a>
+          </div>
+          <div class="hero-dots hero-anim" data-seq="3" aria-hidden="true">
+            <span class="is-active"></span>
+          </div>
+        </div>
+      </section>
+
+      <!-- [2b] BANNER LANÇAMENTO — camisetas pantech -->
+      <section id="lancamento-banner" class="hero-slide">
+        <img src="assets/banner_lancamento_pantech.webp" alt="Lançamento camisetas Pantech - vista de uma varanda com duas camisetas brancas estampadas com cenas de tênis e golfe">
+        <div class="lancamento-scrim" aria-hidden="true"></div>
+        <div class="container lancamento-content">
+          <div class="lancamento-text">
+            <span class="eyebrow lancamento-eyebrow">Lançamento</span>
+            <h2 class="lancamento-titulo">Camisetas <em>Pantech</em></h2>
+          </div>
+          <div class="lancamento-cta">
+            <a href="#colecao" class="btn btn-primary">Compre a sua</a>
+            <button type="button" class="btn btn-outline" id="pantech-open">O que é PANTECH</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- [2c] BANNER VÍDEO — garanta sua camiseta já -->
+      <section id="garanta-banner" class="hero-slide">
+        <video autoplay muted loop playsinline preload="auto" src="assets/banner_golf_swing.mp4"></video>
+        <div class="lancamento-scrim" aria-hidden="true"></div>
+        <div class="container lancamento-content">
+          <div class="lancamento-text">
+            <span class="eyebrow lancamento-eyebrow">Pantech</span>
+            <h2 class="lancamento-titulo">Garanta sua <em>camiseta</em> já</h2>
+          </div>
+          <div class="lancamento-cta">
+            <a href="#colecao" class="btn btn-primary">Compre a sua</a>
+          </div>
+        </div>
+      </section>
     </div>
-  </section>
+
+    <div class="hero-carousel-nav">
+      <button type="button" class="hero-carousel-arrow" data-dir="-1" aria-label="Slide anterior">‹</button>
+      <div class="hero-carousel-dots">
+        <button type="button" class="hero-carousel-dot is-active" data-slide="0" aria-label="Ir para o slide 1"></button>
+        <button type="button" class="hero-carousel-dot" data-slide="1" aria-label="Ir para o slide 2"></button>
+        <button type="button" class="hero-carousel-dot" data-slide="2" aria-label="Ir para o slide 3"></button>
+      </div>
+      <button type="button" class="hero-carousel-arrow" data-dir="1" aria-label="Próximo slide">›</button>
+    </div>
+  </div>
 
   <!-- ============================================================
        [MOV] MARQUEE / TICKER
@@ -1851,7 +2749,7 @@
       </div>
       <div class="colecao-tabs tabs reveal" data-delay="1">
         <button class="tab-btn is-active" data-tab="casual">Casual</button>
-        <button class="tab-btn" data-tab="esporte">Esporte</button>
+        <button class="tab-btn" data-tab="casual-feminino">Casual Feminino</button>
       </div>
 
       <div class="tabs-panels">
@@ -1859,46 +2757,147 @@
         <div class="sub-tabs tabs">
           <button class="tab-btn is-active" data-tab="camisetas">Camisetas</button>
           <button class="tab-btn" data-tab="moletons">Moletons</button>
+          <button class="tab-btn" data-tab="shorts">Shorts</button>
         </div>
         <div class="tabs-panels">
           <div class="colecao-grid" data-panel="camisetas">
-            <!-- ASSET PENDENTE: img_produto_camiseta.jpg -->
             <div class="produto-card reveal" role="button" tabindex="0">
-              <div class="produto-img">ASSET PENDENTE: img_produto_camiseta.jpg</div>
+              <div class="produto-img">
+                <img src="assets/img_produto_camiseta_tennis_costas.jpg?v=2" alt="Camiseta Pantech Tennis - costas com estampa">
+                <img class="produto-gallery-img" src="assets/img_produto_camiseta_tennis_costas.jpg?v=2" alt="Camiseta Pantech Tennis - costas com estampa" hidden>
+                <img class="produto-gallery-img" src="assets/img_produto_camiseta_tennis_frente.jpg?v=2" alt="Camiseta Pantech Tennis - frente" hidden>
+              </div>
               <div class="produto-info">
-                <h3>Camiseta</h3>
-                <p class="produto-preco">R$ 159</p>
+                <h3>Pantech Tennis</h3>
+                <p class="produto-preco"><s class="produto-preco-original">R$ 200</s><span class="produto-preco-atual">R$ 179</span></p>
+              </div>
+              <div class="produto-descricao" hidden>
+                <p>Uma partida à beira-mar, entre veleiros e colinas douradas, pintada em traço aquarelado na assinatura PANTALE. Tecido PANTECH (96% Modal / 4% Elastano): toque macio, caimento estruturado, acabamento premium.</p>
+                <p>O Brasil que joga diferente.</p>
+              </div>
+            </div>
+            <div class="produto-card reveal" role="button" tabindex="0">
+              <div class="produto-img">
+                <img src="assets/img_produto_camiseta_golf_costas.jpg?v=2" alt="Camiseta Pantech Golf - costas com estampa">
+                <img class="produto-gallery-img" src="assets/img_produto_camiseta_golf_costas.jpg?v=2" alt="Camiseta Pantech Golf - costas com estampa" hidden>
+                <img class="produto-gallery-img" src="assets/img_produto_camiseta_golf_frente.jpg?v=2" alt="Camiseta Pantech Golf - frente" hidden>
+              </div>
+              <div class="produto-info">
+                <h3>Pantech Golf</h3>
+                <p class="produto-preco"><s class="produto-preco-original">R$ 200</s><span class="produto-preco-atual">R$ 179</span></p>
+              </div>
+              <div class="produto-descricao" hidden>
+                <p>Um fairway à beira-mar, entre palmeiras e um bunker dourado, pintado em traço aquarelado na assinatura PANTALE. Tecido PANTECH (96% Modal / 4% Elastano): toque macio, caimento estruturado, acabamento premium.</p>
+                <p>O Brasil que joga diferente.</p>
               </div>
             </div>
           </div>
           <div class="colecao-grid" data-panel="moletons" hidden>
-            <!-- ASSET PENDENTE: img_produto_moletom.jpg -->
             <div class="produto-card reveal" role="button" tabindex="0">
-              <div class="produto-img">ASSET PENDENTE: img_produto_moletom.jpg</div>
+              <div class="produto-img">
+                <img src="assets/img_produto_moletom_ski_1.jpg?v=1" alt="Moletom Ski branco - frente">
+                <img class="produto-gallery-img" src="assets/img_produto_moletom_ski_1.jpg?v=1" alt="Moletom Ski branco - frente" hidden>
+                <img class="produto-gallery-img" src="assets/img_produto_moletom_ski_2.jpg?v=1" alt="Moletom Ski - detalhe da estampa" hidden>
+                <img class="produto-gallery-img" src="assets/img_produto_moletom_ski_3.jpg?v=1" alt="Moletom Ski branco - costas" hidden>
+              </div>
               <div class="produto-info">
-                <h3>Moletom</h3>
-                <p class="produto-preco">R$ 249</p>
+                <h3>Ski</h3>
+                <p class="produto-preco"><s class="produto-preco-original">R$ 269</s><span class="produto-preco-atual">R$ 249</span></p>
+              </div>
+              <div class="produto-descricao" hidden>
+                <p>O jaguar PANTALE nas pistas dos Alpes, medalha de ouro no peito. Estampa detalhada em aquarela sobre moletom branco composto por 50% algodão e 50% poliéster reciclado, ideal para o inverno. Toque macio, caimento reto, para dias frios com estilo.</p>
+                <p>O Brasil que joga diferente.</p>
+              </div>
+            </div>
+            <div class="produto-card reveal" role="button" tabindex="0">
+              <div class="produto-img">
+                <img src="assets/img_produto_moletom_golf_1.jpg?v=3" alt="Moletom Golf azul-marinho - frente">
+                <img class="produto-gallery-img" src="assets/img_produto_moletom_golf_1.jpg?v=3" alt="Moletom Golf azul-marinho - frente" hidden>
+                <img class="produto-gallery-img" src="assets/img_produto_moletom_golf_2.jpg?v=3" alt="Moletom Golf - detalhe da estampa" hidden>
+                <img class="produto-gallery-img" src="assets/img_produto_moletom_golf_3.jpg?v=3" alt="Moletom Golf azul-marinho - costas" hidden>
+              </div>
+              <div class="produto-info">
+                <h3>Golf</h3>
+                <p class="produto-preco"><s class="produto-preco-original">R$ 269</s><span class="produto-preco-atual">R$ 249</span></p>
+              </div>
+              <div class="produto-descricao" hidden>
+                <p>O jaguar PANTALE no fairway, taco na mão e bandeira ao fundo. Estampa em aquarela sobre moletom azul-marinho encorpado composto por 50% algodão e 50% poliéster reciclado. Toque macio, caimento reto, presença discreta e certeira.</p>
+                <p>O Brasil que joga diferente.</p>
+              </div>
+            </div>
+          </div>
+          <div class="colecao-grid" data-panel="shorts" hidden>
+            <div class="produto-card reveal" role="button" tabindex="0">
+              <div class="produto-img">
+                <img src="assets/img_produto_short_linho_areia_frente.jpg?v=2" alt="Short Linho Areia - frente">
+                <img class="produto-gallery-img" src="assets/img_produto_short_linho_areia_frente.jpg?v=2" alt="Short Linho Areia - frente" hidden>
+                <img class="produto-gallery-img" src="assets/img_produto_short_linho_areia_costas.jpg?v=1" alt="Short Linho Areia - costas" hidden>
+              </div>
+              <div class="produto-info">
+                <h3>Linho Areia</h3>
+                <p class="produto-preco">R$ 169</p>
+              </div>
+              <div class="produto-descricao" hidden>
+                <p>Corte curto, cordão de amarrar e a leveza que pede sol. Linho de secagem rápida, para dias de praia, quadra ou vela.</p>
+                <p>O Brasil que veste diferente.</p>
+              </div>
+            </div>
+            <div class="produto-card reveal" role="button" tabindex="0">
+              <div class="produto-img">
+                <img src="assets/img_produto_short_linho_folha_frente.jpg?v=2" alt="Short Linho Folha - frente">
+                <img class="produto-gallery-img" src="assets/img_produto_short_linho_folha_frente.jpg?v=2" alt="Short Linho Folha - frente" hidden>
+                <img class="produto-gallery-img" src="assets/img_produto_short_linho_folha_costas.jpg?v=1" alt="Short Linho Folha - costas" hidden>
+              </div>
+              <div class="produto-info">
+                <h3>Linho Folha</h3>
+                <p class="produto-preco">R$ 169</p>
+              </div>
+              <div class="produto-descricao" hidden>
+                <p>Corte curto, cordão de amarrar e a leveza que pede sol. Linho de secagem rápida, para dias de praia, quadra ou vela.</p>
+                <p>O Brasil que veste diferente.</p>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div data-panel="esporte" hidden>
+      <div data-panel="casual-feminino" hidden>
         <div class="sub-tabs tabs">
-          <button class="tab-btn is-active" data-tab="camouflage">Camiseta Camouflage</button>
+          <button class="tab-btn is-active" data-tab="regata-offwhite">Off-white</button>
+          <button class="tab-btn" data-tab="regata-preta">Preta</button>
         </div>
         <div class="tabs-panels">
-          <div class="colecao-grid" data-panel="camouflage">
+          <div class="colecao-grid" data-panel="regata-offwhite">
             <div class="produto-card reveal" role="button" tabindex="0">
               <div class="produto-img">
-                <img src="assets/img_produto_camiseta_camouflage_capa.png" alt="Camiseta Camouflage">
-                <img class="produto-gallery-img" src="assets/img_produto_camiseta_camouflage.jpg" alt="Camiseta Camouflage - modelo frente e verso" hidden>
-                <img class="produto-gallery-img" src="assets/img_produto_camiseta_camouflage_lisa.jpg" alt="Camiseta Camouflage - modelo lateral e verso" hidden>
+                <img src="assets/img_produto_regata_mancha_branca_frente.jpg" alt="Regata Off-white - frente com bordado">
+                <img class="produto-gallery-img" src="assets/img_produto_regata_mancha_branca_frente.jpg" alt="Regata Off-white - frente com bordado" hidden>
+                <img class="produto-gallery-img" src="assets/img_produto_regata_mancha_branca_costas.jpg" alt="Regata Off-white - costas" hidden>
               </div>
               <div class="produto-info">
-                <h3>Camiseta Camouflage</h3>
-                <p class="produto-preco">R$ 209</p>
+                <h3>Regata Off-white</h3>
+                <p class="produto-preco"><s class="produto-preco-original">R$ 169</s><span class="produto-preco-atual">R$ 149</span></p>
+              </div>
+              <div class="produto-descricao" hidden>
+                <p>Canelada, justa e essencial, com a pegada minimalista da mulher que não precisa de excesso. Bordado artesanal do jaguar PANTALE discreto no peito. Tecido 100% algodão canelado: toque leve, caimento que abraça o corpo.</p>
+                <p>O Brasil que veste diferente.</p>
+              </div>
+            </div>
+          </div>
+          <div class="colecao-grid" data-panel="regata-preta" hidden>
+            <div class="produto-card reveal" role="button" tabindex="0">
+              <div class="produto-img">
+                <img src="assets/img_produto_regata_mancha_preta_frente.jpg" alt="Regata Preta - frente com bordado">
+                <img class="produto-gallery-img" src="assets/img_produto_regata_mancha_preta_frente.jpg" alt="Regata Preta - frente com bordado" hidden>
+                <img class="produto-gallery-img" src="assets/img_produto_regata_mancha_preta_costas.jpg" alt="Regata Preta - costas" hidden>
+              </div>
+              <div class="produto-info">
+                <h3>Regata Preta</h3>
+                <p class="produto-preco"><s class="produto-preco-original">R$ 169</s><span class="produto-preco-atual">R$ 149</span></p>
+              </div>
+              <div class="produto-descricao" hidden>
+                <p>Canelada, justa e essencial, com a pegada minimalista da mulher que não precisa de excesso. Bordado artesanal do jaguar PANTALE discreto no peito. Tecido 100% algodão canelado: toque leve, caimento que abraça o corpo.</p>
+                <p>O Brasil que veste diferente.</p>
               </div>
             </div>
           </div>
@@ -1909,35 +2908,46 @@
   </section>
 
   <!-- ============================================================
-       [MOV] SHOWCASE FIXO (sticky scroll)
+       [3b] DESTAQUES DE CATEGORIA
   ============================================================ -->
-  <section id="showcase">
-    <div class="showcase-inner">
-      <div class="showcase-media-col">
-        <div class="showcase-media">
-          <!-- ASSET PENDENTE: img_showcase.jpg -->
-          ASSET PENDENTE: img_showcase.jpg
-        </div>
+  <section id="destaques">
+    <div class="container">
+      <div class="destaques-grid">
+        <a href="#colecao" class="destaque-tile reveal" data-jump-tab="casual">
+          <div class="destaque-img"><img src="assets/img_destaque_casual.jpg?v=2" alt="Linha Casual Pantale - camiseta Tennis estampada em quadra de saibro"></div>
+          <div class="destaque-info">
+            <span class="eyebrow">Linha</span>
+            <h3>Casual</h3>
+            <span class="destaque-link">Ver coleção</span>
+          </div>
+        </a>
+        <a href="#colecao" class="destaque-tile reveal" data-delay="1" data-jump-tab="casual-feminino">
+          <div class="destaque-img"><img src="assets/img_destaque_casual_feminino.jpg" alt="Linha Casual Feminino Pantale - mulher em campo de golfe à beira-mar"></div>
+          <div class="destaque-info">
+            <span class="eyebrow">Linha</span>
+            <h3>Casual Feminino</h3>
+            <span class="destaque-link">Ver coleção</span>
+          </div>
+        </a>
       </div>
-      <div class="showcase-captions">
-        <div class="showcase-caption reveal">
-          <span class="showcase-num">01</span>
-          <span class="showcase-label">Origem</span>
-          <h3>Da floresta para o seu corpo.</h3>
-          <p>Cada peça carrega a força da fauna brasileira. Design que nasce do respeito ao que é nosso e se traduz em caimento, conforto e propósito.</p>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       [3c] MANIFESTO (citação full-bleed + bloco escuro)
+  ============================================================ -->
+  <section id="manifesto-destaque">
+    <div class="manifesto-statement">
+      <div class="container">
+        <span class="eyebrow manifesto-statement-eyebrow reveal">Não seguimos tendência, seguimos propósito.</span>
+        <h2 class="reveal" data-delay="1">A Pantale</h2>
+        <div class="manifesto-statement-texto reveal" data-delay="2">
+          <p>A Pantale não começa na roupa.</p>
+          <p>Começa na origem.</p>
+          <p>No orgulho de ser brasileira: da nossa fauna, da nossa força e da nossa forma de fazer moda consciente, autêntica e duradoura.</p>
+          <p>Preservar o que é nosso é o nosso compromisso. Com você, com o próximo e com a natureza que nos inspira.</p>
         </div>
-        <div class="showcase-caption reveal">
-          <span class="showcase-num">02</span>
-          <span class="showcase-label">Matéria</span>
-          <h3>Tecidos que respeitam o ciclo.</h3>
-          <p>Algodão orgânico, fibras recicladas e processos de baixo impacto. Materiais escolhidos para durar e para devolver menos resíduo ao planeta.</p>
-        </div>
-        <div class="showcase-caption reveal">
-          <span class="showcase-num">03</span>
-          <span class="showcase-label">Permanência</span>
-          <h3>Luxo é o que não se descarta.</h3>
-          <p>Peças atemporais, feitas para acompanhar você por anos. Menos pressa, mais presença. Essa é a nossa definição de prosperidade.</p>
-        </div>
+        <button type="button" class="btn btn-outline manifesto-statement-btn reveal" data-delay="3" data-jump-tab="manifesto" data-jump-target="#sobre">Nossa história</button>
       </div>
     </div>
   </section>
@@ -1958,11 +2968,10 @@
 
       <div class="tabs-panels">
         <div class="sobre-panel" data-panel="inovacoes">
-          <!-- ASSET PENDENTE: img_inovacoes.jpg -->
-          <div class="sobre-img">ASSET PENDENTE: img_inovacoes.jpg</div>
+          <div class="sobre-img"><img src="assets/img_inovacoes.jpg" alt="Tronco de árvore com marcas de garra, representando a origem e a fauna brasileira"></div>
           <h3>Inovações</h3>
-          <p>Cada peça Pantale nasce de processos que unem tecnologia e respeito à origem. Investimos em tingimentos de baixo impacto, tecidos de performance com fibras recicladas e uma cadeia produtiva rastreável do início ao fim.</p>
-          <p>É moda pensada para durar, não para descartar.</p>
+          <p>Cada peça Pantale nasce de processos que unem tecnologia e respeito à origem.</p>
+          <p>Primeira marca a estampar camisetas em modal e transformar moda em movimento. Fibras recicladas e uma cadeia produtiva rastreável do início ao fim.</p>
         </div>
 
         <div class="sobre-panel" data-panel="manifesto" hidden>
@@ -1973,8 +2982,7 @@
         </div>
 
         <div class="sobre-panel" data-panel="materiais" hidden>
-          <!-- ASSET PENDENTE: img_materiais.jpg -->
-          <div class="sobre-img">ASSET PENDENTE: img_materiais.jpg</div>
+          <div class="sobre-img"><img src="assets/img_materiais.jpg" alt="Tecidos Pantale: modal, algodão e poliéster reciclado"></div>
           <h3>Materiais</h3>
           <p>Selecionamos algodão orgânico, fibras recicladas e tecidos certificados que reduzem o impacto ambiental sem abrir mão do caimento e da durabilidade.</p>
           <p>Cada material é escolhido a dedo, priorizando fornecedores nacionais e processos que respeitam quem produz e o que é produzido.</p>
@@ -1992,6 +3000,42 @@
         <div class="rodape-marca">PANTALE</div>
         <p class="rodape-frase">Luxo não é pagar caro, é preservar o que é <em>nosso</em>. Moda consciente, feita no Brasil para durar.</p>
       </div>
+
+      <div class="rodape-meio">
+        <div class="rodape-contato">
+          <strong>Atendimento</strong>
+          <div>Segunda a Sexta: 9h às 18h</div>
+          <div>Instagram: <a href="https://instagram.com/pantale.co" target="_blank" rel="noopener">@pantale.co</a></div>
+          <div><a href="mailto:pantalecg@gmail.com">pantalecg@gmail.com</a></div>
+        </div>
+
+        <div class="rodape-coluna">
+          <h4>Institucional</h4>
+          <ul>
+            <li><button type="button" data-policy="privacidade">Política de Privacidade</button></li>
+            <li><button type="button" data-policy="trocas">Trocas e Devoluções</button></li>
+            <li><button type="button" data-policy="termos">Termos de Serviço</button></li>
+            <li><button type="button" data-policy="frete">Política de Frete</button></li>
+          </ul>
+        </div>
+
+        <div class="rodape-coluna">
+          <h4>Marca</h4>
+          <ul>
+            <li><a href="#sobre" data-jump-tab="inovacoes">Sobre nós</a></li>
+            <li><a href="#sobre" data-jump-tab="manifesto">Manifesto</a></li>
+            <li><a href="#colecao">Coleção</a></li>
+          </ul>
+        </div>
+
+        <div class="rodape-coluna">
+          <h4>Atendimento</h4>
+          <ul>
+            <li><button type="button" id="rodape-minha-conta">Minha Conta</button></li>
+          </ul>
+        </div>
+      </div>
+
       <div class="rodape-bottom">
         <div class="rodape-tags">
           <span>Wellness</span>
@@ -2000,8 +3044,241 @@
         </div>
         <a href="#hero" class="rodape-back">Voltar ao topo</a>
       </div>
+      <p class="rodape-copyright">© 2026 Pantale. Todos os direitos reservados.</p>
     </div>
   </footer>
+
+  <!-- ============================================================
+       [LEGAL] MODAL DE POLÍTICAS
+  ============================================================ -->
+  <div id="policy-modal" role="dialog" aria-modal="true" aria-label="Documento institucional">
+    <div class="policy-modal-card" id="policy-modal-card">
+      <button class="auth-close" id="policy-modal-close" aria-label="Fechar">&times;</button>
+
+      <!-- Política de Privacidade -->
+      <div class="policy-doc" data-policy="privacidade" hidden>
+        <span class="eyebrow policy-modal-eyebrow">Institucional</span>
+        <h3>Política de Privacidade</h3>
+        <div class="policy-body">
+          <p>A PANTALE valoriza a confiança de seus clientes. Esta Política de Privacidade explica como coletamos, usamos, armazenamos e protegemos seus dados pessoais ao navegar e comprar em pantale.com.br, em conformidade com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018 — LGPD).</p>
+
+          <h4>1. Quais dados coletamos</h4>
+          <ul>
+            <li><strong>Dados de identificação:</strong> nome completo, CPF, data de nascimento</li>
+            <li><strong>Dados de contato:</strong> e-mail, telefone/WhatsApp</li>
+            <li><strong>Dados de entrega:</strong> endereço completo, CEP</li>
+            <li><strong>Dados de pagamento:</strong> processados diretamente pelo Mercado Pago — a PANTALE não armazena números de cartão</li>
+            <li><strong>Dados de navegação:</strong> cookies, endereço IP, páginas visitadas, dispositivo utilizado</li>
+          </ul>
+
+          <h4>2. Para que usamos seus dados</h4>
+          <ul>
+            <li>Processar e entregar seus pedidos</li>
+            <li>Emitir nota fiscal</li>
+            <li>Enviar atualizações sobre o status da compra</li>
+            <li>Comunicação de marketing (promoções, lançamentos), quando você autorizar</li>
+            <li>Melhorar a experiência de navegação no site</li>
+            <li>Cumprir obrigações legais e fiscais</li>
+          </ul>
+
+          <h4>3. Com quem compartilhamos</h4>
+          <ul>
+            <li>Transportadoras e Correios, para viabilizar a entrega</li>
+            <li>Mercado Pago, para processamento de pagamentos</li>
+            <li>Ferramentas de e-mail marketing e analytics, quando aplicável</li>
+            <li>Autoridades públicas, quando exigido por lei</li>
+          </ul>
+          <p>A PANTALE não vende dados pessoais a terceiros.</p>
+
+          <h4>4. Cookies</h4>
+          <p>Utilizamos cookies para lembrar suas preferências, manter o carrinho de compras e entender como o site é utilizado. Você pode desativar cookies nas configurações do seu navegador, mas isso pode afetar algumas funcionalidades do site.</p>
+
+          <h4>5. Tempo de armazenamento</h4>
+          <p>Seus dados são mantidos pelo tempo necessário para cumprir as finalidades descritas acima e as obrigações legais e fiscais aplicáveis (geralmente 5 anos para dados fiscais).</p>
+
+          <h4>6. Seus direitos</h4>
+          <p>Como titular dos dados, você pode a qualquer momento:</p>
+          <ul>
+            <li>Confirmar a existência de tratamento de dados</li>
+            <li>Acessar seus dados</li>
+            <li>Corrigir dados incompletos ou desatualizados</li>
+            <li>Solicitar a exclusão dos seus dados</li>
+            <li>Revogar o consentimento para uso em marketing</li>
+            <li>Solicitar a portabilidade dos dados</li>
+          </ul>
+
+          <h4>7. Segurança</h4>
+          <p>Adotamos medidas técnicas e administrativas para proteger seus dados contra acessos não autorizados e situações de perda, alteração ou vazamento.</p>
+
+          <h4>8. Contato</h4>
+          <p>Para exercer seus direitos ou tirar dúvidas sobre esta política, entre em contato pelo e-mail <a href="mailto:pantalecg@gmail.com">pantalecg@gmail.com</a> ou pelo Instagram <a href="https://instagram.com/pantale.co" target="_blank" rel="noopener">@pantale.co</a>.</p>
+
+          <h4>9. Alterações</h4>
+          <p>Esta política pode ser atualizada periodicamente. A versão vigente estará sempre disponível nesta página.</p>
+        </div>
+      </div>
+
+      <!-- Trocas e Devoluções -->
+      <div class="policy-doc" data-policy="trocas" hidden>
+        <span class="eyebrow policy-modal-eyebrow">Institucional</span>
+        <h3>Trocas e Devoluções</h3>
+        <p class="policy-updated">Última atualização: 19 de julho de 2026</p>
+        <div class="policy-body">
+          <p>Na PANTALE, queremos que você compre com confiança. Esta política segue o Código de Defesa do Consumidor (CDC) e se aplica a todas as compras feitas em pantale.com.br.</p>
+
+          <h4>1. Direito de arrependimento (7 dias)</h4>
+          <p>Por se tratar de uma compra online, você tem até 7 dias corridos a partir do recebimento do produto para desistir da compra, sem precisar justificar o motivo (art. 49 do CDC).</p>
+          <p>Nesse caso:</p>
+          <ul>
+            <li>O reembolso é integral, incluindo o valor do frete de ida</li>
+            <li>O frete de devolução é por conta da PANTALE</li>
+            <li>O produto deve ser devolvido sem sinais de uso, com etiquetas e embalagem original</li>
+          </ul>
+
+          <h4>2. Troca por defeito</h4>
+          <p>Se o produto apresentar defeito de fabricação, você tem até 30 dias corridos a partir do recebimento para solicitar troca ou reembolso (produto não durável, conforme o CDC).</p>
+          <p>Nesse caso:</p>
+          <ul>
+            <li>O frete de devolução é por conta da PANTALE</li>
+            <li>Você pode escolher entre troca pelo mesmo produto, produto similar ou reembolso</li>
+          </ul>
+
+          <h4>3. Troca por tamanho ou cor</h4>
+          <p>Se o produto chegou certinho mas você quer trocar o tamanho, entre em contato em até 30 dias após o recebimento. Nesse caso, o frete de reenvio pode ficar por conta do cliente, salvo quando informado o contrário.</p>
+
+          <h4>4. Condições para aceitar a troca/devolução</h4>
+          <ul>
+            <li>Produto sem uso, sem lavagem e sem odores</li>
+            <li>Etiquetas originais intactas</li>
+            <li>Embalagem original, sempre que possível</li>
+            <li>Nota fiscal ou comprovante de compra</li>
+          </ul>
+
+          <h4>5. Como solicitar</h4>
+          <ol>
+            <li>Entre em contato pelo e-mail <a href="mailto:pantalecg@gmail.com">pantalecg@gmail.com</a> ou pelo Instagram <a href="https://instagram.com/pantale.co" target="_blank" rel="noopener">@pantale.co</a>, informando o número do pedido</li>
+            <li>Nossa equipe vai te passar as instruções e, se aplicável, o código de postagem</li>
+            <li>Envie o produto conforme orientado</li>
+            <li>Após o recebimento e conferência, processamos a troca ou o reembolso</li>
+          </ol>
+
+          <h4>6. Prazo de reembolso</h4>
+          <p>Após recebermos e conferirmos o produto devolvido, o reembolso é processado em até 15 dias úteis, no mesmo método de pagamento utilizado na compra.</p>
+
+          <h4>7. Dúvidas</h4>
+          <p>Fale com a gente pelo Instagram <a href="https://instagram.com/pantale.co" target="_blank" rel="noopener">@pantale.co</a> ou e-mail <a href="mailto:pantalecg@gmail.com">pantalecg@gmail.com</a>.</p>
+        </div>
+      </div>
+
+      <!-- Termos de Serviço -->
+      <div class="policy-doc" data-policy="termos" hidden>
+        <span class="eyebrow policy-modal-eyebrow">Institucional</span>
+        <h3>Termos de Serviço</h3>
+        <div class="policy-body">
+          <p>Estes Termos de Serviço regulam o uso do site pantale.com.br e a relação de compra e venda entre a PANTALE e seus clientes. Ao navegar ou realizar uma compra em nosso site, você concorda com os termos abaixo.</p>
+
+          <h4>1. Sobre a PANTALE</h4>
+          <p>PANTALE é uma marca de moda masculina e feminina, com sede em Campo Grande, MS, Brasil.</p>
+
+          <h4>2. Cadastro e uso do site</h4>
+          <ul>
+            <li>As informações fornecidas no cadastro e no checkout devem ser verdadeiras e atualizadas</li>
+            <li>É proibido usar o site para fins ilícitos ou fraudulentos</li>
+            <li>A PANTALE pode suspender ou cancelar acessos em caso de uso indevido</li>
+          </ul>
+
+          <h4>3. Produtos e preços</h4>
+          <ul>
+            <li>Todas as informações de produtos (fotos, descrições, composição) são apresentadas com o maior cuidado possível, mas podem ocorrer pequenas variações de cor devido a configurações de tela</li>
+            <li>Os preços podem ser alterados sem aviso prévio, mas o valor válido é sempre o exibido no momento da finalização da compra</li>
+            <li>Erros evidentes de preço ou descrição podem ser corrigidos, mesmo após a confirmação do pedido, mediante contato com o cliente</li>
+          </ul>
+
+          <h4>4. Pagamento</h4>
+          <ul>
+            <li>Pagamentos são processados através do Mercado Pago</li>
+            <li>O pedido é confirmado somente após a aprovação do pagamento</li>
+          </ul>
+
+          <h4>5. Entrega</h4>
+          <ul>
+            <li>Prazos e valores de frete estão descritos na Política de Frete</li>
+            <li>A responsabilidade pela entrega é da transportadora contratada; a PANTALE acompanha o processo e auxilia em caso de atrasos ou extravios</li>
+          </ul>
+
+          <h4>6. Trocas e devoluções</h4>
+          <p>Regidas pela nossa Política de Trocas e Devoluções, conforme o Código de Defesa do Consumidor.</p>
+
+          <h4>7. Propriedade intelectual</h4>
+          <p>Todo o conteúdo do site — incluindo logotipo, mascote (onça), fotografias, textos, identidade visual e nomes de coleção — é de propriedade da PANTALE e protegido por lei. É proibida a reprodução sem autorização prévia.</p>
+
+          <h4>8. Limitação de responsabilidade</h4>
+          <p>A PANTALE não se responsabiliza por danos indiretos decorrentes do uso do site, indisponibilidades temporárias por manutenção, ou fatores fora de seu controle (ex.: atrasos de transportadoras, instabilidades de internet).</p>
+
+          <h4>9. Legislação aplicável</h4>
+          <p>Estes termos são regidos pelas leis brasileiras, em especial o Código de Defesa do Consumidor (Lei nº 8.078/1990) e a Lei Geral de Proteção de Dados (Lei nº 13.709/2018). Fica eleito o foro da comarca de Campo Grande, MS, para dirimir eventuais conflitos.</p>
+
+          <h4>10. Alterações</h4>
+          <p>Estes Termos podem ser atualizados a qualquer momento. Recomendamos consultar esta página periodicamente.</p>
+
+          <h4>11. Contato</h4>
+          <p>Dúvidas sobre estes termos: <a href="mailto:pantalecg@gmail.com">pantalecg@gmail.com</a></p>
+        </div>
+      </div>
+
+      <!-- Política de Frete -->
+      <div class="policy-doc" data-policy="frete" hidden>
+        <span class="eyebrow policy-modal-eyebrow">Institucional</span>
+        <h3>Política de Frete</h3>
+        <div class="policy-body">
+          <h4>1. Cálculo do frete</h4>
+          <p>O valor do frete é calculado automaticamente no carrinho, com base no CEP de entrega e no peso/dimensões do pedido, utilizando os Correios ou transportadora parceira.</p>
+
+          <h4>2. Frete grátis</h4>
+          <p>Pedidos acima de R$ 397 têm frete grátis para todo o Brasil.</p>
+
+          <h4>3. Prazos de envio</h4>
+          <ul>
+            <li>Pedidos são processados e postados em até 2 dias úteis após a confirmação do pagamento</li>
+            <li>Prazo de entrega estimado após a postagem: 9 a 21 dias úteis</li>
+          </ul>
+          <p>Os prazos são estimativas da transportadora e podem variar por fatores fora do nosso controle (greves, condições climáticas, feriados).</p>
+
+          <h4>4. Rastreamento</h4>
+          <p>Assim que o pedido é postado, você recebe o código de rastreio por e-mail/WhatsApp. É possível acompanhar a entrega diretamente no site da transportadora.</p>
+
+          <h4>5. Pedido atrasado ou extraviado</h4>
+          <p>Se o prazo estimado for ultrapassado ou o pedido não for localizado, entre em contato pelo e-mail <a href="mailto:pantalecg@gmail.com">pantalecg@gmail.com</a> ou Instagram <a href="https://instagram.com/pantale.co" target="_blank" rel="noopener">@pantale.co</a> para que possamos abrir uma investigação junto à transportadora e resolver o caso, com reenvio ou reembolso conforme aplicável.</p>
+
+          <h4>6. Áreas de entrega</h4>
+          <p>Entregamos para todo o território nacional.</p>
+
+          <h4>7. Endereço incorreto</h4>
+          <p>É de responsabilidade do cliente informar o endereço completo e correto no momento da compra. Devoluções por endereço incorreto podem gerar custo adicional de reenvio.</p>
+
+          <h4>8. Dúvidas</h4>
+          <p>Fale com a gente pelo Instagram <a href="https://instagram.com/pantale.co" target="_blank" rel="noopener">@pantale.co</a> ou e-mail <a href="mailto:pantalecg@gmail.com">pantalecg@gmail.com</a>.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       [LGPD] BANNER DE COOKIES
+  ============================================================ -->
+  <div id="cookie-banner" role="region" aria-label="Aviso de cookies">
+    <div class="container cookie-inner">
+      <p class="cookie-texto">
+        Usamos cookies para manter sua sacola, lembrar suas preferências e entender como o site é usado.
+        Você pode aceitar ou recusar os cookies opcionais. Saiba mais na
+        <button type="button" data-policy="privacidade">Política de Privacidade</button>.
+      </p>
+      <div class="cookie-acoes">
+        <button type="button" class="cookie-btn cookie-btn-recusar" id="cookie-recusar">Recusar</button>
+        <button type="button" class="cookie-btn cookie-btn-aceitar" id="cookie-aceitar">Aceitar</button>
+      </div>
+    </div>
+  </div>
 
   <script>
     (function () {
@@ -2053,6 +3330,104 @@
         document.addEventListener('visibilitychange', function () {
           if (!document.hidden) playHeroVideo();
         });
+      })();
+
+      /* ============================================================
+         HERO CARROSSEL — troca para o banner quando o vídeo termina,
+         e permite navegação manual (dots, setas, arraste/swipe)
+      ============================================================ */
+      (function initHeroCarousel() {
+        var carousel = document.getElementById('hero-carousel');
+        var track = document.getElementById('hero-carousel-track');
+        if (!carousel || !track) return;
+
+        var slides = track.querySelectorAll('.hero-slide');
+        var dots = carousel.querySelectorAll('.hero-carousel-dot');
+        var arrows = carousel.querySelectorAll('.hero-carousel-arrow');
+        var total = slides.length;
+        var current = 0;
+
+        var IMAGE_DURATION = 6000; // tempo que um slide sem vídeo fica visível
+        var autoTimer = null;
+
+        function clearAuto() {
+          if (autoTimer) { clearTimeout(autoTimer); autoTimer = null; }
+        }
+
+        // Toca o vídeo do slide atual (avança no 'ended') ou agenda a troca
+        // automática dos slides sem vídeo.
+        function scheduleAuto() {
+          clearAuto();
+          var vid = slides[current].querySelector('video');
+          if (vid) {
+            try { vid.currentTime = 0; } catch (e) {}
+            var p = vid.play();
+            if (p && p.catch) p.catch(function () {});
+          } else {
+            autoTimer = setTimeout(function () { goTo(current + 1); }, IMAGE_DURATION);
+          }
+        }
+
+        function goTo(index) {
+          current = ((index % total) + total) % total;
+          track.style.transform = 'translateX(-' + (current * (100 / total)) + '%)';
+          dots.forEach(function (d, i) { d.classList.toggle('is-active', i === current); });
+          scheduleAuto();
+        }
+
+        dots.forEach(function (d) {
+          d.addEventListener('click', function () { goTo(parseInt(d.dataset.slide, 10)); });
+        });
+        arrows.forEach(function (a) {
+          a.addEventListener('click', function () { goTo(current + parseInt(a.dataset.dir, 10)); });
+        });
+
+        // Cada vídeo do carrossel avança para o próximo slide ao terminar
+        slides.forEach(function (slide, i) {
+          var vid = slide.querySelector('video');
+          if (!vid) return;
+          vid.removeAttribute('loop');
+          vid.addEventListener('ended', function () {
+            if (current === i) goTo(current + 1);
+          });
+        });
+
+        // Arraste / swipe manual (mouse e touch)
+        var startX = 0, deltaX = 0, dragging = false;
+
+        function onStart(x) {
+          dragging = true;
+          startX = x;
+          deltaX = 0;
+          track.classList.add('is-dragging');
+        }
+        function onMove(x) {
+          if (!dragging) return;
+          deltaX = x - startX;
+          var base = -(current * (100 / total));
+          var dragPercent = (deltaX / carousel.offsetWidth) * (100 / total);
+          track.style.transform = 'translateX(' + (base + dragPercent) + '%)';
+        }
+        function onEnd() {
+          if (!dragging) return;
+          dragging = false;
+          track.classList.remove('is-dragging');
+          if (Math.abs(deltaX) > carousel.offsetWidth * 0.15) {
+            goTo(current + (deltaX < 0 ? 1 : -1));
+          } else {
+            goTo(current);
+          }
+        }
+
+        track.addEventListener('touchstart', function (e) { onStart(e.touches[0].clientX); }, { passive: true });
+        track.addEventListener('touchmove', function (e) { onMove(e.touches[0].clientX); }, { passive: true });
+        track.addEventListener('touchend', onEnd);
+
+        track.addEventListener('mousedown', function (e) { onStart(e.clientX); e.preventDefault(); });
+        window.addEventListener('mousemove', function (e) { onMove(e.clientX); });
+        window.addEventListener('mouseup', onEnd);
+
+        goTo(0);
       })();
 
       (function initIntro() {
@@ -2170,6 +3545,32 @@
           });
         });
       });
+
+      /* ============================================================
+         ATALHOS "IR PARA ABA" (destaques, manifesto, rodapé)
+      ============================================================ */
+      document.querySelectorAll('[data-jump-tab]').forEach(function (el) {
+        el.addEventListener('click', function (e) {
+          var tabId = el.getAttribute('data-jump-tab');
+          var tabBtn = document.querySelector('.tab-btn[data-tab="' + tabId + '"]');
+          if (tabBtn) tabBtn.click();
+
+          var targetSel = el.getAttribute('data-jump-target');
+          if (targetSel) {
+            e.preventDefault();
+            var targetEl = document.querySelector(targetSel);
+            if (targetEl) targetEl.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth' });
+          }
+        });
+      });
+
+      (function initRodapeMinhaConta() {
+        var btn = document.getElementById('rodape-minha-conta');
+        var authBtn = document.getElementById('btn-open-auth');
+        if (btn && authBtn) {
+          btn.addEventListener('click', function () { authBtn.click(); });
+        }
+      })();
 
       /* ============================================================
          MOVIMENTO — REVEAL NO SCROLL (IntersectionObserver)
@@ -2339,20 +3740,45 @@
           close: closeDrawer,
           refresh: refresh,
           // Faz o pedido de verdade (chamado pela tela de pagamento)
-          doCheckout: async function (metodo, customer) {
+          doCheckout: async function (metodo, customer, freightId) {
             var data = await api('/api/checkout', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ method: metodo, customer: customer || {} })
+              body: JSON.stringify({ method: metodo, customer: customer || {}, freightId: freightId })
             });
             render(data.cart);
             return data;
+          },
+          // Pede ao servidor a URL de pagamento do Mercado Pago para um
+          // pedido já criado. Devolve { url, preferenceId }.
+          criarPagamento: function (orderId) {
+            return api('/api/mercadopago', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ orderId: orderId })
+            });
+          },
+          // Situação de um pedido do próprio cliente (usado na volta do
+          // Mercado Pago para saber se o pagamento caiu de verdade).
+          verPedido: function (orderId) {
+            return api('/api/orders/' + orderId);
           }
         };
 
         // "Finalizar compra" abre os dados de entrega (depois o pagamento)
         checkoutBtn.addEventListener('click', function () {
           if (!lastPayload.items.length) return;
+          // Analytics: começou o checkout (begin_checkout / InitiateCheckout).
+          // É aqui que a maior parte da desistência acontece — comparar este
+          // número com o de purchase mostra o tamanho do vazamento.
+          if (window.PantaleTrack) {
+            window.PantaleTrack.evento('begin_checkout', {
+              value: lastPayload.total,
+              items: lastPayload.items.map(function (it) {
+                return { nome: it.product, preco: it.price, qtd: it.qty, tamanho: it.size };
+              })
+            });
+          }
           closeDrawer();
           window.PantaleDados.open(lastPayload.total);
         });
@@ -2399,6 +3825,7 @@
         var msgEl = document.getElementById('pagamento-msg');
         var pedidoFeito = false;
         var clienteAtual = {};
+        var freteIdAtual = null;
 
         function setMsg(texto, tipo) {
           msgEl.className = 'pagamento-msg' + (tipo ? ' is-' + tipo : '');
@@ -2425,33 +3852,71 @@
           } else { feito(); }
         }
 
-        // Registra o pedido no backend assim que o cliente inicia o pagamento
+        /* Registra o pedido no backend assim que o cliente inicia o pagamento.
+
+           Devolve a promessa com { orderId, total, items, ... } porque o
+           fluxo do cartão precisa do orderId para pedir a cobrança.
+
+           NÃO dispara o evento 'purchase' aqui: neste ponto o pedido só
+           existe, ninguém pagou nada ainda. Contar venda agora ensinaria
+           o Google e a Meta a caçar quem clica em pagar e some. A conversão
+           é disparada na volta do Mercado Pago, e só depois do servidor
+           confirmar que o pedido está pago. */
         function registrarPedido(metodo) {
-          if (pedidoFeito) return;
+          if (pedidoFeito) return Promise.resolve(null);
           pedidoFeito = true;
           pagarCartao.disabled = true;
           pagarPix.disabled = true;
           setMsg('Registrando pedido...');
-          window.PantaleCart.doCheckout(metodo, clienteAtual).then(function (data) {
+          return window.PantaleCart.doCheckout(metodo, clienteAtual, freteIdAtual).then(function (data) {
             setMsg('Pedido #' + data.orderId + ' registrado · R$ ' + data.total +
                    '. Assim que o pagamento for aprovado, ele entra em produção.', 'success');
+            // As peças saíram do estoque: atualiza a vitrine
+            if (window.PantaleEstoque) window.PantaleEstoque.recarregar();
+            return data;
           }).catch(function (err) {
             pedidoFeito = false;
             pagarCartao.disabled = false;
             pagarPix.disabled = false;
             setMsg(err.message, 'error');
+            // Se caiu por falta de estoque, reflete isso na vitrine
+            if (window.PantaleEstoque) window.PantaleEstoque.recarregar();
+            throw err;
           });
         }
 
-        // CARTÃO: abre o Mercado Pago e registra o pedido
+        /* CARTÃO: registra o pedido e manda o cliente ao Mercado Pago.
+
+           Ordem importa: o pedido nasce PRIMEIRO, porque é o id dele que
+           vai no metadata da cobrança — é assim que o webhook sabe, depois,
+           qual pedido dar baixa.
+
+           Redirecionamento na mesma aba (window.location) em vez de abrir
+           outra: pop-up depois de uma chamada assíncrona é bloqueado pelo
+           navegador, e o cliente ficaria olhando uma tela parada. */
         pagarCartao.addEventListener('click', function () {
-          if (!PAGAMENTO.mercadoPagoLink) {
-            setMsg('Configure o link do Mercado Pago no código.', 'error');
-            return;
-          }
-          // abre o link no gesto do clique (evita bloqueio de pop-up)
-          window.open(PAGAMENTO.mercadoPagoLink, '_blank', 'noopener');
-          registrarPedido('cartao');
+          var pedidoCriado = null;
+          registrarPedido('cartao')
+            .then(function (data) {
+              if (!data || !data.orderId) return;
+              pedidoCriado = data;
+              setMsg('Tudo certo. Levando você ao Mercado Pago...');
+              return window.PantaleCart.criarPagamento(data.orderId).then(function (r) {
+                if (!r || !r.url) throw new Error('Não recebi o endereço de pagamento.');
+                window.location.href = r.url;
+              });
+            })
+            .catch(function (err) {
+              // Se o pedido nem chegou a ser criado (sacola vazia, peça
+              // esgotada), registrarPedido já mostrou o motivo certo —
+              // sobrescrever aqui esconderia a causa real.
+              if (!pedidoCriado) return;
+              setMsg('Seu pedido #' + pedidoCriado.orderId + ' foi registrado, mas não consegui ' +
+                     'abrir o pagamento (' + (err && err.message ? err.message : 'erro desconhecido') + '). ' +
+                     'Chame no WhatsApp que a gente finaliza.', 'error');
+              pagarCartao.disabled = false;
+              pagarPix.disabled = false;
+            });
         });
 
         // PIX: mostra o código/QR e registra o pedido
@@ -2465,13 +3930,16 @@
           else { pixQrWrap.hidden = true; }
           pixResultado.hidden = false;
           copiarPix();
-          registrarPedido('pix');
+          // O erro já é exibido dentro de registrarPedido; o catch aqui só
+          // impede uma rejeição solta no console.
+          registrarPedido('pix').catch(function () {});
         });
 
         pixCopy.addEventListener('click', copiarPix);
 
-        function open(total, customer) {
+        function open(total, customer, freightId) {
           clienteAtual = customer || {};
+          freteIdAtual = (freightId != null ? freightId : null);
           totalEl.textContent = 'R$ ' + total;
           setMsg('');
           pedidoFeito = false;
@@ -2509,11 +3977,29 @@
         var erroEl = document.getElementById('dados-erro');
         var cepInput = document.getElementById('d-cep');
         var cepStatus = document.getElementById('cep-status');
-        var totalAtual = 0;
+        var subtotalAtual = 0;
+
+        // Frete (Melhor Envio)
+        var freteBox = document.getElementById('frete-box');
+        var freteStatus = document.getElementById('frete-status');
+        var freteOpcoesEl = document.getElementById('frete-opcoes');
+        var resumoEl = document.getElementById('dados-resumo');
+        var resumoSubtotal = document.getElementById('resumo-subtotal');
+        var resumoFrete = document.getElementById('resumo-frete');
+        var resumoTotal = document.getElementById('resumo-total');
+        var freteOpcoes = [];         // opções retornadas pela API
+        var freteSelecionado = null;  // opção escolhida pelo cliente
+        var freteFree = false;        // frete grátis (subtotal >= mínimo)
+        var freteDisponivel = false;  // API respondeu com opções válidas
+        var freteCepCotado = '';      // CEP já cotado (evita recotar à toa)
+
+        var cpfInput = document.getElementById('d-cpf');
+        var cpfStatus = document.getElementById('cpf-status');
 
         var F = {
           name: document.getElementById('d-nome'),
           email: document.getElementById('d-email'),
+          cpf: cpfInput,
           phone: document.getElementById('d-tel'),
           cep: cepInput,
           address: document.getElementById('d-end'),
@@ -2536,14 +4022,124 @@
           return data;
         }
 
+        function maskCpf(v) {
+          v = String(v || '').replace(/\D/g, '').slice(0, 11);
+          if (v.length > 9) return v.slice(0, 3) + '.' + v.slice(3, 6) + '.' + v.slice(6, 9) + '-' + v.slice(9);
+          if (v.length > 6) return v.slice(0, 3) + '.' + v.slice(3, 6) + '.' + v.slice(6);
+          if (v.length > 3) return v.slice(0, 3) + '.' + v.slice(3);
+          return v;
+        }
+
         function preencher(p) {
           p = p || {};
           Object.keys(F).forEach(function (k) {
             if (F[k] && p[k] != null && !F[k].value) F[k].value = p[k];
           });
+          if (p.cpf && !cpfInput.value) cpfInput.value = maskCpf(p.cpf);
           // nome/email sempre vêm da conta
           if (p.name) F.name.value = p.name;
           if (p.email) F.email.value = p.email;
+        }
+
+        function brl(n) { return 'R$ ' + n; }
+
+        // Preço do frete a cobrar agora (0 quando grátis)
+        function fretePreco() {
+          if (freteFree) return 0;
+          return freteSelecionado ? freteSelecionado.price : 0;
+        }
+
+        // Atualiza o resumo (subtotal, frete, total)
+        function atualizarResumo() {
+          resumoSubtotal.textContent = brl(subtotalAtual);
+          if (freteFree) {
+            resumoFrete.textContent = 'Grátis';
+          } else if (freteSelecionado) {
+            resumoFrete.textContent = brl(freteSelecionado.price);
+          } else if (freteDisponivel) {
+            resumoFrete.textContent = 'Selecione uma opção';
+          } else {
+            resumoFrete.textContent = 'a combinar';
+          }
+          resumoTotal.textContent = brl(subtotalAtual + fretePreco());
+        }
+
+        function selecionarFrete(op) {
+          freteSelecionado = op;
+          Array.prototype.forEach.call(freteOpcoesEl.querySelectorAll('.frete-opcao'), function (el) {
+            el.classList.toggle('is-active', el.getAttribute('data-id') === String(op.id));
+            var radio = el.querySelector('input');
+            if (radio) radio.checked = el.getAttribute('data-id') === String(op.id);
+          });
+          atualizarResumo();
+        }
+
+        function renderFrete() {
+          freteOpcoesEl.innerHTML = '';
+          freteOpcoes.forEach(function (op, i) {
+            var label = document.createElement('label');
+            label.className = 'frete-opcao';
+            label.setAttribute('data-id', String(op.id));
+            var prazo = op.deliveryDays != null ? (op.deliveryDays + (op.deliveryDays === 1 ? ' dia útil' : ' dias úteis')) : 'prazo a confirmar';
+            var precoTxt = freteFree ? 'Grátis' : brl(op.price);
+            var precoCls = 'frete-opcao-preco' + (freteFree ? ' is-free' : '');
+            label.innerHTML =
+              '<input type="radio" name="frete" value="' + op.id + '">' +
+              '<span class="frete-opcao-info">' +
+                '<span class="frete-opcao-nome">' + (op.company ? op.company + ' · ' : '') + op.name + '</span>' +
+                '<span class="frete-opcao-prazo">' + prazo + '</span>' +
+              '</span>' +
+              '<span class="' + precoCls + '">' + precoTxt + '</span>';
+            label.addEventListener('click', function () { selecionarFrete(op); });
+            freteOpcoesEl.appendChild(label);
+          });
+          if (freteOpcoes.length) selecionarFrete(freteOpcoes[0]); // pré-seleciona a mais barata
+        }
+
+        // Cota o frete no backend (que chama o Melhor Envio)
+        async function calcularFrete() {
+          var cep = (cepInput.value || '').replace(/\D/g, '');
+          if (cep.length !== 8) return;
+          if (cep === freteCepCotado && freteDisponivel) return; // já cotado
+          freteBox.hidden = false;
+          resumoEl.hidden = false;
+          freteStatus.className = 'frete-status';
+          freteStatus.textContent = 'Calculando frete...';
+          freteOpcoesEl.innerHTML = '';
+          freteOpcoes = [];
+          freteSelecionado = null;
+          freteDisponivel = false;
+          freteFree = false;
+          atualizarResumo();
+          try {
+            var data = await api('/api/frete', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ cep: cep })
+            });
+            freteCepCotado = cep;
+            if (!data.available) {
+              // Frete ainda não configurado no servidor: não bloqueia a compra
+              freteStatus.textContent = 'O frete será combinado com você após o pedido.';
+              atualizarResumo();
+              return;
+            }
+            freteFree = !!data.freeShipping;
+            freteOpcoes = data.options || [];
+            if (!freteOpcoes.length) {
+              freteStatus.textContent = 'Nenhuma opção de frete para este CEP. Fale com a gente.';
+              return;
+            }
+            freteStatus.textContent = freteFree
+              ? 'Frete grátis para este pedido 🎉 Escolha o serviço:'
+              : 'Escolha a forma de envio:';
+            freteDisponivel = true;
+            renderFrete();
+          } catch (e) {
+            freteStatus.className = 'frete-status is-error';
+            freteStatus.textContent = 'Não foi possível calcular agora — o frete será combinado após o pedido.';
+            atualizarResumo();
+          }
         }
 
         // Busca CEP no ViaCEP e preenche endereço/bairro/cidade/UF
@@ -2578,36 +4174,85 @@
           var v = cepInput.value.replace(/\D/g, '').slice(0, 8);
           cepInput.value = v.length > 5 ? v.slice(0, 5) + '-' + v.slice(5) : v;
           cepStatus.textContent = '';
-          if (v.length === 8) buscarCep();
+          if (v.length === 8) { buscarCep(); calcularFrete(); }
         });
-        cepInput.addEventListener('blur', buscarCep);
+        cepInput.addEventListener('blur', function () { buscarCep(); calcularFrete(); });
+
+        // Valida dígitos verificadores do CPF (algoritmo oficial da Receita)
+        function cpfValido(digits) {
+          if (!digits || digits.length !== 11 || /^(\d)\1{10}$/.test(digits)) return false;
+          for (var t = 9; t <= 10; t++) {
+            var sum = 0;
+            for (var i = 0; i < t; i++) sum += parseInt(digits.charAt(i), 10) * (t + 1 - i);
+            var check = (sum * 10) % 11;
+            if (check === 10) check = 0;
+            if (check !== parseInt(digits.charAt(t), 10)) return false;
+          }
+          return true;
+        }
+
+        // Máscara de CPF (000.000.000-00) + validação em tempo real
+        cpfInput.addEventListener('input', function () {
+          var v = cpfInput.value.replace(/\D/g, '').slice(0, 11);
+          var masked = v;
+          if (v.length > 9) masked = v.slice(0, 9) + '-' + v.slice(9);
+          if (v.length > 6) masked = masked.slice(0, 3) + '.' + masked.slice(3, 6) + '.' + masked.slice(6);
+          else if (v.length > 3) masked = masked.slice(0, 3) + '.' + masked.slice(3);
+          cpfInput.value = masked;
+          cpfStatus.textContent = '';
+          cpfStatus.className = 'cep-status';
+        });
+        cpfInput.addEventListener('blur', function () {
+          var v = cpfInput.value.replace(/\D/g, '');
+          if (!v) return;
+          if (cpfValido(v)) {
+            cpfStatus.textContent = 'válido';
+            cpfStatus.className = 'cep-status is-ok';
+          } else {
+            cpfStatus.textContent = 'CPF inválido';
+            cpfStatus.className = 'cep-status is-error';
+          }
+        });
 
         function coletar() {
           var c = {};
           Object.keys(F).forEach(function (k) { c[k] = (F[k].value || '').trim(); });
           c.uf = c.uf.toUpperCase();
+          c.cpf = c.cpf.replace(/\D/g, '');
           return c;
         }
 
         function validar(c) {
-          var obrig = ['name', 'email', 'phone', 'cep', 'address', 'number', 'district', 'city', 'uf'];
+          var obrig = ['name', 'email', 'cpf', 'phone', 'cep', 'address', 'number', 'district', 'city', 'uf'];
           for (var i = 0; i < obrig.length; i++) {
             if (!c[obrig[i]]) return 'Preencha todos os campos obrigatórios.';
           }
           if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(c.email)) return 'E-mail inválido.';
+          if (!cpfValido(c.cpf)) return 'CPF inválido.';
           return null;
         }
 
         async function open(total) {
-          totalAtual = total;
+          subtotalAtual = total;
           erroEl.classList.remove('is-visible');
           cepStatus.textContent = '';
+          // reinicia o frete a cada abertura
+          freteOpcoes = []; freteSelecionado = null; freteFree = false;
+          freteDisponivel = false; freteCepCotado = '';
+          freteOpcoesEl.innerHTML = '';
+          freteBox.hidden = false;
+          resumoEl.hidden = false;
+          freteStatus.className = 'frete-status';
+          freteStatus.textContent = 'Informe o CEP para calcular o frete.';
+          atualizarResumo();
           modal.classList.add('is-open');
           // Pré-preenche com o perfil salvo do cliente
           try {
             var data = await api('/api/profile');
             preencher(data.profile);
           } catch (e) {}
+          // Se o perfil já trouxe um CEP válido, cota automaticamente
+          if ((cepInput.value || '').replace(/\D/g, '').length === 8) calcularFrete();
         }
         function close() { modal.classList.remove('is-open'); }
 
@@ -2623,6 +4268,12 @@
             erroEl.classList.add('is-visible');
             return;
           }
+          // Exige escolher o frete quando há opções e não é grátis
+          if (freteDisponivel && !freteFree && !freteSelecionado) {
+            erroEl.textContent = 'Selecione uma opção de frete.';
+            erroEl.classList.add('is-visible');
+            return;
+          }
           // Salva no perfil para a próxima compra já vir preenchida
           try {
             await api('/api/profile', {
@@ -2632,7 +4283,9 @@
             });
           } catch (e) {}
           close();
-          window.PantalePagamento.open(totalAtual, c);
+          var grandTotal = subtotalAtual + fretePreco();
+          var freightId = freteSelecionado ? freteSelecionado.id : null;
+          window.PantalePagamento.open(grandTotal, c, freightId);
         });
 
         document.getElementById('dados-close').addEventListener('click', close);
@@ -2640,6 +4293,75 @@
         document.addEventListener('keydown', function (e) {
           if (e.key === 'Escape' && modal.classList.contains('is-open')) close();
         });
+      })();
+
+      /* ============================================================
+         ESTOQUE — marca tamanhos/peças esgotados na vitrine
+         --------------------------------------------------------
+         Fonte da verdade é o servidor; aqui é só a leitura para a
+         interface. Produto sem registro = sem controle (disponível).
+      ============================================================ */
+      window.PantaleEstoque = (function initEstoque() {
+        var API_BASE = (location.port && location.port !== '3000') ? 'http://localhost:3000' : '';
+        var TAMANHOS = ['P', 'M', 'G'];
+        var mapa = {};      // "Produto|M" -> quantidade
+        var carregado = false;
+
+        function disponivel(produto, tamanho) {
+          var v = mapa[produto + '|' + tamanho];
+          return (typeof v === 'number') ? v : Infinity; // sem registro = ilimitado
+        }
+        function esgotado(produto, tamanho) { return disponivel(produto, tamanho) <= 0; }
+        function tudoEsgotado(produto) {
+          return TAMANHOS.every(function (t) { return esgotado(produto, t); });
+        }
+
+        // Marca os cards da vitrine que estão totalmente esgotados
+        function pintarVitrine() {
+          if (!carregado) return;
+          document.querySelectorAll('.produto-card').forEach(function (card) {
+            var h3 = card.querySelector('h3');
+            if (!h3) return;
+            var nome = h3.textContent.trim();
+            var fora = tudoEsgotado(nome);
+            card.classList.toggle('is-esgotado', fora);
+            var selo = card.querySelector('.produto-esgotado-selo');
+            if (fora && !selo) {
+              selo = document.createElement('span');
+              selo.className = 'produto-esgotado-selo';
+              selo.textContent = 'Esgotado';
+              var img = card.querySelector('.produto-img');
+              if (img) img.appendChild(selo);
+            } else if (!fora && selo) {
+              selo.remove();
+            }
+          });
+        }
+
+        async function carregar() {
+          try {
+            var res = await fetch(API_BASE + '/api/stock');
+            var data = await res.json();
+            mapa = (data && data.stock) || {};
+            carregado = true;
+            pintarVitrine();
+            document.dispatchEvent(new CustomEvent('pantale:estoque'));
+          } catch (e) {
+            // Sem estoque carregado o site segue vendendo normalmente;
+            // o servidor continua validando na hora de comprar.
+            carregado = false;
+          }
+        }
+
+        carregar();
+
+        return {
+          disponivel: disponivel,
+          esgotado: esgotado,
+          tudoEsgotado: tudoEsgotado,
+          recarregar: carregar,
+          tamanhos: TAMANHOS
+        };
       })();
 
       /* ============================================================
@@ -2651,26 +4373,76 @@
         var thumbsEl = document.getElementById('produto-modal-thumbs');
         var titleEl = document.getElementById('produto-modal-title');
         var precoEl = document.getElementById('produto-modal-preco');
+        var descEl = document.getElementById('produto-modal-desc');
         var sizesEl = document.getElementById('produto-modal-sizes');
         var ctaEl = document.getElementById('produto-modal-cta');
         var msgEl = document.getElementById('produto-modal-msg');
+        var estoqueEl = document.getElementById('produto-modal-estoque');
         var selectedSize = null;
+        var produtoAtual = '';
 
         function setMain(s) {
           mainEl.innerHTML = '<img src="' + s.src + '" alt="' + (s.alt || '') + '">';
         }
 
+        /* Desabilita tamanhos sem estoque e avisa quando restam poucas peças */
+        function aplicarEstoque() {
+          var E = window.PantaleEstoque;
+          estoqueEl.hidden = true;
+          estoqueEl.textContent = '';
+          ctaEl.disabled = false;
+          ctaEl.textContent = 'Adicionar à sacola';
+          if (!E) return;
+
+          var todosFora = true;
+          sizesEl.querySelectorAll('.size-btn').forEach(function (btn) {
+            var tam = btn.getAttribute('data-size');
+            var fora = E.esgotado(produtoAtual, tam);
+            btn.classList.toggle('is-esgotado', fora);
+            btn.disabled = fora;
+            btn.setAttribute('aria-label', tam + (fora ? ' — esgotado' : ''));
+            if (!fora) todosFora = false;
+          });
+
+          if (todosFora) {
+            ctaEl.disabled = true;
+            ctaEl.textContent = 'Esgotado';
+            estoqueEl.textContent = 'Esta peça está esgotada no momento.';
+            estoqueEl.hidden = false;
+          }
+        }
+
+        /* Aviso de "últimas peças" para o tamanho escolhido */
+        function avisarPoucas(tam) {
+          var E = window.PantaleEstoque;
+          if (!E || !tam) { estoqueEl.hidden = true; return; }
+          var n = E.disponivel(produtoAtual, tam);
+          if (n !== Infinity && n > 0 && n <= 3) {
+            estoqueEl.textContent = n === 1
+              ? 'Última peça no tamanho ' + tam + '.'
+              : 'Últimas ' + n + ' peças no tamanho ' + tam + '.';
+            estoqueEl.hidden = false;
+          } else {
+            estoqueEl.hidden = true;
+          }
+        }
+
         function openProduto(card) {
           var nome = card.querySelector('h3').textContent;
-          var preco = card.querySelector('.produto-preco').textContent;
+          produtoAtual = nome.trim();
+          var precoAtualEl = card.querySelector('.produto-preco .produto-preco-atual');
+          var preco = precoAtualEl ? precoAtualEl.textContent : card.querySelector('.produto-preco').textContent;
           var imgs = card.querySelectorAll('.produto-img .produto-gallery-img');
 
           titleEl.textContent = nome;
           precoEl.textContent = preco;
+          var descSource = card.querySelector('.produto-descricao');
+          descEl.innerHTML = descSource ? descSource.innerHTML : '';
           selectedSize = null;
           msgEl.textContent = '';
           msgEl.classList.remove('is-error');
           sizesEl.querySelectorAll('.size-btn').forEach(function (b) { b.classList.remove('is-active'); });
+          aplicarEstoque();
 
           thumbsEl.innerHTML = '';
           if (imgs.length) {
@@ -2696,6 +4468,15 @@
           }
 
           modal.classList.add('is-open');
+
+          // Analytics: o cliente abriu a peça (view_item / ViewContent)
+          if (window.PantaleTrack) {
+            var precoVisto = parseInt((preco.match(/\d+/g) || ['0']).join(''), 10);
+            window.PantaleTrack.evento('view_item', {
+              value: precoVisto,
+              items: [{ nome: produtoAtual, preco: precoVisto, qtd: 1 }]
+            });
+          }
         }
 
         function closeProduto() {
@@ -2711,11 +4492,13 @@
 
         sizesEl.querySelectorAll('.size-btn').forEach(function (btn) {
           btn.addEventListener('click', function () {
+            if (btn.disabled || btn.classList.contains('is-esgotado')) return;
             sizesEl.querySelectorAll('.size-btn').forEach(function (b) { b.classList.remove('is-active'); });
             btn.classList.add('is-active');
             selectedSize = btn.getAttribute('data-size');
             msgEl.textContent = '';
             msgEl.classList.remove('is-error');
+            avisarPoucas(selectedSize);
           });
         });
 
@@ -2741,6 +4524,13 @@
               } else if (result && result.ok) {
                 msgEl.classList.remove('is-error');
                 msgEl.textContent = 'Adicionado à sacola · Tamanho ' + selectedSize + '.';
+                // Analytics: peça na sacola (add_to_cart / AddToCart)
+                if (window.PantaleTrack) {
+                  window.PantaleTrack.evento('add_to_cart', {
+                    value: precoNum,
+                    items: [{ nome: nome, preco: precoNum, qtd: 1, tamanho: selectedSize }]
+                  });
+                }
                 setTimeout(function () {
                   closeProduto();
                   window.PantaleCart.open();
@@ -2748,9 +4538,21 @@
               } else {
                 msgEl.classList.add('is-error');
                 msgEl.textContent = (result && result.error) || 'Erro ao adicionar.';
+                // Estoque pode ter mudado desde que a página abriu
+                if (window.PantaleEstoque) {
+                  window.PantaleEstoque.recarregar().then(aplicarEstoque);
+                }
               }
             })
-            .finally(function () { ctaEl.disabled = false; });
+            .finally(function () {
+              // Se a peça esgotou, aplicarEstoque mantém o botão travado
+              ctaEl.disabled = false;
+              aplicarEstoque();
+              if (selectedSize) {
+                var btn = sizesEl.querySelector('.size-btn[data-size="' + selectedSize + '"]');
+                if (btn && !btn.disabled) btn.classList.add('is-active');
+              }
+            });
         });
 
         document.getElementById('produto-modal-close').addEventListener('click', closeProduto);
@@ -2758,6 +4560,408 @@
         document.addEventListener('keydown', function (e) {
           if (e.key === 'Escape' && modal.classList.contains('is-open')) closeProduto();
         });
+      })();
+
+      /* ============================================================
+         NAVBAR — menu mobile (hamburger)
+      ============================================================ */
+      (function initNavToggle() {
+        var toggle = document.getElementById('nav-toggle');
+        var links = document.getElementById('nav-links');
+        if (!toggle || !links) return;
+
+        function close() {
+          toggle.classList.remove('is-active');
+          toggle.setAttribute('aria-expanded', 'false');
+          links.classList.remove('is-open');
+        }
+        function toggleMenu() {
+          var open = links.classList.toggle('is-open');
+          toggle.classList.toggle('is-active', open);
+          toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+        }
+
+        toggle.addEventListener('click', toggleMenu);
+        links.querySelectorAll('a').forEach(function (a) {
+          a.addEventListener('click', close);
+        });
+        document.addEventListener('keydown', function (e) {
+          if (e.key === 'Escape') close();
+        });
+      })();
+
+      /* ============================================================
+         PANTECH — modal "O que é PANTECH"
+      ============================================================ */
+      (function initPantechModal() {
+        var openBtn = document.getElementById('pantech-open');
+        var modal = document.getElementById('pantech-modal');
+        var closeBtn = document.getElementById('pantech-modal-close');
+        if (!openBtn || !modal || !closeBtn) return;
+
+        function open() { modal.classList.add('is-open'); }
+        function close() { modal.classList.remove('is-open'); }
+
+        openBtn.addEventListener('click', open);
+        closeBtn.addEventListener('click', close);
+        modal.addEventListener('click', function (e) { if (e.target === modal) close(); });
+        document.addEventListener('keydown', function (e) {
+          if (e.key === 'Escape' && modal.classList.contains('is-open')) close();
+        });
+      })();
+
+      /* ============================================================
+         LEGAL — modais de políticas (privacidade, trocas, termos, frete)
+      ============================================================ */
+      (function initPolicyModal() {
+        var modal = document.getElementById('policy-modal');
+        var card = document.getElementById('policy-modal-card');
+        var closeBtn = document.getElementById('policy-modal-close');
+        if (!modal || !card || !closeBtn) return;
+
+        var docs = modal.querySelectorAll('.policy-doc');
+
+        function open(key) {
+          var found = false;
+          docs.forEach(function (d) {
+            var match = d.getAttribute('data-policy') === key;
+            d.hidden = !match;
+            if (match) found = true;
+          });
+          if (!found) return;
+          modal.classList.add('is-open');
+          card.scrollTop = 0;
+        }
+        function close() { modal.classList.remove('is-open'); }
+
+        document.querySelectorAll('[data-policy]').forEach(function (el) {
+          if (el.closest('#policy-modal')) return; // ignora os próprios docs
+          el.addEventListener('click', function () { open(el.getAttribute('data-policy')); });
+        });
+
+        closeBtn.addEventListener('click', close);
+        modal.addEventListener('click', function (e) { if (e.target === modal) close(); });
+        document.addEventListener('keydown', function (e) {
+          if (e.key === 'Escape' && modal.classList.contains('is-open')) close();
+        });
+      })();
+
+      /* ============================================================
+         LGPD — banner de consentimento de cookies
+         --------------------------------------------------------
+         A escolha fica em localStorage. Cookies essenciais (sacola,
+         login) sempre funcionam; o consentimento vale para os
+         opcionais (analytics/marketing), que só devem ser
+         carregados quando PantaleCookies.aceito() for true.
+      ============================================================ */
+      window.PantaleCookies = (function initCookieBanner() {
+        var KEY = 'pantale_cookies';
+        var banner = document.getElementById('cookie-banner');
+        var btnAceitar = document.getElementById('cookie-aceitar');
+        var btnRecusar = document.getElementById('cookie-recusar');
+
+        function ler() {
+          try { return localStorage.getItem(KEY); } catch (e) { return 'indisponivel'; }
+        }
+        function salvar(valor) {
+          try { localStorage.setItem(KEY, valor); } catch (e) {}
+        }
+
+        var api = {
+          aceito: function () { return ler() === 'aceito'; },
+          decidido: function () { return !!ler(); }
+        };
+
+        if (!banner || !btnAceitar || !btnRecusar) return api;
+
+        function esconder() {
+          banner.classList.remove('is-visible');
+          setTimeout(function () { banner.classList.remove('is-open'); }, 500);
+        }
+        function decidir(valor) {
+          salvar(valor);
+          esconder();
+          document.dispatchEvent(new CustomEvent('pantale:cookies', { detail: { consent: valor } }));
+        }
+
+        function mostrar() {
+          banner.classList.add('is-open');
+          // força reflow para a transição de entrada acontecer
+          void banner.offsetWidth;
+          banner.classList.add('is-visible');
+        }
+
+        btnAceitar.addEventListener('click', function () { decidir('aceito'); });
+        btnRecusar.addEventListener('click', function () { decidir('recusado'); });
+
+        /* Enquanto qualquer modal estiver aberto, o banner se recolhe —
+           assim ele nunca cobre o botão de comprar. */
+        (function acompanharModais() {
+          var modais = document.querySelectorAll('#produto-modal, #auth-modal, #pagamento-modal, #dados-modal, #policy-modal, #pantech-modal, #cart-drawer');
+          if (!modais.length) return;
+          function conferir() {
+            var algumAberto = Array.prototype.some.call(modais, function (m) {
+              return m.classList.contains('is-open');
+            });
+            banner.classList.toggle('is-recolhido', algumAberto);
+          }
+          var obs = new MutationObserver(conferir);
+          modais.forEach(function (m) {
+            obs.observe(m, { attributes: true, attributeFilter: ['class'] });
+          });
+          conferir();
+        })();
+
+        // Só aparece se ainda não houve escolha, e espera a intro sair de cena.
+        if (!api.decidido()) {
+          var intro = document.getElementById('intro');
+          var tentativas = 0;
+          var aguardarIntro = setInterval(function () {
+            var introFora = !intro || intro.classList.contains('intro-hidden');
+            if (introFora || ++tentativas > 40) {
+              clearInterval(aguardarIntro);
+              setTimeout(mostrar, 900);
+            }
+          }, 300);
+        }
+
+        return api;
+      })();
+
+      /* ============================================================
+         ANALYTICS — Google Analytics 4 + Pixel da Meta
+         --------------------------------------------------------
+         >>> PREENCHA AQUI COM SEUS IDs <<<
+
+         GA4:   analytics.google.com → Admin → Fluxos de dados →
+                copie o "ID da métrica", no formato G-XXXXXXXXXX
+         Meta:  business.facebook.com → Gerenciador de Eventos →
+                Fontes de dados → copie o ID do pixel (só números)
+
+         Com os campos vazios NADA é carregado — o site funciona
+         normal, só não mede. Pode deixar assim até criar as contas.
+
+         Estes IDs NÃO são segredo: eles ficam visíveis no código da
+         página em qualquer site que usa analytics. Podem ir pro git.
+
+         LGPD: nada carrega antes do cliente aceitar no banner de
+         cookies. Se ele recusar, nenhum script de rastreio sobe e
+         nenhum evento é enviado — nem retroativamente se ele mudar
+         de ideia depois. É por isso que os eventos anteriores ao
+         aceite são descartados em vez de enfileirados.
+      ============================================================ */
+      window.PantaleTrack = (function initAnalytics() {
+        var CONFIG = {
+          ga4: '',        // ex: 'G-ABCD123456'
+          metaPixel: ''   // ex: '1234567890123456'
+        };
+
+        var MOEDA = 'BRL';
+        var carregado = false;
+
+        function temGa4() { return /^G-[A-Z0-9]+$/i.test(CONFIG.ga4); }
+        function temMeta() { return /^\d{5,}$/.test(CONFIG.metaPixel); }
+        function configurado() { return temGa4() || temMeta(); }
+
+        /* --- carregamento dos scripts (só depois do aceite) --- */
+        function carregarGa4() {
+          window.dataLayer = window.dataLayer || [];
+          window.gtag = function () { window.dataLayer.push(arguments); };
+          window.gtag('js', new Date());
+          window.gtag('config', CONFIG.ga4);
+
+          var s = document.createElement('script');
+          s.async = true;
+          s.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(CONFIG.ga4);
+          document.head.appendChild(s);
+        }
+
+        function carregarMeta() {
+          /* Snippet oficial do Pixel, reescrito legível: cria a fila fbq
+             antes do script chegar, para nenhum evento se perder. */
+          if (window.fbq) return;
+          var fbq = function () {
+            fbq.callMethod ? fbq.callMethod.apply(fbq, arguments) : fbq.queue.push(arguments);
+          };
+          fbq.push = fbq;
+          fbq.loaded = true;
+          fbq.version = '2.0';
+          fbq.queue = [];
+          window.fbq = window._fbq = fbq;
+
+          var s = document.createElement('script');
+          s.async = true;
+          s.src = 'https://connect.facebook.net/en_US/fbevents.js';
+          document.head.appendChild(s);
+
+          fbq('init', CONFIG.metaPixel);
+          fbq('track', 'PageView');
+        }
+
+        function carregar() {
+          if (carregado || !configurado()) return;
+          carregado = true;
+          if (temGa4()) carregarGa4();
+          if (temMeta()) carregarMeta();
+        }
+
+        /* --- envio de eventos ---
+           Um nome de evento nosso vira o par (GA4, Meta), porque as
+           duas plataformas batizam a mesma coisa de jeitos diferentes. */
+        var MAPA = {
+          view_item:      { ga: 'view_item',      meta: 'ViewContent' },
+          add_to_cart:    { ga: 'add_to_cart',    meta: 'AddToCart' },
+          begin_checkout: { ga: 'begin_checkout', meta: 'InitiateCheckout' },
+          purchase:       { ga: 'purchase',       meta: 'Purchase' }
+        };
+
+        function ativo() {
+          return carregado && window.PantaleCookies && window.PantaleCookies.aceito();
+        }
+
+        /* dados: { value, items: [{ nome, preco, qtd, tamanho }], orderId } */
+        function evento(nome, dados) {
+          if (!ativo()) return;
+          var m = MAPA[nome];
+          if (!m) return;
+          var d = dados || {};
+          var itens = d.items || [];
+
+          if (window.gtag && temGa4()) {
+            var params = {
+              currency: MOEDA,
+              value: d.value || 0,
+              items: itens.map(function (it, i) {
+                return {
+                  item_id: it.nome,
+                  item_name: it.nome,
+                  item_variant: it.tamanho || undefined,
+                  price: it.preco,
+                  quantity: it.qtd || 1,
+                  index: i
+                };
+              })
+            };
+            if (d.orderId != null) params.transaction_id = String(d.orderId);
+            if (d.shipping != null) params.shipping = d.shipping;
+            window.gtag('event', m.ga, params);
+          }
+
+          if (window.fbq && temMeta()) {
+            var fbParams = {
+              currency: MOEDA,
+              value: d.value || 0,
+              content_type: 'product',
+              contents: itens.map(function (it) {
+                return { id: it.nome, quantity: it.qtd || 1, item_price: it.preco };
+              }),
+              content_name: itens.length === 1 ? itens[0].nome : undefined
+            };
+            // eventID deixa a Meta descartar duplicata se um dia entrar
+            // a API de Conversões pelo servidor além do pixel no browser.
+            var opts = d.orderId != null ? { eventID: 'pedido-' + d.orderId } : undefined;
+            window.fbq('track', m.meta, fbParams, opts);
+          }
+        }
+
+        /* --- ligação com o consentimento --- */
+        if (window.PantaleCookies && window.PantaleCookies.aceito()) carregar();
+        document.addEventListener('pantale:cookies', function (e) {
+          if (e.detail && e.detail.consent === 'aceito') carregar();
+        });
+
+        return { evento: evento, configurado: configurado, ativo: ativo };
+      })();
+
+      /* ============================================================
+         VOLTA DO MERCADO PAGO
+         --------------------------------------------------------
+         O cliente retorna em /?pagamento=sucesso&pedido=42.
+
+         Essa URL NÃO é prova de pagamento — qualquer pessoa digita
+         "?pagamento=sucesso" no navegador. Por isso perguntamos ao
+         servidor a situação real do pedido, que só vira "pago" pelo
+         webhook do Mercado Pago.
+
+         O webhook costuma chegar em segundos, mas às vezes depois do
+         cliente voltar. Daí as tentativas espaçadas em vez de uma só.
+      ============================================================ */
+      (function initRetornoPagamento() {
+        var params = new URLSearchParams(location.search);
+        var situacao = params.get('pagamento');
+        var pedidoId = Number(params.get('pedido'));
+        if (!situacao || !pedidoId) return;
+
+        // Limpa a URL: recarregar a página não pode contar a venda de novo.
+        history.replaceState({}, '', location.pathname + location.hash);
+
+        var CHAVE_CONVERSOES = 'pantale_conversoes';
+        function jaContada(id) {
+          try {
+            return (JSON.parse(localStorage.getItem(CHAVE_CONVERSOES)) || []).indexOf(id) !== -1;
+          } catch (e) { return false; }
+        }
+        function marcarContada(id) {
+          try {
+            var l = JSON.parse(localStorage.getItem(CHAVE_CONVERSOES)) || [];
+            l.push(id);
+            localStorage.setItem(CHAVE_CONVERSOES, JSON.stringify(l.slice(-50)));
+          } catch (e) {}
+        }
+
+        function avisar(texto, tipo) {
+          var el = document.createElement('div');
+          el.setAttribute('role', 'status');
+          el.style.cssText = 'position:fixed;left:50%;transform:translateX(-50%);bottom:24px;' +
+            'z-index:9999;max-width:min(560px,92vw);padding:14px 20px;border-radius:14px;' +
+            'font-family:var(--font-body);font-size:14px;line-height:1.5;text-align:center;' +
+            'box-shadow:0 10px 30px rgba(36,22,6,.25);' +
+            (tipo === 'erro'
+              ? 'background:#b03a2e;color:#fff;'
+              : 'background:var(--escuro);color:var(--bege);');
+          el.textContent = texto;
+          document.body.appendChild(el);
+          setTimeout(function () { el.remove(); }, 9000);
+        }
+
+        if (situacao === 'falhou') {
+          avisar('O pagamento do pedido #' + pedidoId + ' não foi concluído. ' +
+                 'Sua sacola continua salva — é só tentar de novo.', 'erro');
+          return;
+        }
+
+        // sucesso ou pendente: confere no servidor antes de contar a venda
+        var tentativas = 0;
+        (function conferir() {
+          if (!window.PantaleCart || !window.PantaleCart.verPedido) return;
+          window.PantaleCart.verPedido(pedidoId).then(function (p) {
+            if (p && p.pago) {
+              if (!jaContada(pedidoId)) {
+                marcarContada(pedidoId);
+                if (window.PantaleTrack) {
+                  window.PantaleTrack.evento('purchase', {
+                    orderId: p.id,
+                    value: p.total,
+                    shipping: p.shipping,
+                    items: (p.items || []).map(function (it) {
+                      return { nome: it.product, preco: it.price, qtd: it.qty, tamanho: it.size };
+                    })
+                  });
+                }
+              }
+              avisar('Pagamento confirmado! Pedido #' + pedidoId + ' entrou em produção. ' +
+                     'Você recebe o código de rastreio por e-mail.');
+              if (window.PantaleEstoque) window.PantaleEstoque.recarregar();
+              return;
+            }
+            // Ainda não caiu: o webhook pode estar a caminho.
+            if (++tentativas < 5) return setTimeout(conferir, tentativas * 2000);
+            avisar('Recebemos seu pedido #' + pedidoId + '. A confirmação do pagamento ' +
+                   'pode levar alguns minutos — avisamos por e-mail assim que aprovar.');
+          }).catch(function () {
+            if (++tentativas < 3) setTimeout(conferir, 2500);
+          });
+        })();
       })();
 
       /* ============================================================
@@ -2967,6 +5171,91 @@
         });
       });
 
+    })();
+
+    /* ============================================================
+       DADOS ESTRUTURADOS DOS PRODUTOS (schema.org)
+       ------------------------------------------------------------
+       Lê os próprios cards da vitrine e monta o ItemList que o Google
+       usa no resultado rico (foto, preço e "em estoque" na busca).
+
+       Por que ler do DOM em vez de escrever a lista na mão: se a
+       tabela ficasse duplicada aqui, um dia o preço mudaria no card e
+       não aqui. Preço divergente entre a página e o dado estruturado
+       faz o Google derrubar o rich result do site inteiro. Assim
+       nunca diverge — a vitrine é a única fonte.
+    ============================================================ */
+    (function initDadosEstruturados() {
+      var SITE = 'https://www.pantale.com.br/';
+
+      function precoDoCard(card) {
+        // "R$ 179" → 179, sempre o preço que o cliente paga.
+        // Peça em promoção tem <s>R$ 200</s><span class="atual">R$ 179</span>;
+        // peça sem desconto (os shorts de linho) tem só o texto solto — por
+        // isso o fallback, descartando qualquer <s> riscado que exista.
+        var el = card.querySelector('.produto-preco-atual');
+        if (!el) {
+          var bruto = card.querySelector('.produto-preco');
+          if (!bruto) return null;
+          el = bruto.cloneNode(true);
+          el.querySelectorAll('s').forEach(function (s) { s.remove(); });
+        }
+        var n = parseFloat(el.textContent.replace(/[^\d,.]/g, '').replace(/\./g, '').replace(',', '.'));
+        return isFinite(n) && n > 0 ? n : null;
+      }
+
+      function absoluta(src) {
+        if (!src) return null;
+        // tira o ?v=2 do cache-busting: o Google prefere a URL limpa
+        return new URL(src, location.href).href.split('?')[0];
+      }
+
+      var itens = [];
+      document.querySelectorAll('.produto-card').forEach(function (card) {
+        var nomeEl = card.querySelector('h3');
+        var preco = precoDoCard(card);
+        if (!nomeEl || preco == null) return;
+
+        var nome = nomeEl.textContent.trim();
+        var imgs = [];
+        card.querySelectorAll('.produto-img img').forEach(function (img) {
+          var u = absoluta(img.getAttribute('src'));
+          if (u && imgs.indexOf(u) === -1) imgs.push(u);
+        });
+        var descEl = card.querySelector('.produto-descricao p');
+
+        itens.push({
+          '@type': 'ListItem',
+          position: itens.length + 1,
+          item: {
+            '@type': 'Product',
+            name: nome,
+            image: imgs,
+            description: descEl ? descEl.textContent.trim() : undefined,
+            brand: { '@type': 'Brand', name: 'Pantale' },
+            offers: {
+              '@type': 'Offer',
+              url: SITE + '#colecao',
+              price: preco.toFixed(2),
+              priceCurrency: 'BRL',
+              availability: 'https://schema.org/InStock',
+              seller: { '@id': SITE + '#loja' }
+            }
+          }
+        });
+      });
+
+      if (!itens.length) return;
+
+      var el = document.createElement('script');
+      el.type = 'application/ld+json';
+      el.textContent = JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'ItemList',
+        name: 'Coleção Pantale',
+        itemListElement: itens
+      });
+      document.head.appendChild(el);
     })();
   </script>
 </body>

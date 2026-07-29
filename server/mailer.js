@@ -68,6 +68,10 @@ if (process.env.MAIL_JSON === '1') {
 function isEnabled() { return !!transporter; }
 
 function brl(n) { return 'R$ ' + Number(n || 0).toLocaleString('pt-BR'); }
+function formatCpf(v) {
+  const d = String(v || '').replace(/\D/g, '');
+  return d.length === 11 ? d.slice(0, 3) + '.' + d.slice(3, 6) + '.' + d.slice(6, 9) + '-' + d.slice(9) : d;
+}
 function esc(s) {
   return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
     return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
@@ -86,12 +90,21 @@ function buildHtml(order) {
   }).join('');
   const local = [c.district, c.city, c.uf].filter(Boolean).join(' · ');
   const metodo = order.method === 'cartao' ? 'Cartão (Mercado Pago)' : 'Pix';
+  const f = order.freight || {};
+  const freteValor = f.free ? 'Grátis' : (f.unavailable ? 'a combinar' : (f.price != null ? brl(f.price) : '—'));
+  const freteNome = f.name ? (' (' + [f.company, f.name].filter(Boolean).join(' ').trim() + ')') : '';
+  const resumoHtml = order.subtotal != null
+    ? '<p style="margin:16px 0 2px;color:#7A5C32">Subtotal: ' + brl(order.subtotal) + '</p>' +
+      '<p style="margin:0;color:#7A5C32">Frete' + esc(freteNome) + ': ' + freteValor + '</p>'
+    : '';
   return '' +
   '<div style="font-family:Arial,Helvetica,sans-serif;color:#241606;max-width:600px;margin:auto;padding:8px">' +
     '<h2 style="margin:0 0 2px">Novo pedido #' + order.orderId + '</h2>' +
     '<p style="color:#7A5C32;margin:0 0 20px">' + esc(order.createdAt || '') + '</p>' +
     '<h3 style="border-bottom:1px solid #eadfc8;padding-bottom:6px;margin-bottom:8px">Cliente</h3>' +
-    '<p style="margin:4px 0 18px"><strong>' + esc(c.name) + '</strong><br>' + esc(c.email) + '<br>' + esc(c.phone) + '</p>' +
+    '<p style="margin:4px 0 18px"><strong>' + esc(c.name) + '</strong><br>' + esc(c.email) + '<br>' + esc(c.phone) +
+      (c.cpf ? '<br>CPF ' + esc(formatCpf(c.cpf)) : '') +
+    '</p>' +
     '<h3 style="border-bottom:1px solid #eadfc8;padding-bottom:6px;margin-bottom:8px">Entrega</h3>' +
     '<p style="margin:4px 0 18px">' +
       esc(c.address) + ', ' + esc(c.number) + (c.complement ? (' · ' + esc(c.complement)) : '') + '<br>' +
@@ -102,7 +115,8 @@ function buildHtml(order) {
       '<thead><tr style="text-align:left;color:#7A5C32">' +
         '<th>Produto</th><th>Tam.</th><th>Qtd</th><th style="text-align:right">Subtotal</th>' +
       '</tr></thead><tbody>' + itemsRows + '</tbody></table>' +
-    '<p style="font-size:18px;margin:18px 0 4px"><strong>Total: ' + brl(order.total) + '</strong></p>' +
+    resumoHtml +
+    '<p style="font-size:18px;margin:8px 0 4px"><strong>Total: ' + brl(order.total) + '</strong></p>' +
     '<p style="margin:0;color:#7A5C32">Pagamento: ' + metodo + ' · Status: ' + esc(order.status) + '</p>' +
   '</div>';
 }
@@ -118,6 +132,7 @@ function buildText(order) {
     '',
     'CLIENTE',
     c.name, c.email, c.phone,
+    (c.cpf ? 'CPF ' + formatCpf(c.cpf) : ''),
     '',
     'ENTREGA',
     (c.address || '') + ', ' + (c.number || '') + (c.complement ? (' - ' + c.complement) : ''),
@@ -127,6 +142,8 @@ function buildText(order) {
     'ITENS',
     items,
     '',
+    (order.subtotal != null ? 'Subtotal: ' + brl(order.subtotal) : ''),
+    (order.subtotal != null ? 'Frete: ' + ((order.freight && order.freight.free) ? 'Gratis' : ((order.freight && order.freight.unavailable) ? 'a combinar' : ((order.freight && order.freight.price != null) ? brl(order.freight.price) : '-'))) : ''),
     'TOTAL: ' + brl(order.total),
     'Pagamento: ' + (order.method === 'cartao' ? 'Cartao (Mercado Pago)' : 'Pix') + ' - Status: ' + order.status
   ].join('\n');

@@ -4,3 +4,7 @@ pantale.db-journal
 .jwt-secret
 .admin-key
 mail-config.json
+melhorenvio-config.json
+mercadopago-config.json
+backups/
+.env

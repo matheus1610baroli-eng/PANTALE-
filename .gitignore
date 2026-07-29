@@ -1,3 +1,14 @@
 node_modules/
 .env
 .DS_Store
+
+# PNGs originais das fotos de produto, guardados antes da compressão.
+# Ficam só na sua máquina: são 27 MB que o site não usa. Se um dia
+# precisar reexportar em alta, estão em assets/_originais/.
+assets/_originais/
+
+# Arquivos soltos na raiz que o site não referencia (prints, rascunhos).
+# Somam ~6 MB e só pesariam o repositório.
+/Banner.png
+/image.png
+/content.png
