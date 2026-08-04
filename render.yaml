@@ -23,9 +23,14 @@ services:
     runtime: node
     plan: starter          # necessário para ter disco persistente
     region: oregon
-    rootDir: server        # onde está o package.json
-    buildCommand: npm ci --omit=dev
-    startCommand: npm start
+    # De propósito SEM "rootDir: server". O código serve o index.html e
+    # a pasta assets/ subindo um nível a partir de server/ (__dirname/..).
+    # Com rootDir apontando pra server/, esse nível acima deixa de existir
+    # no ambiente do Render, e o site inteiro (menos a API) vira 404 —
+    # foi exatamente o que aconteceu na primeira publicação. Em vez disso,
+    # entramos na pasta certa dentro do próprio comando.
+    buildCommand: cd server && npm ci --omit=dev
+    startCommand: cd server && npm start
     healthCheckPath: /robots.txt
 
     # Disco que sobrevive às publicações. O banco, os backups e as
