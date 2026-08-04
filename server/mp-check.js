@@ -53,13 +53,12 @@ async function main() {
     dica('Deve começar com TEST- ou APP_USR-. Talvez você tenha colado a Public Key ou o Client ID.');
     problemas++;
   } else {
-    const modo = mp.isSandbox() ? 'TESTE (não cobra de verdade)' : 'PRODUÇÃO (cobra de verdade)';
-    ok(`Access Token presente: ${mascarar(token)} — modo ${modo}`);
-    if (!mp.isSandbox()) {
-      aviso('Você está em PRODUÇÃO. Se ainda não fez uma compra de teste, considere');
-      dica('usar as credenciais TEST- primeiro: erro de configuração aqui vira cliente');
-      dica('pagando e ficando sem o pedido.');
-    }
+    // O prefixo do token NÃO basta para saber se cobra de verdade: as
+    // "contas de teste" do Mercado Pago recebem token APP_USR-, igual a
+    // uma conta real. Quem decide é o dono do token, e isso só se
+    // descobre consultando a conta (etapa 4, mais abaixo). Por isso aqui
+    // só registramos o prefixo, sem alarme.
+    ok(`Access Token presente: ${mascarar(token)}`);
   }
 
   /* --- 2. Segredo do webhook --- */
@@ -105,7 +104,19 @@ async function main() {
       const d = await r.json().catch(() => ({}));
       limpar();
       if (r.ok) {
-        ok(`Token VÁLIDO — conta: ${d.nickname || d.email || d.id} (${d.site_id || '?'})`);
+        const apelido = String(d.nickname || '');
+        // Contas de teste do Mercado Pago têm apelido começando em
+        // TESTUSER. É este o sinal confiável de que nenhum dinheiro real
+        // se move — não o prefixo do token.
+        const contaDeTeste = /^TEST/i.test(apelido);
+        ok(`Token VÁLIDO — conta: ${apelido || d.email || d.id} (${d.site_id || '?'})`);
+        if (contaDeTeste) {
+          ok('É uma CONTA DE TESTE: pode comprar à vontade, nada é cobrado de verdade.');
+        } else {
+          aviso('É uma CONTA REAL: toda compra cobra dinheiro de verdade.');
+          dica('Se ainda não fez um teste de ponta a ponta, use uma conta de teste antes.');
+          dica('Painel > Suas integrações > sua aplicação > Contas de teste.');
+        }
       } else if (r.status === 401 || r.status === 403) {
         erro('Token RECUSADO pelo Mercado Pago (401/403)');
         dica('Se você regenerou o token no painel, o antigo deixou de valer — cole o novo.');
@@ -122,9 +133,20 @@ async function main() {
 
   /* --- 5. Endereço do site --- */
   const site = (process.env.SITE_URL || '').trim();
-  if (!/^https:\/\//.test(site)) {
-    aviso(`SITE_URL = "${site}" — o webhook precisa de um endereço https público`);
-    dica('Em localhost o Mercado Pago não consegue avisar o servidor. Use ngrok para testar.');
+  if (!site) {
+    // Vazia é pior do que parece: o servidor cai no valor de reserva
+    // (o domínio final), então o cliente é devolvido para o site errado
+    // depois de pagar, e o aviso de pagamento vai para um endereço que
+    // ainda não existe. Silencioso e difícil de descobrir sem testar.
+    erro('SITE_URL está VAZIA');
+    dica('O servidor vai usar o domínio de reserva, que pode não ser este servidor.');
+    dica('Efeito: depois de pagar, o cliente cai no site errado e o pedido não dá baixa.');
+    dica('Defina SITE_URL com o endereço deste serviço (ex.: https://algo.onrender.com).');
+    problemas++;
+  } else if (!/^https:\/\//.test(site)) {
+    aviso(`SITE_URL = "${site}" — precisa começar com https://`);
+    dica('O Mercado Pago não envia notificação para endereço sem https.');
+    problemas++;
   } else {
     ok(`SITE_URL: ${site}`);
     dica(`Cadastre este webhook no painel: ${site}/api/mercadopago/webhook`);
