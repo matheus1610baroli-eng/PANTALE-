@@ -1216,16 +1216,27 @@ app.post('/api/mercadopago/webhook', async (req, res) => {
   if (!dataId) return res.status(200).json({ ignored: 'sem data.id' });
 
   // 1) A notificação veio mesmo do Mercado Pago?
+  /* A assinatura é uma checagem ADICIONAL, não a que decide. Quem decide
+     é a consulta à API logo abaixo: perguntamos ao Mercado Pago, com o
+     nosso Access Token, se aquele pagamento existe e está aprovado. Como
+     ele só responde sobre pagamentos da NOSSA conta, ninguém consegue
+     forjar uma aprovação inventando um número.
+
+     Por isso a assinatura errada não derruba mais o processamento: ela
+     vira um aviso alto no log. Sem isso, um segredo mal copiado fazia o
+     cliente pagar e o pedido nunca dar baixa — falha silenciosa e cara.
+
+     O que se perde tolerando a falha: um curioso que descubra esta URL
+     pode nos fazer reconsultar pagamentos que já são nossos. Não gera
+     baixa indevida (o dado vem da API) e o processamento é idempotente. */
   const assinatura = mercadopago.validateSignature({
     xSignature: req.headers['x-signature'],
     xRequestId: req.headers['x-request-id'],
     dataId: dataId
   });
   if (!assinatura.ok) {
-    console.warn('[mercadopago] webhook REJEITADO (' + assinatura.reason + ') data.id=' + dataId);
-    // 200 de propósito: se não é o Mercado Pago, reenvio não interessa;
-    // e devolver 401 só ensinaria um atacante a calibrar a tentativa.
-    return res.status(200).json({ ignored: 'assinatura inválida' });
+    console.warn('[mercadopago] assinatura NAO confere (' + assinatura.reason + ') data.id=' + dataId +
+                 ' — seguindo pela consulta à API. Corrija MP_WEBHOOK_SECRET para restaurar a checagem.');
   }
 
   // 2) Status na fonte, nunca no que chegou pela rede.
