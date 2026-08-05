@@ -881,6 +881,24 @@ app.post('/api/checkout', authRequired, async (req, res) => {
 
     // Frete confiável (calculado no servidor). total = produtos + frete.
     const freight = await resolveFreight(req.user.id, subtotal, customer.cep, body.freightId);
+
+    /* Frete indisponível numa compra que NÃO tem frete grátis: antes o
+       pedido nascia com entrega R$ 0 e a loja pagava os Correios do
+       próprio bolso, sem erro nenhum aparecer. Perder a venda é ruim;
+       vender no prejuízo repetidamente é pior — e invisível.
+
+       Cai aqui quando o token do Melhor Envio não está configurado, ou
+       quando a API deles está fora do ar. */
+    if (freight.unavailable && !freight.free) {
+      console.error('[frete] checkout barrado: cotação indisponível para o CEP ' +
+                    onlyDigits(customer.cep) + '. Confira ME_TOKEN / ME_ORIGIN_CEP.');
+      return res.status(503).json({
+        error: 'Não consegui calcular o frete para o seu CEP agora. ' +
+               'Tente de novo em alguns minutos ou chame a gente no WhatsApp.',
+        freteIndisponivel: true
+      });
+    }
+
     const total = subtotal + (freight.price || 0);
 
     const status = 'aguardando_pagamento';

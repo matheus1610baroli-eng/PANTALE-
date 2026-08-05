@@ -198,9 +198,15 @@ module.exports = {
   apiBase,
   onlyDigits,
   buildPackage,
+  /* Limite do frete grátis é REGRA DE NEGÓCIO, não credencial: lê direto
+     do ambiente/arquivo, sem depender de o token existir.
+
+     Se dependesse, um token ausente derrubaria junto o frete grátis, e a
+     loja passaria a recusar as compras grandes — justamente as que ela
+     mais quer — por um motivo que nada tem a ver com elas. */
   freeShippingMin: function () {
-    const cfg = loadConfig();
-    const v = cfg && Number(cfg.freeShippingMin);
+    const f = loadFile();
+    const v = num(process.env.ME_FREE_SHIPPING_MIN, num(f.freeShippingMin, 0));
     return v > 0 ? v : Infinity;
   }
 };
