@@ -13,7 +13,7 @@
   <!-- ============================================================
        SEO E COMPARTILHAMENTO
        ------------------------------------------------------------
-       MUDOU DE DOMÍNIO? Troque https://www.pantale.com.br nas tags
+       MUDOU DE DOMÍNIO? Troque https://pantale.com.br nas tags
        abaixo E na variável SITE_URL do server/server.js (que gera o
        robots.txt e o sitemap.xml).
 
@@ -21,7 +21,7 @@
        resolvem caminho relativo — com "assets/og-image.jpg" o card
        sai sem imagem. Tem que ser o endereço completo.
   ============================================================ -->
-  <link rel="canonical" href="https://www.pantale.com.br/">
+  <link rel="canonical" href="https://pantale.com.br/">
   <meta name="robots" content="index, follow, max-image-preview:large">
   <meta name="theme-color" content="#241606">
 
@@ -29,12 +29,12 @@
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Pantale">
   <meta property="og:locale" content="pt_BR">
-  <meta property="og:url" content="https://www.pantale.com.br/">
+  <meta property="og:url" content="https://pantale.com.br/">
   <meta property="og:title" content="Pantale · Luxo não é pagar caro, é preservar o que é nosso">
   <meta property="og:description" content="Moda consciente com alma brasileira. Tecido PANTECH, estampas autorais e o orgulho de vestir o que é nosso.">
   <!-- ASSET PENDENTE: assets/og-image.jpg — 1200×630px, peso < 1 MB.
        Sem esse arquivo o link compartilhado aparece SEM imagem. -->
-  <meta property="og:image" content="https://www.pantale.com.br/assets/og-image.jpg">
+  <meta property="og:image" content="https://pantale.com.br/assets/og-image.jpg">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta property="og:image:alt" content="Pantale — moda consciente com alma brasileira">
@@ -43,7 +43,7 @@
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Pantale · Luxo não é pagar caro, é preservar o que é nosso">
   <meta name="twitter:description" content="Moda consciente com alma brasileira. Tecido PANTECH, estampas autorais e o orgulho de vestir o que é nosso.">
-  <meta name="twitter:image" content="https://www.pantale.com.br/assets/og-image.jpg">
+  <meta name="twitter:image" content="https://pantale.com.br/assets/og-image.jpg">
 
   <!-- Dados estruturados: ensinam o Google que isto é uma loja.
        Os PRODUTOS não entram aqui — são gerados a partir dos próprios
@@ -55,9 +55,9 @@
     "@graph": [
       {
         "@type": "OnlineStore",
-        "@id": "https://www.pantale.com.br/#loja",
+        "@id": "https://pantale.com.br/#loja",
         "name": "Pantale",
-        "url": "https://www.pantale.com.br/",
+        "url": "https://pantale.com.br/",
         "description": "Moda consciente com alma brasileira. Wellness, prosperidade e orgulho nacional em cada peça.",
         "email": "pantalecg@gmail.com",
         "sameAs": ["https://instagram.com/pantale.co"],
@@ -67,11 +67,11 @@
       },
       {
         "@type": "WebSite",
-        "@id": "https://www.pantale.com.br/#site",
-        "url": "https://www.pantale.com.br/",
+        "@id": "https://pantale.com.br/#site",
+        "url": "https://pantale.com.br/",
         "name": "Pantale",
         "inLanguage": "pt-BR",
-        "publisher": { "@id": "https://www.pantale.com.br/#loja" }
+        "publisher": { "@id": "https://pantale.com.br/#loja" }
       }
     ]
   }
@@ -5233,7 +5233,7 @@
        nunca diverge — a vitrine é a única fonte.
     ============================================================ */
     (function initDadosEstruturados() {
-      var SITE = 'https://www.pantale.com.br/';
+      var SITE = 'https://pantale.com.br/';
 
       function precoDoCard(card) {
         // "R$ 179" → 179, sempre o preço que o cliente paga.

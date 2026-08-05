@@ -52,7 +52,7 @@ services:
 
       # Endereço público do site. Ajuste se o domínio mudar.
       - key: SITE_URL
-        value: https://www.pantale.com.br
+        value: https://pantale.com.br
 
       # --- Preencher no painel do Render (nunca aqui no arquivo) ---
       # sync:false = o Render pede o valor na primeira publicação e

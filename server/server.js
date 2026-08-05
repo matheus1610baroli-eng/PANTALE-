@@ -42,7 +42,7 @@ const PORT = process.env.PORT || 3000;
 /* Endereço público do site. Usado pelo robots.txt/sitemap.xml e pelas
    URLs de retorno e de webhook do Mercado Pago. Em produção defina a
    variável de ambiente SITE_URL. */
-const SITE_URL = (process.env.SITE_URL || 'https://www.pantale.com.br').replace(/\/+$/, '');
+const SITE_URL = (process.env.SITE_URL || 'https://pantale.com.br').replace(/\/+$/, '');
 const ROOT = path.join(__dirname, '..'); // pasta do site (index.html, assets/)
 
 /* Onde ficam os dados que NÃO podem se perder: o banco, as chaves de
