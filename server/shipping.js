@@ -12,13 +12,63 @@ const fs = require('node:fs');
 
 const CONFIG_PATH = path.join(__dirname, 'melhorenvio-config.json');
 
-function loadConfig() {
+/* Configuração vem de variável de ambiente OU do arquivo local.
+
+   O arquivo está no .gitignore (e deve continuar), então ele existe só na
+   máquina de quem desenvolve — numa hospedagem ele simplesmente não chega.
+   Sem esta leitura do ambiente, o servidor subia com o frete desligado e
+   cobrava R$ 0 de entrega em toda venda, sem erro nenhum aparecer.
+
+   Mesma precedência dos outros módulos: ambiente vence arquivo. */
+function loadFile() {
   try {
     const raw = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
-    return raw && typeof raw === 'object' ? raw : null;
+    return raw && typeof raw === 'object' ? raw : {};
   } catch (e) {
-    return null;
+    return {};
   }
+}
+
+function num(v, padrao) {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : padrao;
+}
+
+function loadConfig() {
+  const f = loadFile();
+  const env = process.env;
+
+  const cfg = {
+    token: (env.ME_TOKEN || f.token || '').trim(),
+    environment: (env.ME_ENVIRONMENT || f.environment || 'production').trim(),
+    originCep: (env.ME_ORIGIN_CEP || f.originCep || '').trim(),
+    freeShippingMin: num(env.ME_FREE_SHIPPING_MIN, num(f.freeShippingMin, 0)),
+    handlingDays: num(env.ME_HANDLING_DAYS, num(f.handlingDays, 0)),
+    userAgent: (env.ME_USER_AGENT || f.userAgent || 'Pantale').trim(),
+    allowedCarriers: env.ME_ALLOWED_CARRIERS
+      ? env.ME_ALLOWED_CARRIERS.split(',').map((s) => s.trim()).filter(Boolean)
+      : (f.allowedCarriers || null),
+    package: {
+      weightPerItemKg: num(env.ME_WEIGHT_PER_ITEM_KG, num((f.package || {}).weightPerItemKg, 0.35)),
+      heightCm: num(env.ME_HEIGHT_CM, num((f.package || {}).heightCm, 4)),
+      widthCm: num(env.ME_WIDTH_CM, num((f.package || {}).widthCm, 22)),
+      lengthCm: num(env.ME_LENGTH_CM, num((f.package || {}).lengthCm, 30))
+    }
+  };
+
+  // Sem token ou sem CEP de origem não dá para cotar nada.
+  return cfg.token ? cfg : null;
+}
+
+/* O que falta para o frete funcionar — para o log e o conferidor. */
+function missing() {
+  const f = loadFile();
+  const env = process.env;
+  const falta = [];
+  if (!(env.ME_TOKEN || f.token)) falta.push('ME_TOKEN (token de cotação do Melhor Envio)');
+  const cep = (env.ME_ORIGIN_CEP || f.originCep || '').replace(/\D/g, '');
+  if (cep.length !== 8) falta.push('ME_ORIGIN_CEP (CEP de origem, 8 dígitos)');
+  return falta;
 }
 
 function apiBase(env) {
@@ -140,6 +190,7 @@ async function calculate({ destCep, itemCount, insuranceValue }) {
 
 module.exports = {
   isEnabled,
+  missing,
   calculate,
   // reaproveitados por labels.js (compra de etiqueta), para a leitura da
   // configuração e a escolha de ambiente viverem num lugar só

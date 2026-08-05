@@ -1490,6 +1490,15 @@ app.listen(PORT, () => {
   console.log(`Pantale rodando em http://localhost:${PORT}`);
   console.log(`Gestão de clientes:  GET /api/admin/customers  (header x-admin-key; chave em server/.admin-key)`);
   console.log(`E-mail de pedidos:   ${mailer.isEnabled() ? 'ATIVO → ' + mailer.mailTo : 'desativado (configure server/mail-config.json)'}`);
+  /* Frete desligado é a falha mais cara e mais silenciosa daqui: a loja
+     continua vendendo, só que cobrando R$ 0 de entrega — e você descobre
+     quando o prejuízo já aconteceu. Por isso o aviso é gritado. */
+  if (shipping.isEnabled()) {
+    console.log(`Frete (Melhor Envio): ATIVO`);
+  } else {
+    console.log(`Frete (Melhor Envio): *** DESATIVADO — TODA VENDA SAI COM FRETE R$ 0 ***`);
+    shipping.missing().forEach((f) => console.log(`   falta: ${f}`));
+  }
   console.log(`Mercado Pago:        ${mercadopago.isEnabled()
     ? (mercadopago.isSandbox() ? 'ATIVO em MODO TESTE (token TEST- — não cobra de verdade)' : 'ATIVO em produção')
     : 'desativado (defina MP_ACCESS_TOKEN)'}`);
