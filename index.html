@@ -1822,6 +1822,71 @@
     }
     .pagamento-painel { margin-bottom: 8px; }
     .pagamento-painel[hidden] { display: none; }
+    /* ============================================================
+       PRODUTO BLOQUEADO ("Últimos ajustes")
+       ------------------------------------------------------------
+       Peça que ainda não está à venda. A imagem continua visível,
+       porque ela é o que desperta o desejo — só fica atrás de um véu,
+       com a mancha de onça e o aviso por cima.
+    ============================================================ */
+    .produto-card.is-bloqueado {
+      cursor: default;
+      position: relative;
+    }
+    .produto-card.is-bloqueado:hover {
+      transform: none;      /* sem o "levantar" que convida ao clique */
+      box-shadow: none;
+    }
+    .produto-card.is-bloqueado .produto-img img {
+      filter: grayscale(.55) brightness(.8);
+    }
+    .produto-card.is-bloqueado:hover .produto-img img {
+      transform: none;      /* mata o zoom do hover */
+    }
+
+    .produto-bloqueio {
+      position: absolute;
+      inset: 0;
+      z-index: 3;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      background: rgba(36, 22, 6, .42);
+      backdrop-filter: blur(1.5px);
+      border-radius: inherit;
+      pointer-events: none;  /* o véu não intercepta nada */
+    }
+
+    .mancha-onca {
+      width: clamp(52px, 22%, 88px);
+      height: auto;
+      color: var(--bege);
+      filter: drop-shadow(0 2px 10px rgba(0, 0, 0, .45));
+    }
+
+    .produto-bloqueio-texto {
+      font-family: var(--font-body);
+      font-size: var(--step--2);
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      color: var(--bege);
+      text-align: center;
+      text-shadow: 0 1px 8px rgba(0, 0, 0, .5);
+    }
+
+    /* Legenda logo abaixo do botão: diz quais formas de pagamento existem
+       sem competir com ele. Pequena e centralizada de propósito. */
+    .pagamento-formas {
+      font-size: var(--step--2);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--medio);
+      text-align: center;
+      margin: 10px 0 18px;
+    }
+
     .pagamento-info {
       font-size: var(--step--1);
       line-height: 1.6;
@@ -2555,37 +2620,13 @@
       <h3 class="pagamento-title" id="pagamento-title">Pagamento</h3>
       <p class="pagamento-total">Total a pagar <strong id="pagamento-total">R$ 0</strong></p>
 
-      <div class="pagamento-metodos">
-        <button type="button" class="metodo-btn is-active" data-metodo="cartao">
-          <span class="metodo-nome">Cartão</span>
-          <span class="metodo-desc">Crédito ou débito via Mercado Pago</span>
-        </button>
-        <button type="button" class="metodo-btn" data-metodo="pix">
-          <span class="metodo-nome">Pix</span>
-          <span class="metodo-desc">Aprovação na hora</span>
-        </button>
-      </div>
-
-      <!-- Painel Cartão -->
-      <div class="pagamento-painel" data-painel="cartao">
-        <p class="pagamento-info">Ao pagar, você vai para o ambiente seguro do Mercado Pago e o pedido é registrado automaticamente.</p>
-        <button type="button" class="btn btn-primary pagamento-acao" id="pagar-cartao">Pagar com Mercado Pago</button>
-      </div>
-
-      <!-- Painel Pix -->
-      <div class="pagamento-painel" data-painel="pix" hidden>
-        <p class="pagamento-info">Ao pagar, geramos o código Pix e registramos o pedido automaticamente.</p>
-        <button type="button" class="btn btn-primary pagamento-acao" id="pagar-pix">Pagar com Pix</button>
-        <div class="pix-resultado" id="pix-resultado" hidden>
-          <div class="pix-qr-wrap" id="pix-qr-wrap" hidden>
-            <img id="pix-qr" alt="QR Code Pix">
-          </div>
-          <div class="pix-codigo">
-            <code id="pix-codigo-texto">—</code>
-          </div>
-          <button type="button" class="pagamento-sec" id="pix-copy">Copiar código Pix</button>
-        </div>
-      </div>
+      <!-- Um caminho só. Antes havia um seletor Cartão/Pix aqui, mas o botão
+           "Pix" mostrava uma chave de copiar e colar que ninguém confirmava:
+           o cliente pagava e o pedido ficava preso em "aguardando pagamento".
+           Agora tudo passa pelo Mercado Pago, onde o Pix dá baixa sozinho. -->
+      <button type="button" class="btn btn-primary pagamento-acao" id="pagar-cartao">Pagar com Mercado Pago</button>
+      <p class="pagamento-formas">Cartão e Pix</p>
+      <p class="pagamento-info">Você escolhe como pagar no ambiente seguro do Mercado Pago. O pedido é registrado automaticamente.</p>
 
       <p class="pagamento-msg" id="pagamento-msg"></p>
     </div>
@@ -2761,11 +2802,25 @@
         </div>
         <div class="tabs-panels">
           <div class="colecao-grid" data-panel="camisetas">
-            <div class="produto-card reveal" role="button" tabindex="0">
+            <div class="produto-card reveal is-bloqueado" role="button" tabindex="0">
               <div class="produto-img">
                 <img src="assets/img_produto_camiseta_tennis_costas.jpg?v=2" alt="Camiseta Pantech Tennis - costas com estampa">
                 <img class="produto-gallery-img" src="assets/img_produto_camiseta_tennis_costas.jpg?v=2" alt="Camiseta Pantech Tennis - costas com estampa" hidden>
                 <img class="produto-gallery-img" src="assets/img_produto_camiseta_tennis_frente.jpg?v=2" alt="Camiseta Pantech Tennis - frente" hidden>
+              </div>
+              <div class="produto-bloqueio" aria-hidden="true">
+                <svg viewBox="0 0 64 64" class="mancha-onca">
+                  <g fill="currentColor">
+                    <ellipse cx="32" cy="18.5" rx="9.2" ry="4.9" transform="rotate(0 32 32)"/>
+                    <ellipse cx="32" cy="18.5" rx="8.4" ry="4.5" transform="rotate(62 32 32)"/>
+                    <ellipse cx="32" cy="18.5" rx="9.6" ry="5.2" transform="rotate(124 32 32)"/>
+                    <ellipse cx="32" cy="18.5" rx="8.0" ry="4.3" transform="rotate(198 32 32)"/>
+                    <ellipse cx="32" cy="18.5" rx="9.0" ry="4.7" transform="rotate(256 32 32)"/>
+                    <ellipse cx="32" cy="18.5" rx="7.4" ry="4.1" transform="rotate(310 32 32)"/>
+                    <ellipse cx="32" cy="32.5" rx="5" ry="5.8" transform="rotate(-15 32 32)"/>
+                  </g>
+                </svg>
+                <span class="produto-bloqueio-texto">Últimos ajustes</span>
               </div>
               <div class="produto-info">
                 <h3>Pantech Tennis</h3>
@@ -2776,11 +2831,25 @@
                 <p>O Brasil que joga diferente.</p>
               </div>
             </div>
-            <div class="produto-card reveal" role="button" tabindex="0">
+            <div class="produto-card reveal is-bloqueado" role="button" tabindex="0">
               <div class="produto-img">
                 <img src="assets/img_produto_camiseta_golf_costas.jpg?v=2" alt="Camiseta Pantech Golf - costas com estampa">
                 <img class="produto-gallery-img" src="assets/img_produto_camiseta_golf_costas.jpg?v=2" alt="Camiseta Pantech Golf - costas com estampa" hidden>
                 <img class="produto-gallery-img" src="assets/img_produto_camiseta_golf_frente.jpg?v=2" alt="Camiseta Pantech Golf - frente" hidden>
+              </div>
+              <div class="produto-bloqueio" aria-hidden="true">
+                <svg viewBox="0 0 64 64" class="mancha-onca">
+                  <g fill="currentColor">
+                    <ellipse cx="32" cy="18.5" rx="9.2" ry="4.9" transform="rotate(0 32 32)"/>
+                    <ellipse cx="32" cy="18.5" rx="8.4" ry="4.5" transform="rotate(62 32 32)"/>
+                    <ellipse cx="32" cy="18.5" rx="9.6" ry="5.2" transform="rotate(124 32 32)"/>
+                    <ellipse cx="32" cy="18.5" rx="8.0" ry="4.3" transform="rotate(198 32 32)"/>
+                    <ellipse cx="32" cy="18.5" rx="9.0" ry="4.7" transform="rotate(256 32 32)"/>
+                    <ellipse cx="32" cy="18.5" rx="7.4" ry="4.1" transform="rotate(310 32 32)"/>
+                    <ellipse cx="32" cy="32.5" rx="5" ry="5.8" transform="rotate(-15 32 32)"/>
+                  </g>
+                </svg>
+                <span class="produto-bloqueio-texto">Últimos ajustes</span>
               </div>
               <div class="produto-info">
                 <h3>Pantech Golf</h3>
@@ -2868,11 +2937,25 @@
         </div>
         <div class="tabs-panels">
           <div class="colecao-grid" data-panel="regata-offwhite">
-            <div class="produto-card reveal" role="button" tabindex="0">
+            <div class="produto-card reveal is-bloqueado" role="button" tabindex="0">
               <div class="produto-img">
                 <img src="assets/img_produto_regata_mancha_branca_frente.jpg" alt="Regata Off-white - frente com bordado">
                 <img class="produto-gallery-img" src="assets/img_produto_regata_mancha_branca_frente.jpg" alt="Regata Off-white - frente com bordado" hidden>
                 <img class="produto-gallery-img" src="assets/img_produto_regata_mancha_branca_costas.jpg" alt="Regata Off-white - costas" hidden>
+              </div>
+              <div class="produto-bloqueio" aria-hidden="true">
+                <svg viewBox="0 0 64 64" class="mancha-onca">
+                  <g fill="currentColor">
+                    <ellipse cx="32" cy="18.5" rx="9.2" ry="4.9" transform="rotate(0 32 32)"/>
+                    <ellipse cx="32" cy="18.5" rx="8.4" ry="4.5" transform="rotate(62 32 32)"/>
+                    <ellipse cx="32" cy="18.5" rx="9.6" ry="5.2" transform="rotate(124 32 32)"/>
+                    <ellipse cx="32" cy="18.5" rx="8.0" ry="4.3" transform="rotate(198 32 32)"/>
+                    <ellipse cx="32" cy="18.5" rx="9.0" ry="4.7" transform="rotate(256 32 32)"/>
+                    <ellipse cx="32" cy="18.5" rx="7.4" ry="4.1" transform="rotate(310 32 32)"/>
+                    <ellipse cx="32" cy="32.5" rx="5" ry="5.8" transform="rotate(-15 32 32)"/>
+                  </g>
+                </svg>
+                <span class="produto-bloqueio-texto">Últimos ajustes</span>
               </div>
               <div class="produto-info">
                 <h3>Regata Off-white</h3>
@@ -2885,11 +2968,25 @@
             </div>
           </div>
           <div class="colecao-grid" data-panel="regata-preta" hidden>
-            <div class="produto-card reveal" role="button" tabindex="0">
+            <div class="produto-card reveal is-bloqueado" role="button" tabindex="0">
               <div class="produto-img">
                 <img src="assets/img_produto_regata_mancha_preta_frente.jpg" alt="Regata Preta - frente com bordado">
                 <img class="produto-gallery-img" src="assets/img_produto_regata_mancha_preta_frente.jpg" alt="Regata Preta - frente com bordado" hidden>
                 <img class="produto-gallery-img" src="assets/img_produto_regata_mancha_preta_costas.jpg" alt="Regata Preta - costas" hidden>
+              </div>
+              <div class="produto-bloqueio" aria-hidden="true">
+                <svg viewBox="0 0 64 64" class="mancha-onca">
+                  <g fill="currentColor">
+                    <ellipse cx="32" cy="18.5" rx="9.2" ry="4.9" transform="rotate(0 32 32)"/>
+                    <ellipse cx="32" cy="18.5" rx="8.4" ry="4.5" transform="rotate(62 32 32)"/>
+                    <ellipse cx="32" cy="18.5" rx="9.6" ry="5.2" transform="rotate(124 32 32)"/>
+                    <ellipse cx="32" cy="18.5" rx="8.0" ry="4.3" transform="rotate(198 32 32)"/>
+                    <ellipse cx="32" cy="18.5" rx="9.0" ry="4.7" transform="rotate(256 32 32)"/>
+                    <ellipse cx="32" cy="18.5" rx="7.4" ry="4.1" transform="rotate(310 32 32)"/>
+                    <ellipse cx="32" cy="32.5" rx="5" ry="5.8" transform="rotate(-15 32 32)"/>
+                  </g>
+                </svg>
+                <span class="produto-bloqueio-texto">Últimos ajustes</span>
               </div>
               <div class="produto-info">
                 <h3>Regata Preta</h3>
@@ -3802,26 +3899,14 @@
          >>> PREENCHA AQUI COM SEUS DADOS REAIS <<<
       ============================================================ */
       (function initPagamento() {
-        var PAGAMENTO = {
-          // Cole o link de pagamento do Mercado Pago (cartão):
-          mercadoPagoLink: '',   // ex: 'https://mpago.la/2xAbCd'
-          // Cole o Pix "copia e cola" (BR Code) OU sua chave Pix:
-          pixCodigo: '',         // ex: '00020126...5204000053039865802BR...'
-          // (opcional) imagem do QR Code do Pix em assets/:
-          pixQr: ''              // ex: 'assets/pix_qr.png'
-        };
+        /* Não há mais nada para configurar aqui: a cobrança é criada pelo
+           servidor a partir do pedido, com as credenciais que ficam nas
+           variáveis de ambiente. Link fixo e chave Pix colados no código
+           eram o modelo antigo — sumiram junto com o botão de Pix manual. */
 
         var modal = document.getElementById('pagamento-modal');
         var totalEl = document.getElementById('pagamento-total');
-        var metodoBtns = modal.querySelectorAll('.metodo-btn');
-        var paineis = modal.querySelectorAll('.pagamento-painel');
         var pagarCartao = document.getElementById('pagar-cartao');
-        var pagarPix = document.getElementById('pagar-pix');
-        var pixResultado = document.getElementById('pix-resultado');
-        var pixTexto = document.getElementById('pix-codigo-texto');
-        var pixCopy = document.getElementById('pix-copy');
-        var pixQrWrap = document.getElementById('pix-qr-wrap');
-        var pixQrImg = document.getElementById('pix-qr');
         var msgEl = document.getElementById('pagamento-msg');
         var pedidoFeito = false;
         var clienteAtual = {};
@@ -3830,26 +3915,6 @@
         function setMsg(texto, tipo) {
           msgEl.className = 'pagamento-msg' + (tipo ? ' is-' + tipo : '');
           msgEl.textContent = texto;
-        }
-
-        function selectMetodo(m) {
-          metodoBtns.forEach(function (b) {
-            b.classList.toggle('is-active', b.getAttribute('data-metodo') === m);
-          });
-          paineis.forEach(function (p) {
-            p.hidden = p.getAttribute('data-painel') !== m;
-          });
-        }
-
-        function copiarPix() {
-          if (!PAGAMENTO.pixCodigo) return;
-          var feito = function () {
-            pixCopy.textContent = 'Código copiado!';
-            setTimeout(function () { pixCopy.textContent = 'Copiar código Pix'; }, 1800);
-          };
-          if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(PAGAMENTO.pixCodigo).then(feito).catch(feito);
-          } else { feito(); }
         }
 
         /* Registra o pedido no backend assim que o cliente inicia o pagamento.
@@ -3866,7 +3931,6 @@
           if (pedidoFeito) return Promise.resolve(null);
           pedidoFeito = true;
           pagarCartao.disabled = true;
-          pagarPix.disabled = true;
           setMsg('Registrando pedido...');
           return window.PantaleCart.doCheckout(metodo, clienteAtual, freteIdAtual).then(function (data) {
             setMsg('Pedido #' + data.orderId + ' registrado · R$ ' + data.total +
@@ -3877,7 +3941,6 @@
           }).catch(function (err) {
             pedidoFeito = false;
             pagarCartao.disabled = false;
-            pagarPix.disabled = false;
             setMsg(err.message, 'error');
             // Se caiu por falta de estoque, reflete isso na vitrine
             if (window.PantaleEstoque) window.PantaleEstoque.recarregar();
@@ -3915,27 +3978,9 @@
                      'abrir o pagamento (' + (err && err.message ? err.message : 'erro desconhecido') + '). ' +
                      'Chame no WhatsApp que a gente finaliza.', 'error');
               pagarCartao.disabled = false;
-              pagarPix.disabled = false;
             });
         });
 
-        // PIX: mostra o código/QR e registra o pedido
-        pagarPix.addEventListener('click', function () {
-          if (!PAGAMENTO.pixCodigo) {
-            setMsg('Configure o código Pix no código.', 'error');
-            return;
-          }
-          pixTexto.textContent = PAGAMENTO.pixCodigo;
-          if (PAGAMENTO.pixQr) { pixQrImg.src = PAGAMENTO.pixQr; pixQrWrap.hidden = false; }
-          else { pixQrWrap.hidden = true; }
-          pixResultado.hidden = false;
-          copiarPix();
-          // O erro já é exibido dentro de registrarPedido; o catch aqui só
-          // impede uma rejeição solta no console.
-          registrarPedido('pix').catch(function () {});
-        });
-
-        pixCopy.addEventListener('click', copiarPix);
 
         function open(total, customer, freightId) {
           clienteAtual = customer || {};
@@ -3944,18 +3989,11 @@
           setMsg('');
           pedidoFeito = false;
           pagarCartao.disabled = false;
-          pagarPix.disabled = false;
-          pixResultado.hidden = true;
-          selectMetodo('cartao');
           modal.classList.add('is-open');
         }
         function close() { modal.classList.remove('is-open'); }
 
         window.PantalePagamento = { open: open };
-
-        metodoBtns.forEach(function (b) {
-          b.addEventListener('click', function () { selectMetodo(b.getAttribute('data-metodo')); });
-        });
 
         document.getElementById('pagamento-close').addEventListener('click', close);
         modal.addEventListener('click', function (e) { if (e.target === modal) close(); });
@@ -4484,6 +4522,15 @@
         }
 
         document.querySelectorAll('.produto-card').forEach(function (card) {
+          /* Peça em "últimos ajustes" não abre: sem tela de tamanho, sem
+             botão de comprar. Também tiramos o papel de botão e o foco por
+             teclado, senão quem navega por Tab continua sendo levado a um
+             card que não faz nada. */
+          if (card.classList.contains('is-bloqueado')) {
+            card.removeAttribute('role');
+            card.removeAttribute('tabindex');
+            return;
+          }
           card.addEventListener('click', function () { openProduto(card); });
           card.addEventListener('keydown', function (e) {
             if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openProduto(card); }
@@ -5212,6 +5259,11 @@
 
       var itens = [];
       document.querySelectorAll('.produto-card').forEach(function (card) {
+        // Peça em "últimos ajustes" fica de fora: anunciar ao Google um
+        // produto com preço e disponibilidade que ninguém consegue comprar
+        // rende visita frustrada e conta como propaganda enganosa.
+        if (card.classList.contains('is-bloqueado')) return;
+
         var nomeEl = card.querySelector('h3');
         var preco = precoDoCard(card);
         if (!nomeEl || preco == null) return;

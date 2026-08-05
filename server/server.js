@@ -105,6 +105,28 @@ const CATALOG = {
 /* Tamanhos vendidos (usado no controle de estoque) */
 const SIZES = ['P', 'M', 'G'];
 
+/* ------------------------------------------------------------
+   Peças em "últimos ajustes": aparecem na vitrine, com a mancha de
+   onça por cima, mas não podem ser compradas.
+
+   Precisa existir AQUI, e não só no visual: quem conhece a API
+   consegue mandar um pedido direto, sem passar pela tela. Bloqueio
+   que só existe no navegador não é bloqueio.
+
+   Para liberar uma peça, tire o nome desta lista e remova a classe
+   "is-bloqueado" do card dela no index.html.
+------------------------------------------------------------ */
+const BLOQUEADOS = new Set([
+  'Pantech Tennis',
+  'Pantech Golf',
+  'Regata Off-white',
+  'Regata Preta'
+]);
+
+function estaBloqueado(produto) {
+  return BLOQUEADOS.has(String(produto));
+}
+
 /* Comparação em tempo constante (evita timing attack em segredos) */
 function safeEqual(a, b) {
   const ba = Buffer.from(String(a));
@@ -632,6 +654,9 @@ app.post('/api/cart', authRequired, (req, res) => {
     if (!Number.isFinite(price)) {
       return res.status(400).json({ error: 'Produto inválido.' });
     }
+    if (estaBloqueado(product)) {
+      return res.status(409).json({ error: 'Esta peça ainda não está à venda.', bloqueado: true });
+    }
 
     const existing = stmtCartFind.get(req.user.id, product, size);
     const desejada = (existing ? existing.qty : 0) + 1;
@@ -794,6 +819,18 @@ app.post('/api/checkout', authRequired, async (req, res) => {
     const { items, total: subtotal } = cartPayload(req.user.id);
     if (!items.length) {
       return res.status(400).json({ error: 'Sua sacola está vazia.' });
+    }
+
+    // Peça bloqueada na sacola: pode ter entrado antes do bloqueio, ou por
+    // fora da tela. Barra aqui também — senão o pedido nasce e você teria
+    // que cancelar na mão, com o cliente já cobrado.
+    const bloqueada = items.find((it) => estaBloqueado(it.product));
+    if (bloqueada) {
+      return res.status(409).json({
+        error: bloqueada.product + ' ainda não está à venda. Remova da sacola para continuar.',
+        bloqueado: true,
+        cart: cartPayload(req.user.id)
+      });
     }
 
     // Estoque: confere tudo ANTES de cobrar. Se alguma peça acabou entre
