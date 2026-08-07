@@ -43,6 +43,12 @@ const PORT = process.env.PORT || 3000;
    URLs de retorno e de webhook do Mercado Pago. Em produção defina a
    variável de ambiente SITE_URL. */
 const SITE_URL = (process.env.SITE_URL || 'https://pantale.com.br').replace(/\/+$/, '');
+
+/* Base do link de redefinição de senha que vai no e-mail.
+   APP_URL só existe para apontar para outro endereço em desenvolvimento;
+   o normal é ser o próprio site. Nunca vem do cliente. */
+const RESET_LINK_BASE = (process.env.APP_URL || SITE_URL).replace(/\/+$/, '');
+
 const ROOT = path.join(__dirname, '..'); // pasta do site (index.html, assets/)
 
 /* Onde ficam os dados que NÃO podem se perder: o banco, as chaves de
@@ -226,11 +232,19 @@ try { db.exec("ALTER TABLE orders ADD COLUMN freight TEXT NOT NULL DEFAULT '{}'"
 try { db.exec("ALTER TABLE orders ADD COLUMN shipment TEXT NOT NULL DEFAULT '{}'"); } catch (e) {}
 try { db.exec("ALTER TABLE orders ADD COLUMN payment TEXT NOT NULL DEFAULT '{}'"); } catch (e) {}
 try { db.exec("ALTER TABLE profiles ADD COLUMN cpf TEXT NOT NULL DEFAULT ''"); } catch (e) {}
+/* Geração da sessão. Sobe em 1 a cada troca de senha; o número vai
+   dentro do JWT e é conferido a cada requisição, então token emitido
+   antes da troca para de valer na hora. Começa em 0, e JWT antigo (sem
+   o campo) também lê como 0 — publicar isto não desloga ninguém. */
+try { db.exec('ALTER TABLE users ADD COLUMN token_version INTEGER NOT NULL DEFAULT 0'); } catch (e) {}
 
 const stmtFindByEmail = db.prepare('SELECT * FROM users WHERE email = ?');
-const stmtFindById = db.prepare('SELECT id, name, email, created_at FROM users WHERE id = ?');
+const stmtFindById = db.prepare('SELECT id, name, email, created_at, token_version FROM users WHERE id = ?');
 const stmtInsert = db.prepare('INSERT INTO users (name, email, password) VALUES (?, ?, ?)');
-const stmtUpdatePassword = db.prepare('UPDATE users SET password = ? WHERE id = ?');
+/* Troca de senha e invalidação das sessões antigas na MESMA instrução:
+   separar as duas abriria uma janela em que a senha já mudou e o token
+   antigo ainda vale — justamente o que este código existe para fechar. */
+const stmtUpdatePassword = db.prepare('UPDATE users SET password = ?, token_version = token_version + 1 WHERE id = ?');
 
 /* Redefinição de senha */
 const stmtResetInvalidate = db.prepare('UPDATE password_resets SET used = 1 WHERE user_id = ? AND used = 0');
@@ -264,6 +278,35 @@ const stmtStockUpsert = db.prepare(`
 const stmtStockDelete = db.prepare('DELETE FROM stock WHERE product = ? AND size = ?');
 // Só decrementa se houver saldo — protege contra venda em duplicidade (corrida).
 const stmtStockDecrement = db.prepare('UPDATE stock SET qty = qty - ?, updated_at = datetime(\'now\') WHERE product = ? AND size = ? AND qty >= ?');
+/* Devolve peça à prateleira (estorno, chargeback, pedido não pago que expirou).
+   Sem WHERE de saldo: aqui a gente está somando, não gastando. Se a linha não
+   existe, aquele item é "sem controle de estoque" e não há o que devolver. */
+const stmtStockIncrement = db.prepare('UPDATE stock SET qty = qty + ?, updated_at = datetime(\'now\') WHERE product = ? AND size = ?');
+
+/* Recoloca no estoque os itens de um pedido que deixou de valer.
+   Recebe os itens já desserializados de orders.items. */
+function devolverEstoque(items) {
+  for (const it of (items || [])) {
+    const qty = Number(it.qty) || 0;
+    if (qty > 0) stmtStockIncrement.run(qty, it.product, it.size);
+  }
+}
+
+/* Retoma o estoque de um pedido que tinha sido devolvido (a reserva
+   expirou e o pagamento chegou atrasado). Devolve a lista do que NÃO
+   coube — se alguém levou a peça nesse meio-tempo, quem manda é a
+   prateleira, e o pedido precisa de atenção humana. */
+function retomarEstoque(items) {
+  const faltou = [];
+  for (const it of (items || [])) {
+    const qty = Number(it.qty) || 0;
+    if (qty <= 0) continue;
+    if (stockAvailable(it.product, it.size) === Infinity) continue; // sem controle
+    const r = stmtStockDecrement.run(qty, it.product, it.size, qty);
+    if (!r.changes) faltou.push(it.product + ' (' + it.size + ') x' + qty);
+  }
+  return faltou;
+}
 
 /* Quantidade disponível: número, ou Infinity quando não há controle. */
 function stockAvailable(product, size) {
@@ -287,6 +330,63 @@ const ADMIN_ORDER_COLS = `
 `;
 const stmtAdminOrders = db.prepare(ADMIN_ORDER_COLS + ' ORDER BY o.created_at DESC, o.id DESC');
 const stmtAdminOrderById = db.prepare(ADMIN_ORDER_COLS + ' WHERE o.id = ?');
+
+/* ------------------------------------------------------------
+   EXPIRAÇÃO DA RESERVA DE ESTOQUE
+
+   O estoque é baixado no checkout, ANTES do pagamento — é o que
+   impede duas pessoas de comprarem a última peça ao mesmo tempo. O
+   preço disso é que todo carrinho abandonado no Mercado Pago
+   segurava a peça para sempre: a vitrine ia esgotando sozinha, sem
+   ninguém ter comprado nada.
+
+   Pior: bastava criar contas e finalizar sem pagar para zerar a loja
+   de propósito, sem gastar um centavo.
+
+   60 minutos por padrão, e não 30: Pix no Mercado Pago pode demorar
+   mais que meia hora, e cancelar cedo demais troca este problema por
+   um pior (cliente paga, pedido já morreu). Ajuste com RESERVA_MINUTOS
+   se a sua realidade for outra.
+------------------------------------------------------------ */
+const RESERVA_MINUTOS = Math.max(5, Number(process.env.RESERVA_MINUTOS) || 60);
+
+const stmtOrdersExpirados = db.prepare(
+  "SELECT id, items FROM orders WHERE status = 'aguardando_pagamento'" +
+  " AND created_at <= datetime('now', ?)"
+);
+
+function expirarReservas(log) {
+  const say = log || function () {};
+  let vencidos;
+  try {
+    vencidos = stmtOrdersExpirados.all('-' + RESERVA_MINUTOS + ' minutes');
+  } catch (e) {
+    say('Expiração de reservas falhou na consulta: ' + e.message);
+    return 0;
+  }
+  if (!vencidos.length) return 0;
+
+  let n = 0;
+  for (const row of vencidos) {
+    try {
+      db.exec('BEGIN IMMEDIATE');
+      try {
+        devolverEstoque(parseJSON(row.items, []) || []);
+        stmtOrderSetStatus.run('cancelado', null, row.id);
+        db.exec('COMMIT');
+      } catch (e) {
+        db.exec('ROLLBACK');
+        throw e;
+      }
+      n += 1;
+    } catch (e) {
+      // Um pedido problemático não pode impedir os outros de liberarem peça.
+      say('Não consegui expirar o pedido #' + row.id + ': ' + e.message);
+    }
+  }
+  if (n) say('Reservas expiradas: ' + n + ' pedido(s) sem pagamento há mais de ' + RESERVA_MINUTOS + ' min — estoque devolvido.');
+  return n;
+}
 
 /* Perfil / dados de entrega do cliente */
 const stmtProfileGet = db.prepare('SELECT cpf, phone, cep, address, number, complement, district, city, uf FROM profiles WHERE user_id = ?');
@@ -350,7 +450,12 @@ function cartPayload(userId) {
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function signToken(user) {
-  return jwt.sign({ sub: user.id, email: user.email }, JWT_SECRET, { expiresIn: TOKEN_TTL });
+  // tv = geração da sessão. Ver o ALTER TABLE de token_version lá em cima.
+  return jwt.sign(
+    { sub: user.id, email: user.email, tv: Number(user.token_version) || 0 },
+    JWT_SECRET,
+    { expiresIn: TOKEN_TTL }
+  );
 }
 
 function publicUser(row) {
@@ -362,9 +467,21 @@ function authRequired(req, res, next) {
   const token = header.startsWith('Bearer ') ? header.slice(7) : null;
   if (!token) return res.status(401).json({ error: 'Não autenticado.' });
   try {
-    const payload = jwt.verify(token, JWT_SECRET);
+    // algorithms explícito: não deixa o verificador aceitar um algoritmo
+    // que a gente nunca usou para assinar. [OWASP A02]
+    const payload = jwt.verify(token, JWT_SECRET, { algorithms: ['HS256'] });
     const row = stmtFindById.get(payload.sub);
     if (!row) return res.status(401).json({ error: 'Sessão inválida.' });
+
+    /* Token de antes da última troca de senha não vale mais.
+       Sem isto, trocar a senha — o gesto universal de "expulsar quem
+       entrou na minha conta" — não expulsava ninguém: o token roubado
+       continuava valendo pelos 7 dias de validade, e a vítima achava
+       que tinha resolvido. */
+    if ((Number(payload.tv) || 0) !== (Number(row.token_version) || 0)) {
+      return res.status(401).json({ error: 'Sessão encerrada. Entre de novo.' });
+    }
+
     req.user = row;
     next();
   } catch {
@@ -419,7 +536,11 @@ const corsOptions = {
    Mitiga brute-force, e-mail bombing e abuso de checkout.
    Para múltiplas instâncias, troque o Map por Redis. [OWASP A07]
 ------------------------------------------------------------ */
-function rateLimit({ windowMs, max, message }) {
+/* `key` escolhe o que é "um cliente". O padrão é o IP, que é tudo que
+   se tem antes do login. Depois do login prefira o id do usuário: num
+   prédio comercial ou no 4G, dezenas de pessoas dividem o mesmo IP, e
+   limitar por IP transformaria o limite em bloqueio de gente inocente. */
+function rateLimit({ windowMs, max, message, key }) {
   const hits = new Map(); // chave -> { count, resetAt }
   const sweep = setInterval(() => {
     const t = Date.now();
@@ -428,9 +549,10 @@ function rateLimit({ windowMs, max, message }) {
   if (sweep.unref) sweep.unref();
   return function (req, res, next) {
     const now = Date.now();
-    const key = (req.ip || 'unknown') + '|' + req.baseUrl + req.path;
-    let rec = hits.get(key);
-    if (!rec || rec.resetAt <= now) { rec = { count: 0, resetAt: now + windowMs }; hits.set(key, rec); }
+    const quem = (key && key(req)) || req.ip || 'unknown';
+    const chave = quem + '|' + req.baseUrl + req.path;
+    let rec = hits.get(chave);
+    if (!rec || rec.resetAt <= now) { rec = { count: 0, resetAt: now + windowMs }; hits.set(chave, rec); }
     rec.count += 1;
     if (rec.count > max) {
       res.set('Retry-After', String(Math.ceil((rec.resetAt - now) / 1000)));
@@ -444,6 +566,43 @@ function rateLimit({ windowMs, max, message }) {
    App
 ------------------------------------------------------------ */
 const app = express();
+
+/* ------------------------------------------------------------
+   Rede de segurança para handler `async`.
+
+   O Express 4 não entende Promise: se um handler async rejeita,
+   ninguém captura, a rejeição vira `unhandledRejection` e o Node 22
+   DERRUBA O PROCESSO por padrão. Ou seja: um erro de SQLite (disco
+   cheio, lock) numa rota de pagamento tirava a loja inteira do ar,
+   levando junto a venda que estava acontecendo.
+
+   Dava para embrulhar as nove rotas async na mão, mas aí a décima que
+   alguém escrever amanhã nasce desprotegida. Embrulhando aqui, uma vez
+   só, qualquer rota — inclusive as futuras — manda a rejeição para o
+   error handler que fica no fim do arquivo.
+------------------------------------------------------------ */
+for (const metodo of ['get', 'post', 'put', 'patch', 'delete']) {
+  const original = app[metodo].bind(app);
+  app[metodo] = function (caminho, ...handlers) {
+    // app.get('nome') sem handler é o LEITOR de configuração do Express,
+    // não uma rota. Passa direto, senão quebraria app.get('env').
+    if (!handlers.length) return original(caminho);
+    return original(caminho, ...handlers.map(function (h) {
+      // length >= 4 é error handler (err, req, res, next): não se embrulha.
+      if (typeof h !== 'function' || h.length >= 4) return h;
+      return function (req, res, next) {
+        try {
+          const r = h(req, res, next);
+          if (r && typeof r.then === 'function') r.catch(next);
+          return r;
+        } catch (e) {
+          next(e);
+        }
+      };
+    }));
+  };
+}
+
 app.disable('x-powered-by');     // não vaza a tecnologia (era "Express")
 app.set('trust proxy', 1);       // confia no proxy (Vercel/Render/VPS) para req.ip
 app.use(securityHeaders);
@@ -454,6 +613,50 @@ const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 10, message: 'Mui
 const checkoutLimiter = rateLimit({ windowMs: 60 * 60 * 1000, max: 5, message: 'Não foi possível processar agora. Tente novamente mais tarde.' });
 app.use(['/api/login', '/api/register', '/api/forgot', '/api/reset'], authLimiter);
 app.use('/api/checkout', checkoutLimiter);
+
+/* ------------------------------------------------------------
+   Limites das rotas que custam dinheiro ou chamada externa.
+
+   Estes vão DEPOIS do authRequired na definição da rota, para poder
+   contar por usuário em vez de por IP (ver o parâmetro `key`).
+
+   Os números são folgados de propósito: limite de segurança serve
+   para cortar abuso automatizado, não para atrapalhar quem está
+   comprando. Quem recalcula o frete oito vezes decidindo o CEP é
+   cliente indeciso, não atacante.
+------------------------------------------------------------ */
+const porUsuario = (req) => (req.user ? 'u' + req.user.id : null);
+
+// Cada chamada é uma requisição à API do Melhor Envio, que tem cota.
+const freteLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, max: 40, key: porUsuario,
+  message: 'Muitos cálculos de frete seguidos. Aguarde um pouco.'
+});
+
+// Cada chamada cria uma preferência de pagamento no Mercado Pago.
+const pagamentoLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, max: 20, key: porUsuario,
+  message: 'Muitas tentativas de pagamento. Aguarde um pouco.'
+});
+
+// Escritas comuns (sacola, perfil): teto alto, só para conter script.
+const escritaLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, max: 200, key: porUsuario,
+  message: 'Muitas alterações seguidas. Aguarde um pouco.'
+});
+
+/* O webhook é público — não dá para exigir login de quem o Mercado
+   Pago manda. O teto é alto porque notificação legítima vem em rajada
+   (o MP reenvia várias vezes o mesmo evento), e devolver 429 para
+   notificação boa custaria uma baixa de pedido.
+
+   Isto é a segunda linha: a conferência de assinatura já barra o
+   forjado antes de qualquer chamada externa, então uma inundação aqui
+   custa só um HMAC. Este limite existe para o caso de inundação pura. */
+const webhookLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, max: 600,
+  message: 'Muitas notificações. Tente mais tarde.'
+});
 
 // Cadastro
 app.post('/api/register', async (req, res) => {
@@ -530,10 +733,15 @@ app.post('/api/forgot', async (req, res) => {
       stmtResetInvalidate.run(row.id);              // invalida pedidos antigos
       stmtResetInsert.run(row.id, tokenHash, expiresAt);
 
-      // Base do link fixada no servidor (APP_URL) — NUNCA vem do cliente,
-      // senão um atacante redirecionaria o token de reset. [OWASP A07]
-      const base = (process.env.APP_URL || `http://localhost:${PORT}`).replace(/\/$/, '');
-      const link = `${base}/?reset=${token}`;
+      // Base do link fixada no servidor — NUNCA vem do cliente, senão um
+      // atacante redirecionaria o token de reset. [OWASP A07]
+      //
+      // Cai para SITE_URL, que já é o endereço público e está no render.yaml.
+      // Antes dependia só de APP_URL, que ninguém nunca definiu: todo e-mail
+      // de redefinição saía com "http://localhost:10000/?reset=..." e nenhum
+      // cliente conseguia recuperar a conta. Falha silenciosa — quem não
+      // consegue entrar não reclama, só desiste.
+      const link = `${RESET_LINK_BASE}/?reset=${token}`;
       mailer.sendResetEmail(row.email, row.name, link)
         .then((r) => { if (!r.sent) console.warn('E-mail de reset não enviado:', r.reason); })
         .catch((e) => console.error('Erro no e-mail de reset:', e.message));
@@ -605,7 +813,7 @@ function cpfIsValid(digits) {
 }
 
 // Salvar/atualizar perfil (endereço, telefone, CEP, CPF...)
-app.put('/api/profile', authRequired, (req, res) => {
+app.put('/api/profile', authRequired, escritaLimiter, (req, res) => {
   const b = req.body || {};
   const clean = (v) => (v == null ? '' : String(v).trim());
   const cpfDigits = clean(b.cpf).replace(/\D/g, '');
@@ -640,7 +848,7 @@ app.get('/api/cart', authRequired, (req, res) => {
 });
 
 // Adicionar item (ou somar quantidade se já existir mesmo produto+tamanho)
-app.post('/api/cart', authRequired, (req, res) => {
+app.post('/api/cart', authRequired, escritaLimiter, (req, res) => {
   try {
     let { product, size } = req.body || {};
     product = (product || '').trim();
@@ -686,7 +894,7 @@ app.post('/api/cart', authRequired, (req, res) => {
 });
 
 // Atualizar quantidade de um item
-app.patch('/api/cart/:id', authRequired, (req, res) => {
+app.patch('/api/cart/:id', authRequired, escritaLimiter, (req, res) => {
   const id = parseInt(req.params.id, 10);
   let qty = parseInt((req.body || {}).qty, 10);
   if (!Number.isFinite(id)) return res.status(400).json({ error: 'Item inválido.' });
@@ -712,12 +920,25 @@ app.patch('/api/cart/:id', authRequired, (req, res) => {
   return res.json(cartPayload(req.user.id));
 });
 
-// Estoque público — o site usa para marcar tamanhos esgotados.
-// Só expõe o que está esgotado ou com pouca peça; não revela números altos.
+/* Estoque público — o site usa para marcar tamanhos esgotados e avisar
+   "últimas peças". Esta rota não tem login: é a vitrine.
+
+   O número sai limitado no teto. O comentário aqui sempre disse que
+   não revelava números altos, mas o código devolvia a quantidade
+   exata — quem chamasse /api/stock via com precisão quanto a loja tem
+   de cada peça, e dava para acompanhar quanto vende por dia só
+   comparando as respostas ao longo do tempo. Isso é relatório de
+   vendas de graça para quem quiser.
+
+   O front só reage a "esgotado" (<= 0) e a "poucas peças" (<= 3),
+   então limitar em 6 não muda nada na tela. */
+const ESTOQUE_TETO_PUBLICO = 6;
+
 app.get('/api/stock', (req, res) => {
   const out = {};
   for (const row of stmtStockAll.all()) {
-    out[row.product + '|' + row.size] = Math.max(0, Number(row.qty));
+    const qty = Math.max(0, Number(row.qty));
+    out[row.product + '|' + row.size] = Math.min(qty, ESTOQUE_TETO_PUBLICO);
   }
   return res.json({ stock: out });
 });
@@ -744,7 +965,7 @@ const onlyDigits = (v) => String(v == null ? '' : v).replace(/\D/g, '');
 // o custo real), mantendo a convenção de valores inteiros do site.
 const freightToReais = (v) => Math.max(0, Math.ceil(Number(v) || 0));
 
-app.post('/api/frete', authRequired, async (req, res) => {
+app.post('/api/frete', authRequired, freteLimiter, async (req, res) => {
   try {
     const cep = onlyDigits((req.body || {}).cep);
     if (cep.length !== 8) return res.status(400).json({ error: 'CEP inválido.' });
@@ -1059,8 +1280,48 @@ app.get('/api/admin/customers', adminRequired, (req, res) => {
   return res.json({ totalClientes: customers.length, receitaTotal, customers });
 });
 
-/* Situações possíveis de um pedido. 'pago' é o gatilho da planilha. */
-const ORDER_STATUSES = ['aguardando_pagamento', 'pago', 'enviado', 'cancelado'];
+/* Situações possíveis de um pedido. 'pago' é o gatilho da planilha.
+
+   'estornado' é diferente de 'cancelado': cancelado é pedido que nunca foi
+   pago (desistência, Pix que expirou); estornado é dinheiro que ENTROU e
+   voltou (devolução de Pix, chargeback de cartão). Separar os dois importa
+   porque só o estorno pode pegar você com a mercadoria já despachada. */
+const ORDER_STATUSES = ['aguardando_pagamento', 'pago', 'enviado', 'cancelado', 'estornado'];
+
+/* Status do Mercado Pago que significam "o dinheiro não está mais aqui".
+   https://www.mercadopago.com.br/developers → status de pagamento */
+const MP_STATUS_DEVOLVIDO = new Set(['refunded', 'charged_back', 'cancelled']);
+
+/* ------------------------------------------------------------
+   Falhas seguidas de assinatura do webhook.
+
+   Existe para separar duas coisas que se parecem no log e são
+   completamente diferentes na prática:
+
+   - uma ou outra falha avulsa = alguém sondando a URL. Ignorável.
+   - TODAS falhando, uma atrás da outra = o MP_WEBHOOK_SECRET está
+     errado, e nesse caso cada notificação recusada é um cliente que
+     pagou e cujo pedido não deu baixa.
+
+   O segundo caso é o que fez desligarem a checagem no passado. Em vez
+   de tolerar assinatura inválida, a gente grita — e grita mais alto a
+   cada falha seguida, até ficar impossível de não ver.
+------------------------------------------------------------ */
+let falhasSeguidasDeAssinatura = 0;
+
+function registraFalhaDeAssinatura(motivo, dataId) {
+  falhasSeguidasDeAssinatura += 1;
+  const n = falhasSeguidasDeAssinatura;
+  console.warn('[mercadopago] assinatura inválida (' + motivo + ') data.id=' + dataId +
+               ' — notificação RECUSADA. Falhas seguidas: ' + n);
+  if (n === 3 || n === 10 || (n > 10 && n % 25 === 0)) {
+    console.error('[mercadopago] *** ' + n + ' NOTIFICAÇÕES SEGUIDAS RECUSADAS POR ASSINATURA. ***\n' +
+                  '    Isto quase certamente é o MP_WEBHOOK_SECRET errado, não um invasor.\n' +
+                  '    Enquanto durar, cliente paga e o pedido NÃO dá baixa.\n' +
+                  '    Confira a "Assinatura secreta" em: Mercado Pago > Suas integrações >\n' +
+                  '    sua aplicação > Webhooks, e compare com a variável no painel do Render.');
+  }
+}
 
 function parseJSON(text, fallback) {
   try { return JSON.parse(text); } catch (e) { return fallback; }
@@ -1126,7 +1387,30 @@ app.patch('/api/admin/orders/:id/status', adminRequired, (req, res) => {
     // colunas de data ordenarem juntas na planilha.
     paidAt = current.paid_at || new Date().toISOString().slice(0, 19).replace('T', ' ');
   }
-  stmtOrderSetStatus.run(status, paidAt, id);
+
+  /* Cancelar ou estornar na mão também devolve as peças à prateleira.
+     O estoque é baixado no checkout, antes do pagamento; sem esta parte,
+     todo pedido que você cancelasse deixaria a peça presa para sempre e a
+     vitrine iria esgotando sozinha. Só devolve na TRANSIÇÃO para o status
+     morto — marcar 'cancelado' duas vezes não soma duas vezes. */
+  const morto = (s) => s === 'cancelado' || s === 'estornado';
+  const devolve = morto(status) && !morto(current.status);
+
+  if (devolve) {
+    const full = stmtOrderFull.get(id);
+    db.exec('BEGIN IMMEDIATE');
+    try {
+      devolverEstoque(parseJSON(full && full.items, []) || []);
+      stmtOrderSetStatus.run(status, paidAt, id);
+      db.exec('COMMIT');
+    } catch (e) {
+      db.exec('ROLLBACK');
+      throw e;
+    }
+  } else {
+    stmtOrderSetStatus.run(status, paidAt, id);
+  }
+
   return res.json(orderRow(stmtAdminOrderById.get(id)));
 });
 
@@ -1196,7 +1480,7 @@ app.get('/api/orders/:id', authRequired, (req, res) => {
    logado — sem essa checagem, qualquer cliente logado poderia gerar
    cobrança em cima do pedido de outro. [OWASP A01]
 ------------------------------------------------------------ */
-app.post('/api/mercadopago', authRequired, async (req, res) => {
+app.post('/api/mercadopago', authRequired, pagamentoLimiter, async (req, res) => {
   const orderId = Number((req.body || {}).orderId);
   if (!Number.isInteger(orderId) || orderId <= 0) {
     return res.status(400).json({ error: 'Pedido inválido.' });
@@ -1255,7 +1539,7 @@ app.post('/api/mercadopago', authRequired, async (req, res) => {
      algo que nunca vai dar certo. A exceção é falha nossa ao gravar
      (500), aí o reenvio é justamente o que salva o pagamento.
 ------------------------------------------------------------ */
-app.post('/api/mercadopago/webhook', async (req, res) => {
+app.post('/api/mercadopago/webhook', webhookLimiter, async (req, res) => {
   const body = req.body || {};
   const q = req.query || {};
 
@@ -1271,27 +1555,40 @@ app.post('/api/mercadopago/webhook', async (req, res) => {
   if (!dataId) return res.status(200).json({ ignored: 'sem data.id' });
 
   // 1) A notificação veio mesmo do Mercado Pago?
-  /* A assinatura é uma checagem ADICIONAL, não a que decide. Quem decide
-     é a consulta à API logo abaixo: perguntamos ao Mercado Pago, com o
-     nosso Access Token, se aquele pagamento existe e está aprovado. Como
-     ele só responde sobre pagamentos da NOSSA conta, ninguém consegue
-     forjar uma aprovação inventando um número.
+  /* A assinatura volta a BLOQUEAR. Antes ela era só um console.warn e o
+     processamento seguia — a defesa em profundidade tinha virado defesa
+     única (a consulta à API), e a checagem que detecta o problema antes
+     dele acontecer estava desligada sem ninguém perceber.
 
-     Por isso a assinatura errada não derruba mais o processamento: ela
-     vira um aviso alto no log. Sem isso, um segredo mal copiado fazia o
-     cliente pagar e o pedido nunca dar baixa — falha silenciosa e cara.
+     O motivo de terem desligado era real: um segredo mal copiado recusa
+     TODA notificação boa, o cliente paga e o pedido nunca dá baixa. A
+     resposta certa para isso não é tolerar assinatura inválida — é fazer
+     o segredo errado ser impossível de não notar. É o que o contador de
+     falhas seguidas abaixo faz, junto com o aviso no boot.
 
-     O que se perde tolerando a falha: um curioso que descubra esta URL
-     pode nos fazer reconsultar pagamentos que já são nossos. Não gera
-     baixa indevida (o dado vem da API) e o processamento é idempotente. */
+     Sem segredo configurado é caso à parte: não dá para validar o que
+     não se pode calcular. Aí seguimos pela consulta à API (que é segura
+     por si só) e gritamos no log, em vez de derrubar a loja inteira de
+     quem ainda não configurou. */
   const assinatura = mercadopago.validateSignature({
     xSignature: req.headers['x-signature'],
     xRequestId: req.headers['x-request-id'],
     dataId: dataId
   });
+
   if (!assinatura.ok) {
-    console.warn('[mercadopago] assinatura NAO confere (' + assinatura.reason + ') data.id=' + dataId +
-                 ' — seguindo pela consulta à API. Corrija MP_WEBHOOK_SECRET para restaurar a checagem.');
+    if (assinatura.reason === 'SemSegredoConfigurado') {
+      console.warn('[mercadopago] *** MP_WEBHOOK_SECRET não configurado — ' +
+                   'notificação aceita sem conferir assinatura. Cadastre a ' +
+                   '"Assinatura secreta" no painel do Mercado Pago. ***');
+    } else {
+      // Assinatura presente e errada: ou é forjada, ou o segredo está errado.
+      // Os dois casos param aqui; o contador diz qual é qual.
+      registraFalhaDeAssinatura(assinatura.reason, dataId);
+      return res.status(401).json({ error: 'assinatura inválida' });
+    }
+  } else {
+    falhasSeguidasDeAssinatura = 0;
   }
 
   // 2) Status na fonte, nunca no que chegou pela rede.
@@ -1327,11 +1624,78 @@ app.post('/api/mercadopago/webhook', async (req, res) => {
     stmtOrderSetPayment.run(JSON.stringify(pagamento), orderId);
 
     const jaPago = row.status === 'pago' || row.status === 'enviado';
+
     if (pag.status === 'approved' && !jaPago) {
+      /* O valor pago tem de cobrir o pedido. Antes esta conferência não
+         existia: bastava o pagamento estar "approved" para o pedido ser
+         dado como quitado, qualquer que fosse o valor. O dado já vinha na
+         mão (pag.amount), só não era comparado com nada.
+
+         Não marcamos pago automaticamente quando não bate — mas também
+         não jogamos fora: grava a divergência e grita no log, porque um
+         cliente que pagou de verdade não pode ficar sem resposta por
+         causa de uma diferença de centavos que só você sabe resolver. */
+      const pago = Number(pag.amount);
+      const devido = Number(row.total);
+      const cobre = Number.isFinite(pago) && pago + 0.01 >= devido;
+
+      if (!cobre) {
+        pagamento.divergencia = { pago: pago, devido: devido, em: new Date().toISOString() };
+        stmtOrderSetPayment.run(JSON.stringify(pagamento), orderId);
+        console.error('[mercadopago] *** VALOR NÃO CONFERE — pedido ' + orderId +
+                      ' NÃO foi marcado como pago. Pagamento ' + pag.id +
+                      ' trouxe R$ ' + pago + ' e o pedido é R$ ' + devido +
+                      '. Confira no painel do Mercado Pago antes de despachar. ***');
+        return res.status(200).json({ ok: true, aviso: 'valor divergente' });
+      }
+
+      /* Pagamento chegou depois da reserva expirar? O estoque já foi
+         devolvido à vitrine, então é preciso retomá-lo — senão a peça
+         é vendida duas vezes.
+
+         Se não couber (alguém levou nesse meio-tempo), o pedido é
+         marcado pago do mesmo jeito: o cliente pagou, e fingir que
+         não seria pior. Mas o log grita, porque aí é caso para
+         resolver na mão — reembolsar ou repor. */
+      if (row.status === 'cancelado') {
+        const faltou = retomarEstoque(parseJSON(row.items, []) || []);
+        if (faltou.length) {
+          console.error('[mercadopago] *** pedido ' + orderId + ' foi PAGO depois da reserva expirar ' +
+                        'e não há mais estoque de: ' + faltou.join(', ') +
+                        '. O pedido está pago — resolva na mão (repor ou reembolsar). ***');
+        } else {
+          console.warn('[mercadopago] pedido ' + orderId + ' pago após a reserva expirar — estoque retomado.');
+        }
+      }
+
       const paidAt = (pag.approvedAt ? new Date(pag.approvedAt) : new Date())
         .toISOString().slice(0, 19).replace('T', ' ');
       stmtOrderSetStatus.run('pago', paidAt, orderId);
       console.log('[mercadopago] pedido ' + orderId + ' PAGO (pagamento ' + pag.id + ', R$ ' + pag.amount + ')');
+
+    } else if (MP_STATUS_DEVOLVIDO.has(pag.status) && jaPago) {
+      /* O dinheiro voltou depois de ter entrado: devolução de Pix ou
+         chargeback de cartão. Antes isso caía no console.log genérico e o
+         pedido continuava "pago" para sempre — com o estoque baixado e a
+         receita do painel inflada. Você descobriria pelo extrato, com a
+         mercadoria já despachada.
+
+         Devolver o estoque aqui é seguro contra reenvio: o Mercado Pago
+         repete a mesma notificação várias vezes, mas a segunda encontra o
+         pedido já em 'estornado' (jaPago falso) e não soma nada. */
+      db.exec('BEGIN IMMEDIATE');
+      try {
+        devolverEstoque(parseJSON(row.items, []) || []);
+        stmtOrderSetStatus.run('estornado', null, orderId);
+        db.exec('COMMIT');
+      } catch (e) {
+        db.exec('ROLLBACK');
+        throw e;
+      }
+      console.error('[mercadopago] *** ESTORNO — pedido ' + orderId + ' voltou de "' + row.status +
+                    '" para "estornado" (pagamento ' + pag.id + ', ' + pag.status + ', R$ ' + pag.amount +
+                    '). Estoque devolvido. Se já despachou, corra atrás da mercadoria. ***');
+
     } else {
       console.log('[mercadopago] pedido ' + orderId + ' — pagamento ' + pag.id + ' está "' + pag.status + '"' + (jaPago ? ' (pedido já estava pago)' : ''));
     }
@@ -1504,10 +1868,54 @@ app.get(['/', '/index.html'], (req, res) => {
   res.sendFile(path.join(ROOT, 'index.html'));
 });
 
+/* ------------------------------------------------------------
+   Último a ser registrado, de propósito: só chega aqui o que
+   escapou de todas as rotas acima.
+
+   Resposta genérica para o cliente (stack trace na tela é presente
+   de aniversário para quem está sondando o site) e detalhe completo
+   no log, que é onde você vai olhar. [OWASP A05/A09]
+------------------------------------------------------------ */
+app.use(function (err, req, res, next) {
+  console.error('[erro] ' + req.method + ' ' + req.originalUrl + ':', (err && err.stack) || err);
+  // Resposta já começou a sair? Não dá para trocar o status; deixa o
+  // Express fechar a conexão do jeito dele.
+  if (res.headersSent) return next(err);
+  res.status(500).json({ error: 'Erro interno. Tente de novo em instantes.' });
+});
+
+/* ------------------------------------------------------------
+   Rede de segurança do processo — o que escapou até do error handler.
+
+   As duas metades recebem tratamento diferente de propósito:
+
+   - unhandledRejection: uma Promise solta que ninguém pegou. O
+     processo continua íntegro, então derrubar a loja por causa disso
+     seria trocar um problema pequeno por um grande. Só registra.
+
+   - uncaughtException: o processo pode estar em estado inconsistente,
+     e servir venda a partir daí é pior do que não servir. Registra e
+     sai; o Render sobe de novo em segundos, limpo.
+------------------------------------------------------------ */
+process.on('unhandledRejection', (motivo) => {
+  console.error('[erro] Promise rejeitada sem tratamento:', (motivo && motivo.stack) || motivo);
+});
+process.on('uncaughtException', (e) => {
+  console.error('[erro] Exceção não capturada — encerrando para subir limpo:', (e && e.stack) || e);
+  process.exit(1);
+});
+
 app.listen(PORT, () => {
   console.log(`Pantale rodando em http://localhost:${PORT}`);
   console.log(`Gestão de clientes:  GET /api/admin/customers  (header x-admin-key; chave em server/.admin-key)`);
   console.log(`E-mail de pedidos:   ${mailer.isEnabled() ? 'ATIVO → ' + mailer.mailTo : 'desativado (configure server/mail-config.json)'}`);
+  /* Link do "esqueci a senha". Apontar para localhost em produção não dá
+     erro nenhum: o e-mail sai, o cliente clica e não abre nada. Por isso
+     o endereço aparece no boot, para dar para conferir de olho. */
+  console.log(`Link de redefinição: ${RESET_LINK_BASE}/?reset=...`);
+  if (/localhost|127\.0\.0\.1/.test(RESET_LINK_BASE)) {
+    console.log(`   *** ATENÇÃO: link de redefinição aponta para localhost — ninguém consegue recuperar a conta. Defina SITE_URL. ***`);
+  }
   /* Frete desligado é a falha mais cara e mais silenciosa daqui: a loja
      continua vendendo, só que cobrando R$ 0 de entrega — e você descobre
      quando o prejuízo já aconteceu. Por isso o aviso é gritado. */
@@ -1523,5 +1931,17 @@ app.listen(PORT, () => {
   if (mercadopago.isEnabled() && mercadopago.missing().length) {
     console.log(`   atenção: ${mercadopago.missing().join(', ')}`);
   }
+  /* A assinatura do webhook só protege se o segredo existir. Sem ele a
+     notificação é aceita sem conferência — funciona, mas de olhos fechados. */
+  if (mercadopago.isEnabled() && mercadopago.missing().some((m) => /WEBHOOK_SECRET/.test(m))) {
+    console.log(`   *** webhook SEM conferência de assinatura (MP_WEBHOOK_SECRET vazio) ***`);
+  }
+  console.log(`Reserva de estoque:  ${RESERVA_MINUTOS} min sem pagamento e a peça volta para a vitrine`);
   backup.schedule(db, (msg) => console.log(msg));
+
+  /* Varre no boot (para limpar o que ficou preso enquanto o servidor
+     esteve fora) e depois a cada 5 minutos. */
+  expirarReservas((msg) => console.log(msg));
+  const varredura = setInterval(() => expirarReservas((msg) => console.log(msg)), 5 * 60 * 1000);
+  if (varredura.unref) varredura.unref();
 });
