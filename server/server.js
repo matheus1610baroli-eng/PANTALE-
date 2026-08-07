@@ -232,11 +232,19 @@ try { db.exec("ALTER TABLE orders ADD COLUMN freight TEXT NOT NULL DEFAULT '{}'"
 try { db.exec("ALTER TABLE orders ADD COLUMN shipment TEXT NOT NULL DEFAULT '{}'"); } catch (e) {}
 try { db.exec("ALTER TABLE orders ADD COLUMN payment TEXT NOT NULL DEFAULT '{}'"); } catch (e) {}
 try { db.exec("ALTER TABLE profiles ADD COLUMN cpf TEXT NOT NULL DEFAULT ''"); } catch (e) {}
+/* Geração da sessão. Sobe em 1 a cada troca de senha; o número vai
+   dentro do JWT e é conferido a cada requisição, então token emitido
+   antes da troca para de valer na hora. Começa em 0, e JWT antigo (sem
+   o campo) também lê como 0 — publicar isto não desloga ninguém. */
+try { db.exec('ALTER TABLE users ADD COLUMN token_version INTEGER NOT NULL DEFAULT 0'); } catch (e) {}
 
 const stmtFindByEmail = db.prepare('SELECT * FROM users WHERE email = ?');
-const stmtFindById = db.prepare('SELECT id, name, email, created_at FROM users WHERE id = ?');
+const stmtFindById = db.prepare('SELECT id, name, email, created_at, token_version FROM users WHERE id = ?');
 const stmtInsert = db.prepare('INSERT INTO users (name, email, password) VALUES (?, ?, ?)');
-const stmtUpdatePassword = db.prepare('UPDATE users SET password = ? WHERE id = ?');
+/* Troca de senha e invalidação das sessões antigas na MESMA instrução:
+   separar as duas abriria uma janela em que a senha já mudou e o token
+   antigo ainda vale — justamente o que este código existe para fechar. */
+const stmtUpdatePassword = db.prepare('UPDATE users SET password = ?, token_version = token_version + 1 WHERE id = ?');
 
 /* Redefinição de senha */
 const stmtResetInvalidate = db.prepare('UPDATE password_resets SET used = 1 WHERE user_id = ? AND used = 0');
@@ -369,7 +377,12 @@ function cartPayload(userId) {
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function signToken(user) {
-  return jwt.sign({ sub: user.id, email: user.email }, JWT_SECRET, { expiresIn: TOKEN_TTL });
+  // tv = geração da sessão. Ver o ALTER TABLE de token_version lá em cima.
+  return jwt.sign(
+    { sub: user.id, email: user.email, tv: Number(user.token_version) || 0 },
+    JWT_SECRET,
+    { expiresIn: TOKEN_TTL }
+  );
 }
 
 function publicUser(row) {
@@ -381,9 +394,21 @@ function authRequired(req, res, next) {
   const token = header.startsWith('Bearer ') ? header.slice(7) : null;
   if (!token) return res.status(401).json({ error: 'Não autenticado.' });
   try {
-    const payload = jwt.verify(token, JWT_SECRET);
+    // algorithms explícito: não deixa o verificador aceitar um algoritmo
+    // que a gente nunca usou para assinar. [OWASP A02]
+    const payload = jwt.verify(token, JWT_SECRET, { algorithms: ['HS256'] });
     const row = stmtFindById.get(payload.sub);
     if (!row) return res.status(401).json({ error: 'Sessão inválida.' });
+
+    /* Token de antes da última troca de senha não vale mais.
+       Sem isto, trocar a senha — o gesto universal de "expulsar quem
+       entrou na minha conta" — não expulsava ninguém: o token roubado
+       continuava valendo pelos 7 dias de validade, e a vítima achava
+       que tinha resolvido. */
+    if ((Number(payload.tv) || 0) !== (Number(row.token_version) || 0)) {
+      return res.status(401).json({ error: 'Sessão encerrada. Entre de novo.' });
+    }
+
     req.user = row;
     next();
   } catch {
