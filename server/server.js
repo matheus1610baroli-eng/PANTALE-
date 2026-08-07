@@ -1095,6 +1095,37 @@ const ORDER_STATUSES = ['aguardando_pagamento', 'pago', 'enviado', 'cancelado', 
    https://www.mercadopago.com.br/developers → status de pagamento */
 const MP_STATUS_DEVOLVIDO = new Set(['refunded', 'charged_back', 'cancelled']);
 
+/* ------------------------------------------------------------
+   Falhas seguidas de assinatura do webhook.
+
+   Existe para separar duas coisas que se parecem no log e são
+   completamente diferentes na prática:
+
+   - uma ou outra falha avulsa = alguém sondando a URL. Ignorável.
+   - TODAS falhando, uma atrás da outra = o MP_WEBHOOK_SECRET está
+     errado, e nesse caso cada notificação recusada é um cliente que
+     pagou e cujo pedido não deu baixa.
+
+   O segundo caso é o que fez desligarem a checagem no passado. Em vez
+   de tolerar assinatura inválida, a gente grita — e grita mais alto a
+   cada falha seguida, até ficar impossível de não ver.
+------------------------------------------------------------ */
+let falhasSeguidasDeAssinatura = 0;
+
+function registraFalhaDeAssinatura(motivo, dataId) {
+  falhasSeguidasDeAssinatura += 1;
+  const n = falhasSeguidasDeAssinatura;
+  console.warn('[mercadopago] assinatura inválida (' + motivo + ') data.id=' + dataId +
+               ' — notificação RECUSADA. Falhas seguidas: ' + n);
+  if (n === 3 || n === 10 || (n > 10 && n % 25 === 0)) {
+    console.error('[mercadopago] *** ' + n + ' NOTIFICAÇÕES SEGUIDAS RECUSADAS POR ASSINATURA. ***\n' +
+                  '    Isto quase certamente é o MP_WEBHOOK_SECRET errado, não um invasor.\n' +
+                  '    Enquanto durar, cliente paga e o pedido NÃO dá baixa.\n' +
+                  '    Confira a "Assinatura secreta" em: Mercado Pago > Suas integrações >\n' +
+                  '    sua aplicação > Webhooks, e compare com a variável no painel do Render.');
+  }
+}
+
 function parseJSON(text, fallback) {
   try { return JSON.parse(text); } catch (e) { return fallback; }
 }
@@ -1327,27 +1358,40 @@ app.post('/api/mercadopago/webhook', async (req, res) => {
   if (!dataId) return res.status(200).json({ ignored: 'sem data.id' });
 
   // 1) A notificação veio mesmo do Mercado Pago?
-  /* A assinatura é uma checagem ADICIONAL, não a que decide. Quem decide
-     é a consulta à API logo abaixo: perguntamos ao Mercado Pago, com o
-     nosso Access Token, se aquele pagamento existe e está aprovado. Como
-     ele só responde sobre pagamentos da NOSSA conta, ninguém consegue
-     forjar uma aprovação inventando um número.
+  /* A assinatura volta a BLOQUEAR. Antes ela era só um console.warn e o
+     processamento seguia — a defesa em profundidade tinha virado defesa
+     única (a consulta à API), e a checagem que detecta o problema antes
+     dele acontecer estava desligada sem ninguém perceber.
 
-     Por isso a assinatura errada não derruba mais o processamento: ela
-     vira um aviso alto no log. Sem isso, um segredo mal copiado fazia o
-     cliente pagar e o pedido nunca dar baixa — falha silenciosa e cara.
+     O motivo de terem desligado era real: um segredo mal copiado recusa
+     TODA notificação boa, o cliente paga e o pedido nunca dá baixa. A
+     resposta certa para isso não é tolerar assinatura inválida — é fazer
+     o segredo errado ser impossível de não notar. É o que o contador de
+     falhas seguidas abaixo faz, junto com o aviso no boot.
 
-     O que se perde tolerando a falha: um curioso que descubra esta URL
-     pode nos fazer reconsultar pagamentos que já são nossos. Não gera
-     baixa indevida (o dado vem da API) e o processamento é idempotente. */
+     Sem segredo configurado é caso à parte: não dá para validar o que
+     não se pode calcular. Aí seguimos pela consulta à API (que é segura
+     por si só) e gritamos no log, em vez de derrubar a loja inteira de
+     quem ainda não configurou. */
   const assinatura = mercadopago.validateSignature({
     xSignature: req.headers['x-signature'],
     xRequestId: req.headers['x-request-id'],
     dataId: dataId
   });
+
   if (!assinatura.ok) {
-    console.warn('[mercadopago] assinatura NAO confere (' + assinatura.reason + ') data.id=' + dataId +
-                 ' — seguindo pela consulta à API. Corrija MP_WEBHOOK_SECRET para restaurar a checagem.');
+    if (assinatura.reason === 'SemSegredoConfigurado') {
+      console.warn('[mercadopago] *** MP_WEBHOOK_SECRET não configurado — ' +
+                   'notificação aceita sem conferir assinatura. Cadastre a ' +
+                   '"Assinatura secreta" no painel do Mercado Pago. ***');
+    } else {
+      // Assinatura presente e errada: ou é forjada, ou o segredo está errado.
+      // Os dois casos param aqui; o contador diz qual é qual.
+      registraFalhaDeAssinatura(assinatura.reason, dataId);
+      return res.status(401).json({ error: 'assinatura inválida' });
+    }
+  } else {
+    falhasSeguidasDeAssinatura = 0;
   }
 
   // 2) Status na fonte, nunca no que chegou pela rede.
@@ -1633,6 +1677,11 @@ app.listen(PORT, () => {
     : 'desativado (defina MP_ACCESS_TOKEN)'}`);
   if (mercadopago.isEnabled() && mercadopago.missing().length) {
     console.log(`   atenção: ${mercadopago.missing().join(', ')}`);
+  }
+  /* A assinatura do webhook só protege se o segredo existir. Sem ele a
+     notificação é aceita sem conferência — funciona, mas de olhos fechados. */
+  if (mercadopago.isEnabled() && mercadopago.missing().some((m) => /WEBHOOK_SECRET/.test(m))) {
+    console.log(`   *** webhook SEM conferência de assinatura (MP_WEBHOOK_SECRET vazio) ***`);
   }
   backup.schedule(db, (msg) => console.log(msg));
 });
