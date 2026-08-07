@@ -270,6 +270,19 @@ const stmtStockUpsert = db.prepare(`
 const stmtStockDelete = db.prepare('DELETE FROM stock WHERE product = ? AND size = ?');
 // Só decrementa se houver saldo — protege contra venda em duplicidade (corrida).
 const stmtStockDecrement = db.prepare('UPDATE stock SET qty = qty - ?, updated_at = datetime(\'now\') WHERE product = ? AND size = ? AND qty >= ?');
+/* Devolve peça à prateleira (estorno, chargeback, pedido não pago que expirou).
+   Sem WHERE de saldo: aqui a gente está somando, não gastando. Se a linha não
+   existe, aquele item é "sem controle de estoque" e não há o que devolver. */
+const stmtStockIncrement = db.prepare('UPDATE stock SET qty = qty + ?, updated_at = datetime(\'now\') WHERE product = ? AND size = ?');
+
+/* Recoloca no estoque os itens de um pedido que deixou de valer.
+   Recebe os itens já desserializados de orders.items. */
+function devolverEstoque(items) {
+  for (const it of (items || [])) {
+    const qty = Number(it.qty) || 0;
+    if (qty > 0) stmtStockIncrement.run(qty, it.product, it.size);
+  }
+}
 
 /* Quantidade disponível: número, ou Infinity quando não há controle. */
 function stockAvailable(product, size) {
@@ -1070,8 +1083,17 @@ app.get('/api/admin/customers', adminRequired, (req, res) => {
   return res.json({ totalClientes: customers.length, receitaTotal, customers });
 });
 
-/* Situações possíveis de um pedido. 'pago' é o gatilho da planilha. */
-const ORDER_STATUSES = ['aguardando_pagamento', 'pago', 'enviado', 'cancelado'];
+/* Situações possíveis de um pedido. 'pago' é o gatilho da planilha.
+
+   'estornado' é diferente de 'cancelado': cancelado é pedido que nunca foi
+   pago (desistência, Pix que expirou); estornado é dinheiro que ENTROU e
+   voltou (devolução de Pix, chargeback de cartão). Separar os dois importa
+   porque só o estorno pode pegar você com a mercadoria já despachada. */
+const ORDER_STATUSES = ['aguardando_pagamento', 'pago', 'enviado', 'cancelado', 'estornado'];
+
+/* Status do Mercado Pago que significam "o dinheiro não está mais aqui".
+   https://www.mercadopago.com.br/developers → status de pagamento */
+const MP_STATUS_DEVOLVIDO = new Set(['refunded', 'charged_back', 'cancelled']);
 
 function parseJSON(text, fallback) {
   try { return JSON.parse(text); } catch (e) { return fallback; }
@@ -1137,7 +1159,30 @@ app.patch('/api/admin/orders/:id/status', adminRequired, (req, res) => {
     // colunas de data ordenarem juntas na planilha.
     paidAt = current.paid_at || new Date().toISOString().slice(0, 19).replace('T', ' ');
   }
-  stmtOrderSetStatus.run(status, paidAt, id);
+
+  /* Cancelar ou estornar na mão também devolve as peças à prateleira.
+     O estoque é baixado no checkout, antes do pagamento; sem esta parte,
+     todo pedido que você cancelasse deixaria a peça presa para sempre e a
+     vitrine iria esgotando sozinha. Só devolve na TRANSIÇÃO para o status
+     morto — marcar 'cancelado' duas vezes não soma duas vezes. */
+  const morto = (s) => s === 'cancelado' || s === 'estornado';
+  const devolve = morto(status) && !morto(current.status);
+
+  if (devolve) {
+    const full = stmtOrderFull.get(id);
+    db.exec('BEGIN IMMEDIATE');
+    try {
+      devolverEstoque(parseJSON(full && full.items, []) || []);
+      stmtOrderSetStatus.run(status, paidAt, id);
+      db.exec('COMMIT');
+    } catch (e) {
+      db.exec('ROLLBACK');
+      throw e;
+    }
+  } else {
+    stmtOrderSetStatus.run(status, paidAt, id);
+  }
+
   return res.json(orderRow(stmtAdminOrderById.get(id)));
 });
 
@@ -1338,11 +1383,59 @@ app.post('/api/mercadopago/webhook', async (req, res) => {
     stmtOrderSetPayment.run(JSON.stringify(pagamento), orderId);
 
     const jaPago = row.status === 'pago' || row.status === 'enviado';
+
     if (pag.status === 'approved' && !jaPago) {
+      /* O valor pago tem de cobrir o pedido. Antes esta conferência não
+         existia: bastava o pagamento estar "approved" para o pedido ser
+         dado como quitado, qualquer que fosse o valor. O dado já vinha na
+         mão (pag.amount), só não era comparado com nada.
+
+         Não marcamos pago automaticamente quando não bate — mas também
+         não jogamos fora: grava a divergência e grita no log, porque um
+         cliente que pagou de verdade não pode ficar sem resposta por
+         causa de uma diferença de centavos que só você sabe resolver. */
+      const pago = Number(pag.amount);
+      const devido = Number(row.total);
+      const cobre = Number.isFinite(pago) && pago + 0.01 >= devido;
+
+      if (!cobre) {
+        pagamento.divergencia = { pago: pago, devido: devido, em: new Date().toISOString() };
+        stmtOrderSetPayment.run(JSON.stringify(pagamento), orderId);
+        console.error('[mercadopago] *** VALOR NÃO CONFERE — pedido ' + orderId +
+                      ' NÃO foi marcado como pago. Pagamento ' + pag.id +
+                      ' trouxe R$ ' + pago + ' e o pedido é R$ ' + devido +
+                      '. Confira no painel do Mercado Pago antes de despachar. ***');
+        return res.status(200).json({ ok: true, aviso: 'valor divergente' });
+      }
+
       const paidAt = (pag.approvedAt ? new Date(pag.approvedAt) : new Date())
         .toISOString().slice(0, 19).replace('T', ' ');
       stmtOrderSetStatus.run('pago', paidAt, orderId);
       console.log('[mercadopago] pedido ' + orderId + ' PAGO (pagamento ' + pag.id + ', R$ ' + pag.amount + ')');
+
+    } else if (MP_STATUS_DEVOLVIDO.has(pag.status) && jaPago) {
+      /* O dinheiro voltou depois de ter entrado: devolução de Pix ou
+         chargeback de cartão. Antes isso caía no console.log genérico e o
+         pedido continuava "pago" para sempre — com o estoque baixado e a
+         receita do painel inflada. Você descobriria pelo extrato, com a
+         mercadoria já despachada.
+
+         Devolver o estoque aqui é seguro contra reenvio: o Mercado Pago
+         repete a mesma notificação várias vezes, mas a segunda encontra o
+         pedido já em 'estornado' (jaPago falso) e não soma nada. */
+      db.exec('BEGIN IMMEDIATE');
+      try {
+        devolverEstoque(parseJSON(row.items, []) || []);
+        stmtOrderSetStatus.run('estornado', null, orderId);
+        db.exec('COMMIT');
+      } catch (e) {
+        db.exec('ROLLBACK');
+        throw e;
+      }
+      console.error('[mercadopago] *** ESTORNO — pedido ' + orderId + ' voltou de "' + row.status +
+                    '" para "estornado" (pagamento ' + pag.id + ', ' + pag.status + ', R$ ' + pag.amount +
+                    '). Estoque devolvido. Se já despachou, corra atrás da mercadoria. ***');
+
     } else {
       console.log('[mercadopago] pedido ' + orderId + ' — pagamento ' + pag.id + ' está "' + pag.status + '"' + (jaPago ? ' (pedido já estava pago)' : ''));
     }
