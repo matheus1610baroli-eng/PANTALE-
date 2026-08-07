@@ -488,6 +488,43 @@ function rateLimit({ windowMs, max, message }) {
    App
 ------------------------------------------------------------ */
 const app = express();
+
+/* ------------------------------------------------------------
+   Rede de segurança para handler `async`.
+
+   O Express 4 não entende Promise: se um handler async rejeita,
+   ninguém captura, a rejeição vira `unhandledRejection` e o Node 22
+   DERRUBA O PROCESSO por padrão. Ou seja: um erro de SQLite (disco
+   cheio, lock) numa rota de pagamento tirava a loja inteira do ar,
+   levando junto a venda que estava acontecendo.
+
+   Dava para embrulhar as nove rotas async na mão, mas aí a décima que
+   alguém escrever amanhã nasce desprotegida. Embrulhando aqui, uma vez
+   só, qualquer rota — inclusive as futuras — manda a rejeição para o
+   error handler que fica no fim do arquivo.
+------------------------------------------------------------ */
+for (const metodo of ['get', 'post', 'put', 'patch', 'delete']) {
+  const original = app[metodo].bind(app);
+  app[metodo] = function (caminho, ...handlers) {
+    // app.get('nome') sem handler é o LEITOR de configuração do Express,
+    // não uma rota. Passa direto, senão quebraria app.get('env').
+    if (!handlers.length) return original(caminho);
+    return original(caminho, ...handlers.map(function (h) {
+      // length >= 4 é error handler (err, req, res, next): não se embrulha.
+      if (typeof h !== 'function' || h.length >= 4) return h;
+      return function (req, res, next) {
+        try {
+          const r = h(req, res, next);
+          if (r && typeof r.then === 'function') r.catch(next);
+          return r;
+        } catch (e) {
+          next(e);
+        }
+      };
+    }));
+  };
+}
+
 app.disable('x-powered-by');     // não vaza a tecnologia (era "Express")
 app.set('trust proxy', 1);       // confia no proxy (Vercel/Render/VPS) para req.ip
 app.use(securityHeaders);
@@ -1675,6 +1712,43 @@ app.use('/assets', express.static(path.join(ROOT, 'assets'), {
 }));
 app.get(['/', '/index.html'], (req, res) => {
   res.sendFile(path.join(ROOT, 'index.html'));
+});
+
+/* ------------------------------------------------------------
+   Último a ser registrado, de propósito: só chega aqui o que
+   escapou de todas as rotas acima.
+
+   Resposta genérica para o cliente (stack trace na tela é presente
+   de aniversário para quem está sondando o site) e detalhe completo
+   no log, que é onde você vai olhar. [OWASP A05/A09]
+------------------------------------------------------------ */
+app.use(function (err, req, res, next) {
+  console.error('[erro] ' + req.method + ' ' + req.originalUrl + ':', (err && err.stack) || err);
+  // Resposta já começou a sair? Não dá para trocar o status; deixa o
+  // Express fechar a conexão do jeito dele.
+  if (res.headersSent) return next(err);
+  res.status(500).json({ error: 'Erro interno. Tente de novo em instantes.' });
+});
+
+/* ------------------------------------------------------------
+   Rede de segurança do processo — o que escapou até do error handler.
+
+   As duas metades recebem tratamento diferente de propósito:
+
+   - unhandledRejection: uma Promise solta que ninguém pegou. O
+     processo continua íntegro, então derrubar a loja por causa disso
+     seria trocar um problema pequeno por um grande. Só registra.
+
+   - uncaughtException: o processo pode estar em estado inconsistente,
+     e servir venda a partir daí é pior do que não servir. Registra e
+     sai; o Render sobe de novo em segundos, limpo.
+------------------------------------------------------------ */
+process.on('unhandledRejection', (motivo) => {
+  console.error('[erro] Promise rejeitada sem tratamento:', (motivo && motivo.stack) || motivo);
+});
+process.on('uncaughtException', (e) => {
+  console.error('[erro] Exceção não capturada — encerrando para subir limpo:', (e && e.stack) || e);
+  process.exit(1);
 });
 
 app.listen(PORT, () => {
