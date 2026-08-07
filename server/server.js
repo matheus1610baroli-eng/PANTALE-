@@ -292,6 +292,22 @@ function devolverEstoque(items) {
   }
 }
 
+/* Retoma o estoque de um pedido que tinha sido devolvido (a reserva
+   expirou e o pagamento chegou atrasado). Devolve a lista do que NÃO
+   coube — se alguém levou a peça nesse meio-tempo, quem manda é a
+   prateleira, e o pedido precisa de atenção humana. */
+function retomarEstoque(items) {
+  const faltou = [];
+  for (const it of (items || [])) {
+    const qty = Number(it.qty) || 0;
+    if (qty <= 0) continue;
+    if (stockAvailable(it.product, it.size) === Infinity) continue; // sem controle
+    const r = stmtStockDecrement.run(qty, it.product, it.size, qty);
+    if (!r.changes) faltou.push(it.product + ' (' + it.size + ') x' + qty);
+  }
+  return faltou;
+}
+
 /* Quantidade disponível: número, ou Infinity quando não há controle. */
 function stockAvailable(product, size) {
   const row = stmtStockGet.get(product, size);
@@ -314,6 +330,63 @@ const ADMIN_ORDER_COLS = `
 `;
 const stmtAdminOrders = db.prepare(ADMIN_ORDER_COLS + ' ORDER BY o.created_at DESC, o.id DESC');
 const stmtAdminOrderById = db.prepare(ADMIN_ORDER_COLS + ' WHERE o.id = ?');
+
+/* ------------------------------------------------------------
+   EXPIRAÇÃO DA RESERVA DE ESTOQUE
+
+   O estoque é baixado no checkout, ANTES do pagamento — é o que
+   impede duas pessoas de comprarem a última peça ao mesmo tempo. O
+   preço disso é que todo carrinho abandonado no Mercado Pago
+   segurava a peça para sempre: a vitrine ia esgotando sozinha, sem
+   ninguém ter comprado nada.
+
+   Pior: bastava criar contas e finalizar sem pagar para zerar a loja
+   de propósito, sem gastar um centavo.
+
+   60 minutos por padrão, e não 30: Pix no Mercado Pago pode demorar
+   mais que meia hora, e cancelar cedo demais troca este problema por
+   um pior (cliente paga, pedido já morreu). Ajuste com RESERVA_MINUTOS
+   se a sua realidade for outra.
+------------------------------------------------------------ */
+const RESERVA_MINUTOS = Math.max(5, Number(process.env.RESERVA_MINUTOS) || 60);
+
+const stmtOrdersExpirados = db.prepare(
+  "SELECT id, items FROM orders WHERE status = 'aguardando_pagamento'" +
+  " AND created_at <= datetime('now', ?)"
+);
+
+function expirarReservas(log) {
+  const say = log || function () {};
+  let vencidos;
+  try {
+    vencidos = stmtOrdersExpirados.all('-' + RESERVA_MINUTOS + ' minutes');
+  } catch (e) {
+    say('Expiração de reservas falhou na consulta: ' + e.message);
+    return 0;
+  }
+  if (!vencidos.length) return 0;
+
+  let n = 0;
+  for (const row of vencidos) {
+    try {
+      db.exec('BEGIN IMMEDIATE');
+      try {
+        devolverEstoque(parseJSON(row.items, []) || []);
+        stmtOrderSetStatus.run('cancelado', null, row.id);
+        db.exec('COMMIT');
+      } catch (e) {
+        db.exec('ROLLBACK');
+        throw e;
+      }
+      n += 1;
+    } catch (e) {
+      // Um pedido problemático não pode impedir os outros de liberarem peça.
+      say('Não consegui expirar o pedido #' + row.id + ': ' + e.message);
+    }
+  }
+  if (n) say('Reservas expiradas: ' + n + ' pedido(s) sem pagamento há mais de ' + RESERVA_MINUTOS + ' min — estoque devolvido.');
+  return n;
+}
 
 /* Perfil / dados de entrega do cliente */
 const stmtProfileGet = db.prepare('SELECT cpf, phone, cep, address, number, complement, district, city, uf FROM profiles WHERE user_id = ?');
@@ -1563,6 +1636,25 @@ app.post('/api/mercadopago/webhook', webhookLimiter, async (req, res) => {
         return res.status(200).json({ ok: true, aviso: 'valor divergente' });
       }
 
+      /* Pagamento chegou depois da reserva expirar? O estoque já foi
+         devolvido à vitrine, então é preciso retomá-lo — senão a peça
+         é vendida duas vezes.
+
+         Se não couber (alguém levou nesse meio-tempo), o pedido é
+         marcado pago do mesmo jeito: o cliente pagou, e fingir que
+         não seria pior. Mas o log grita, porque aí é caso para
+         resolver na mão — reembolsar ou repor. */
+      if (row.status === 'cancelado') {
+        const faltou = retomarEstoque(parseJSON(row.items, []) || []);
+        if (faltou.length) {
+          console.error('[mercadopago] *** pedido ' + orderId + ' foi PAGO depois da reserva expirar ' +
+                        'e não há mais estoque de: ' + faltou.join(', ') +
+                        '. O pedido está pago — resolva na mão (repor ou reembolsar). ***');
+        } else {
+          console.warn('[mercadopago] pedido ' + orderId + ' pago após a reserva expirar — estoque retomado.');
+        }
+      }
+
       const paidAt = (pag.approvedAt ? new Date(pag.approvedAt) : new Date())
         .toISOString().slice(0, 19).replace('T', ' ');
       stmtOrderSetStatus.run('pago', paidAt, orderId);
@@ -1831,5 +1923,12 @@ app.listen(PORT, () => {
   if (mercadopago.isEnabled() && mercadopago.missing().some((m) => /WEBHOOK_SECRET/.test(m))) {
     console.log(`   *** webhook SEM conferência de assinatura (MP_WEBHOOK_SECRET vazio) ***`);
   }
+  console.log(`Reserva de estoque:  ${RESERVA_MINUTOS} min sem pagamento e a peça volta para a vitrine`);
   backup.schedule(db, (msg) => console.log(msg));
+
+  /* Varre no boot (para limpar o que ficou preso enquanto o servidor
+     esteve fora) e depois a cada 5 minutos. */
+  expirarReservas((msg) => console.log(msg));
+  const varredura = setInterval(() => expirarReservas((msg) => console.log(msg)), 5 * 60 * 1000);
+  if (varredura.unref) varredura.unref();
 });
