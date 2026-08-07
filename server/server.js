@@ -463,7 +463,11 @@ const corsOptions = {
    Mitiga brute-force, e-mail bombing e abuso de checkout.
    Para múltiplas instâncias, troque o Map por Redis. [OWASP A07]
 ------------------------------------------------------------ */
-function rateLimit({ windowMs, max, message }) {
+/* `key` escolhe o que é "um cliente". O padrão é o IP, que é tudo que
+   se tem antes do login. Depois do login prefira o id do usuário: num
+   prédio comercial ou no 4G, dezenas de pessoas dividem o mesmo IP, e
+   limitar por IP transformaria o limite em bloqueio de gente inocente. */
+function rateLimit({ windowMs, max, message, key }) {
   const hits = new Map(); // chave -> { count, resetAt }
   const sweep = setInterval(() => {
     const t = Date.now();
@@ -472,9 +476,10 @@ function rateLimit({ windowMs, max, message }) {
   if (sweep.unref) sweep.unref();
   return function (req, res, next) {
     const now = Date.now();
-    const key = (req.ip || 'unknown') + '|' + req.baseUrl + req.path;
-    let rec = hits.get(key);
-    if (!rec || rec.resetAt <= now) { rec = { count: 0, resetAt: now + windowMs }; hits.set(key, rec); }
+    const quem = (key && key(req)) || req.ip || 'unknown';
+    const chave = quem + '|' + req.baseUrl + req.path;
+    let rec = hits.get(chave);
+    if (!rec || rec.resetAt <= now) { rec = { count: 0, resetAt: now + windowMs }; hits.set(chave, rec); }
     rec.count += 1;
     if (rec.count > max) {
       res.set('Retry-After', String(Math.ceil((rec.resetAt - now) / 1000)));
@@ -535,6 +540,50 @@ const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 10, message: 'Mui
 const checkoutLimiter = rateLimit({ windowMs: 60 * 60 * 1000, max: 5, message: 'Não foi possível processar agora. Tente novamente mais tarde.' });
 app.use(['/api/login', '/api/register', '/api/forgot', '/api/reset'], authLimiter);
 app.use('/api/checkout', checkoutLimiter);
+
+/* ------------------------------------------------------------
+   Limites das rotas que custam dinheiro ou chamada externa.
+
+   Estes vão DEPOIS do authRequired na definição da rota, para poder
+   contar por usuário em vez de por IP (ver o parâmetro `key`).
+
+   Os números são folgados de propósito: limite de segurança serve
+   para cortar abuso automatizado, não para atrapalhar quem está
+   comprando. Quem recalcula o frete oito vezes decidindo o CEP é
+   cliente indeciso, não atacante.
+------------------------------------------------------------ */
+const porUsuario = (req) => (req.user ? 'u' + req.user.id : null);
+
+// Cada chamada é uma requisição à API do Melhor Envio, que tem cota.
+const freteLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, max: 40, key: porUsuario,
+  message: 'Muitos cálculos de frete seguidos. Aguarde um pouco.'
+});
+
+// Cada chamada cria uma preferência de pagamento no Mercado Pago.
+const pagamentoLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, max: 20, key: porUsuario,
+  message: 'Muitas tentativas de pagamento. Aguarde um pouco.'
+});
+
+// Escritas comuns (sacola, perfil): teto alto, só para conter script.
+const escritaLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, max: 200, key: porUsuario,
+  message: 'Muitas alterações seguidas. Aguarde um pouco.'
+});
+
+/* O webhook é público — não dá para exigir login de quem o Mercado
+   Pago manda. O teto é alto porque notificação legítima vem em rajada
+   (o MP reenvia várias vezes o mesmo evento), e devolver 429 para
+   notificação boa custaria uma baixa de pedido.
+
+   Isto é a segunda linha: a conferência de assinatura já barra o
+   forjado antes de qualquer chamada externa, então uma inundação aqui
+   custa só um HMAC. Este limite existe para o caso de inundação pura. */
+const webhookLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, max: 600,
+  message: 'Muitas notificações. Tente mais tarde.'
+});
 
 // Cadastro
 app.post('/api/register', async (req, res) => {
@@ -691,7 +740,7 @@ function cpfIsValid(digits) {
 }
 
 // Salvar/atualizar perfil (endereço, telefone, CEP, CPF...)
-app.put('/api/profile', authRequired, (req, res) => {
+app.put('/api/profile', authRequired, escritaLimiter, (req, res) => {
   const b = req.body || {};
   const clean = (v) => (v == null ? '' : String(v).trim());
   const cpfDigits = clean(b.cpf).replace(/\D/g, '');
@@ -726,7 +775,7 @@ app.get('/api/cart', authRequired, (req, res) => {
 });
 
 // Adicionar item (ou somar quantidade se já existir mesmo produto+tamanho)
-app.post('/api/cart', authRequired, (req, res) => {
+app.post('/api/cart', authRequired, escritaLimiter, (req, res) => {
   try {
     let { product, size } = req.body || {};
     product = (product || '').trim();
@@ -772,7 +821,7 @@ app.post('/api/cart', authRequired, (req, res) => {
 });
 
 // Atualizar quantidade de um item
-app.patch('/api/cart/:id', authRequired, (req, res) => {
+app.patch('/api/cart/:id', authRequired, escritaLimiter, (req, res) => {
   const id = parseInt(req.params.id, 10);
   let qty = parseInt((req.body || {}).qty, 10);
   if (!Number.isFinite(id)) return res.status(400).json({ error: 'Item inválido.' });
@@ -830,7 +879,7 @@ const onlyDigits = (v) => String(v == null ? '' : v).replace(/\D/g, '');
 // o custo real), mantendo a convenção de valores inteiros do site.
 const freightToReais = (v) => Math.max(0, Math.ceil(Number(v) || 0));
 
-app.post('/api/frete', authRequired, async (req, res) => {
+app.post('/api/frete', authRequired, freteLimiter, async (req, res) => {
   try {
     const cep = onlyDigits((req.body || {}).cep);
     if (cep.length !== 8) return res.status(400).json({ error: 'CEP inválido.' });
@@ -1345,7 +1394,7 @@ app.get('/api/orders/:id', authRequired, (req, res) => {
    logado — sem essa checagem, qualquer cliente logado poderia gerar
    cobrança em cima do pedido de outro. [OWASP A01]
 ------------------------------------------------------------ */
-app.post('/api/mercadopago', authRequired, async (req, res) => {
+app.post('/api/mercadopago', authRequired, pagamentoLimiter, async (req, res) => {
   const orderId = Number((req.body || {}).orderId);
   if (!Number.isInteger(orderId) || orderId <= 0) {
     return res.status(400).json({ error: 'Pedido inválido.' });
@@ -1404,7 +1453,7 @@ app.post('/api/mercadopago', authRequired, async (req, res) => {
      algo que nunca vai dar certo. A exceção é falha nossa ao gravar
      (500), aí o reenvio é justamente o que salva o pagamento.
 ------------------------------------------------------------ */
-app.post('/api/mercadopago/webhook', async (req, res) => {
+app.post('/api/mercadopago/webhook', webhookLimiter, async (req, res) => {
   const body = req.body || {};
   const q = req.query || {};
 
