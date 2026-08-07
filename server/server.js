@@ -43,6 +43,12 @@ const PORT = process.env.PORT || 3000;
    URLs de retorno e de webhook do Mercado Pago. Em produção defina a
    variável de ambiente SITE_URL. */
 const SITE_URL = (process.env.SITE_URL || 'https://pantale.com.br').replace(/\/+$/, '');
+
+/* Base do link de redefinição de senha que vai no e-mail.
+   APP_URL só existe para apontar para outro endereço em desenvolvimento;
+   o normal é ser o próprio site. Nunca vem do cliente. */
+const RESET_LINK_BASE = (process.env.APP_URL || SITE_URL).replace(/\/+$/, '');
+
 const ROOT = path.join(__dirname, '..'); // pasta do site (index.html, assets/)
 
 /* Onde ficam os dados que NÃO podem se perder: o banco, as chaves de
@@ -530,10 +536,15 @@ app.post('/api/forgot', async (req, res) => {
       stmtResetInvalidate.run(row.id);              // invalida pedidos antigos
       stmtResetInsert.run(row.id, tokenHash, expiresAt);
 
-      // Base do link fixada no servidor (APP_URL) — NUNCA vem do cliente,
-      // senão um atacante redirecionaria o token de reset. [OWASP A07]
-      const base = (process.env.APP_URL || `http://localhost:${PORT}`).replace(/\/$/, '');
-      const link = `${base}/?reset=${token}`;
+      // Base do link fixada no servidor — NUNCA vem do cliente, senão um
+      // atacante redirecionaria o token de reset. [OWASP A07]
+      //
+      // Cai para SITE_URL, que já é o endereço público e está no render.yaml.
+      // Antes dependia só de APP_URL, que ninguém nunca definiu: todo e-mail
+      // de redefinição saía com "http://localhost:10000/?reset=..." e nenhum
+      // cliente conseguia recuperar a conta. Falha silenciosa — quem não
+      // consegue entrar não reclama, só desiste.
+      const link = `${RESET_LINK_BASE}/?reset=${token}`;
       mailer.sendResetEmail(row.email, row.name, link)
         .then((r) => { if (!r.sent) console.warn('E-mail de reset não enviado:', r.reason); })
         .catch((e) => console.error('Erro no e-mail de reset:', e.message));
@@ -1508,6 +1519,13 @@ app.listen(PORT, () => {
   console.log(`Pantale rodando em http://localhost:${PORT}`);
   console.log(`Gestão de clientes:  GET /api/admin/customers  (header x-admin-key; chave em server/.admin-key)`);
   console.log(`E-mail de pedidos:   ${mailer.isEnabled() ? 'ATIVO → ' + mailer.mailTo : 'desativado (configure server/mail-config.json)'}`);
+  /* Link do "esqueci a senha". Apontar para localhost em produção não dá
+     erro nenhum: o e-mail sai, o cliente clica e não abre nada. Por isso
+     o endereço aparece no boot, para dar para conferir de olho. */
+  console.log(`Link de redefinição: ${RESET_LINK_BASE}/?reset=...`);
+  if (/localhost|127\.0\.0\.1/.test(RESET_LINK_BASE)) {
+    console.log(`   *** ATENÇÃO: link de redefinição aponta para localhost — ninguém consegue recuperar a conta. Defina SITE_URL. ***`);
+  }
   /* Frete desligado é a falha mais cara e mais silenciosa daqui: a loja
      continua vendendo, só que cobrando R$ 0 de entrega — e você descobre
      quando o prejuízo já aconteceu. Por isso o aviso é gritado. */
