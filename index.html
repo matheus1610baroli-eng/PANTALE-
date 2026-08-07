@@ -499,7 +499,18 @@
       font-size: 12px;
       letter-spacing: 0.06em;
       color: var(--bege);
+      /* É um botão (abre as configurações da conta), mas continua com cara
+         de saudação: sem borda, sem fundo. O sublinhado no hover é o que
+         avisa que dá para clicar. */
+      background: none;
+      border: 0;
+      padding: 0;
+      font-family: var(--font-body);
+      cursor: pointer;
+      text-underline-offset: 3px;
+      transition: color var(--transition-fast);
     }
+    .nav-account .nav-user:hover { color: var(--caramelo); text-decoration: underline; }
     .nav-link-btn {
       font-family: var(--font-body);
       font-weight: 400;
@@ -641,11 +652,13 @@
     .auth-mode-login,
     .auth-mode-register,
     .auth-mode-forgot,
-    .auth-mode-reset { display: none; }
+    .auth-mode-reset,
+    .auth-mode-email { display: none; }
     #auth-modal[data-mode="login"]    .auth-mode-login,
     #auth-modal[data-mode="register"] .auth-mode-register,
     #auth-modal[data-mode="forgot"]   .auth-mode-forgot,
-    #auth-modal[data-mode="reset"]    .auth-mode-reset { display: inline; }
+    #auth-modal[data-mode="reset"]    .auth-mode-reset,
+    #auth-modal[data-mode="email"]    .auth-mode-email { display: inline; }
     /* parágrafos (link "esqueci") usam block quando ativos */
     #auth-modal[data-mode="login"] p.auth-mode-login { display: block; }
 
@@ -661,6 +674,8 @@
     #auth-modal[data-mode="login"]    .auth-field[data-pass-field],
     #auth-modal[data-mode="register"] .auth-field[data-pass-field],
     #auth-modal[data-mode="reset"]    .auth-field[data-pass-field],
+    #auth-modal[data-mode="email"]    .auth-field[data-email-field],
+    #auth-modal[data-mode="email"]    .auth-field[data-pass-field],
     #auth-modal[data-mode="reset"]    .auth-field[data-confirm-field] { display: block; }
 
     /* ============================================================
@@ -2458,7 +2473,8 @@
         <!-- Estado deslogado -->
         <button class="nav-link-btn" id="btn-open-auth" data-auth-state="logged-out">Entrar</button>
         <!-- Estado logado -->
-        <span class="nav-user" id="nav-user" data-auth-state="logged-in" hidden></span>
+        <button type="button" class="nav-user" id="nav-user" data-auth-state="logged-in" hidden
+                title="Configurações da conta"></button>
         <button class="nav-link-btn" id="btn-logout" data-auth-state="logged-in" hidden>Sair</button>
         <!-- Sacola (sempre visível) -->
         <button class="nav-cart-btn" id="btn-open-cart" aria-label="Abrir sacola">
@@ -2480,12 +2496,14 @@
         <span class="auth-mode-register">Criar conta</span>
         <span class="auth-mode-forgot">Recuperar senha</span>
         <span class="auth-mode-reset">Nova senha</span>
+        <span class="auth-mode-email">Trocar e-mail</span>
       </h2>
       <p class="auth-sub">
         <span class="auth-mode-login">Acesse sua conta Pantale.</span>
         <span class="auth-mode-register">Junte-se à Pantale.</span>
         <span class="auth-mode-forgot">Enviaremos um link de redefinição para o seu e-mail.</span>
         <span class="auth-mode-reset">Defina uma nova senha para sua conta.</span>
+        <span class="auth-mode-email">Enviaremos um link para o endereço novo. A troca só vale depois que você abrir esse link.</span>
       </p>
 
       <form id="auth-form" novalidate>
@@ -2511,6 +2529,7 @@
           <span class="auth-mode-register">Cadastrar</span>
           <span class="auth-mode-forgot">Enviar link</span>
           <span class="auth-mode-reset">Redefinir senha</span>
+          <span class="auth-mode-email">Enviar link de confirmação</span>
         </button>
 
         <p class="auth-error" id="auth-error"></p>
@@ -2802,25 +2821,11 @@
         </div>
         <div class="tabs-panels">
           <div class="colecao-grid" data-panel="camisetas">
-            <div class="produto-card reveal is-bloqueado" role="button" tabindex="0">
+            <div class="produto-card reveal" role="button" tabindex="0">
               <div class="produto-img">
                 <img src="assets/img_produto_camiseta_tennis_costas.jpg?v=2" alt="Camiseta Pantech Tennis - costas com estampa">
                 <img class="produto-gallery-img" src="assets/img_produto_camiseta_tennis_costas.jpg?v=2" alt="Camiseta Pantech Tennis - costas com estampa" hidden>
                 <img class="produto-gallery-img" src="assets/img_produto_camiseta_tennis_frente.jpg?v=2" alt="Camiseta Pantech Tennis - frente" hidden>
-              </div>
-              <div class="produto-bloqueio" aria-hidden="true">
-                <svg viewBox="0 0 64 64" class="mancha-onca">
-                  <g fill="currentColor">
-                    <ellipse cx="32" cy="18.5" rx="9.2" ry="4.9" transform="rotate(0 32 32)"/>
-                    <ellipse cx="32" cy="18.5" rx="8.4" ry="4.5" transform="rotate(62 32 32)"/>
-                    <ellipse cx="32" cy="18.5" rx="9.6" ry="5.2" transform="rotate(124 32 32)"/>
-                    <ellipse cx="32" cy="18.5" rx="8.0" ry="4.3" transform="rotate(198 32 32)"/>
-                    <ellipse cx="32" cy="18.5" rx="9.0" ry="4.7" transform="rotate(256 32 32)"/>
-                    <ellipse cx="32" cy="18.5" rx="7.4" ry="4.1" transform="rotate(310 32 32)"/>
-                    <ellipse cx="32" cy="32.5" rx="5" ry="5.8" transform="rotate(-15 32 32)"/>
-                  </g>
-                </svg>
-                <span class="produto-bloqueio-texto">Últimos ajustes</span>
               </div>
               <div class="produto-info">
                 <h3>Pantech Tennis</h3>
@@ -2831,25 +2836,11 @@
                 <p>O Brasil que joga diferente.</p>
               </div>
             </div>
-            <div class="produto-card reveal is-bloqueado" role="button" tabindex="0">
+            <div class="produto-card reveal" role="button" tabindex="0">
               <div class="produto-img">
                 <img src="assets/img_produto_camiseta_golf_costas.jpg?v=2" alt="Camiseta Pantech Golf - costas com estampa">
                 <img class="produto-gallery-img" src="assets/img_produto_camiseta_golf_costas.jpg?v=2" alt="Camiseta Pantech Golf - costas com estampa" hidden>
                 <img class="produto-gallery-img" src="assets/img_produto_camiseta_golf_frente.jpg?v=2" alt="Camiseta Pantech Golf - frente" hidden>
-              </div>
-              <div class="produto-bloqueio" aria-hidden="true">
-                <svg viewBox="0 0 64 64" class="mancha-onca">
-                  <g fill="currentColor">
-                    <ellipse cx="32" cy="18.5" rx="9.2" ry="4.9" transform="rotate(0 32 32)"/>
-                    <ellipse cx="32" cy="18.5" rx="8.4" ry="4.5" transform="rotate(62 32 32)"/>
-                    <ellipse cx="32" cy="18.5" rx="9.6" ry="5.2" transform="rotate(124 32 32)"/>
-                    <ellipse cx="32" cy="18.5" rx="8.0" ry="4.3" transform="rotate(198 32 32)"/>
-                    <ellipse cx="32" cy="18.5" rx="9.0" ry="4.7" transform="rotate(256 32 32)"/>
-                    <ellipse cx="32" cy="18.5" rx="7.4" ry="4.1" transform="rotate(310 32 32)"/>
-                    <ellipse cx="32" cy="32.5" rx="5" ry="5.8" transform="rotate(-15 32 32)"/>
-                  </g>
-                </svg>
-                <span class="produto-bloqueio-texto">Últimos ajustes</span>
               </div>
               <div class="produto-info">
                 <h3>Pantech Golf</h3>
@@ -2932,33 +2923,19 @@
 
       <div data-panel="casual-feminino" hidden>
         <div class="sub-tabs tabs">
-          <button class="tab-btn is-active" data-tab="regata-offwhite">Off-white</button>
+          <button class="tab-btn is-active" data-tab="regata-areia">Areia</button>
           <button class="tab-btn" data-tab="regata-preta">Preta</button>
         </div>
         <div class="tabs-panels">
-          <div class="colecao-grid" data-panel="regata-offwhite">
-            <div class="produto-card reveal is-bloqueado" role="button" tabindex="0">
+          <div class="colecao-grid" data-panel="regata-areia">
+            <div class="produto-card reveal" role="button" tabindex="0">
               <div class="produto-img">
-                <img src="assets/img_produto_regata_mancha_branca_frente.jpg" alt="Regata Off-white - frente com bordado">
-                <img class="produto-gallery-img" src="assets/img_produto_regata_mancha_branca_frente.jpg" alt="Regata Off-white - frente com bordado" hidden>
-                <img class="produto-gallery-img" src="assets/img_produto_regata_mancha_branca_costas.jpg" alt="Regata Off-white - costas" hidden>
-              </div>
-              <div class="produto-bloqueio" aria-hidden="true">
-                <svg viewBox="0 0 64 64" class="mancha-onca">
-                  <g fill="currentColor">
-                    <ellipse cx="32" cy="18.5" rx="9.2" ry="4.9" transform="rotate(0 32 32)"/>
-                    <ellipse cx="32" cy="18.5" rx="8.4" ry="4.5" transform="rotate(62 32 32)"/>
-                    <ellipse cx="32" cy="18.5" rx="9.6" ry="5.2" transform="rotate(124 32 32)"/>
-                    <ellipse cx="32" cy="18.5" rx="8.0" ry="4.3" transform="rotate(198 32 32)"/>
-                    <ellipse cx="32" cy="18.5" rx="9.0" ry="4.7" transform="rotate(256 32 32)"/>
-                    <ellipse cx="32" cy="18.5" rx="7.4" ry="4.1" transform="rotate(310 32 32)"/>
-                    <ellipse cx="32" cy="32.5" rx="5" ry="5.8" transform="rotate(-15 32 32)"/>
-                  </g>
-                </svg>
-                <span class="produto-bloqueio-texto">Últimos ajustes</span>
+                <img src="assets/img_produto_regata_mancha_branca_frente.jpg" alt="Regata Areia - frente com bordado">
+                <img class="produto-gallery-img" src="assets/img_produto_regata_mancha_branca_frente.jpg" alt="Regata Areia - frente com bordado" hidden>
+                <img class="produto-gallery-img" src="assets/img_produto_regata_mancha_branca_costas.jpg" alt="Regata Areia - costas" hidden>
               </div>
               <div class="produto-info">
-                <h3>Regata Off-white</h3>
+                <h3>Regata Areia</h3>
                 <p class="produto-preco"><s class="produto-preco-original">R$ 169</s><span class="produto-preco-atual">R$ 149</span></p>
               </div>
               <div class="produto-descricao" hidden>
@@ -2968,25 +2945,11 @@
             </div>
           </div>
           <div class="colecao-grid" data-panel="regata-preta" hidden>
-            <div class="produto-card reveal is-bloqueado" role="button" tabindex="0">
+            <div class="produto-card reveal" role="button" tabindex="0">
               <div class="produto-img">
                 <img src="assets/img_produto_regata_mancha_preta_frente.jpg" alt="Regata Preta - frente com bordado">
                 <img class="produto-gallery-img" src="assets/img_produto_regata_mancha_preta_frente.jpg" alt="Regata Preta - frente com bordado" hidden>
                 <img class="produto-gallery-img" src="assets/img_produto_regata_mancha_preta_costas.jpg" alt="Regata Preta - costas" hidden>
-              </div>
-              <div class="produto-bloqueio" aria-hidden="true">
-                <svg viewBox="0 0 64 64" class="mancha-onca">
-                  <g fill="currentColor">
-                    <ellipse cx="32" cy="18.5" rx="9.2" ry="4.9" transform="rotate(0 32 32)"/>
-                    <ellipse cx="32" cy="18.5" rx="8.4" ry="4.5" transform="rotate(62 32 32)"/>
-                    <ellipse cx="32" cy="18.5" rx="9.6" ry="5.2" transform="rotate(124 32 32)"/>
-                    <ellipse cx="32" cy="18.5" rx="8.0" ry="4.3" transform="rotate(198 32 32)"/>
-                    <ellipse cx="32" cy="18.5" rx="9.0" ry="4.7" transform="rotate(256 32 32)"/>
-                    <ellipse cx="32" cy="18.5" rx="7.4" ry="4.1" transform="rotate(310 32 32)"/>
-                    <ellipse cx="32" cy="32.5" rx="5" ry="5.8" transform="rotate(-15 32 32)"/>
-                  </g>
-                </svg>
-                <span class="produto-bloqueio-texto">Últimos ajustes</span>
               </div>
               <div class="produto-info">
                 <h3>Regata Preta</h3>
@@ -5056,6 +5019,21 @@
           modal.setAttribute('data-mode', mode);
           hideError();
           hideOk();
+          /* Os campos são reaproveitados entre os modos, então o rótulo tem
+             de acompanhar: no modo "email" o mesmo par de campos quer dizer
+             "endereço novo" e "senha de agora", não "e-mail e senha do login".
+             Sem isto a tela pede "E-mail / Senha" e parece um login. */
+          var trocaEmail = (mode === 'email');
+          var lblEmail = form.querySelector('label[for="auth-email"]');
+          var lblPass = form.querySelector('label[for="auth-password"]');
+          var inpEmail = document.getElementById('auth-email');
+          var inpPass = document.getElementById('auth-password');
+          if (lblEmail) lblEmail.textContent = trocaEmail ? 'Novo e-mail' : 'E-mail';
+          if (lblPass) lblPass.textContent = trocaEmail ? 'Senha atual' : 'Senha';
+          if (inpEmail) inpEmail.autocomplete = trocaEmail ? 'off' : 'email';
+          if (inpPass) inpPass.autocomplete = 'current-password';
+          // Não deixa o e-mail atual pré-preenchido virar o "novo" sem querer
+          if (trocaEmail && inpEmail) inpEmail.value = '';
         }
         function openModal(mode) {
           setMode(mode || 'login');
@@ -5158,6 +5136,22 @@
               var msg = data.message || 'Se este e-mail tiver conta, enviamos um link.';
               if (data.aviso) msg += ' ' + data.aviso;
               showOk(msg);
+            } else if (mode === 'email') {
+              var edata = await api('/api/email/change', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  Authorization: 'Bearer ' + getToken()
+                },
+                body: JSON.stringify({
+                  email: document.getElementById('auth-email').value,
+                  password: document.getElementById('auth-password').value
+                })
+              });
+              var emsg = edata.message || 'Link de confirmação enviado.';
+              if (edata.aviso) emsg += ' ' + edata.aviso;
+              showOk(emsg);
+              document.getElementById('auth-password').value = '';
             } else if (mode === 'reset') {
               var p1 = document.getElementById('auth-password').value;
               var p2 = document.getElementById('auth-password2').value;
@@ -5214,6 +5208,9 @@
           if (e.key === 'Escape' && modal.classList.contains('is-open')) closeModal();
         });
 
+        // Clicar no próprio nome abre as configurações da conta
+        navUser.addEventListener('click', function () { openModal('email'); });
+
         // Link de redefinição vindo do e-mail: ?reset=TOKEN abre o modo "reset"
         (function checkResetLink() {
           var t = new URLSearchParams(location.search).get('reset');
@@ -5221,6 +5218,80 @@
             resetToken = t;
             openModal('reset');
           }
+        })();
+
+        /* Confirmação da troca de e-mail: ?trocaEmail=TOKEN.
+           Diferente do reset, aqui não há formulário — abrir o link JÁ é a
+           confirmação. Só avisamos o resultado. O token vale uma vez só,
+           então limpamos a URL para um F5 não repetir a chamada e mostrar
+           "link inválido" logo depois de ter dado certo. */
+        (function checkEmailChangeLink() {
+          var t = new URLSearchParams(location.search).get('trocaEmail');
+          if (!t) return;
+          if (history.replaceState) {
+            history.replaceState(null, '', location.pathname + location.hash);
+          }
+          openModal('email');
+          api('/api/email/confirm', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token: t })
+          }).then(function (data) {
+            saveToken(data.token);
+            applyAuthState(data.user);
+            showOk('Pronto! O e-mail da sua conta agora é ' + data.user.email + '.');
+          }).catch(function (err) {
+            showError(err.message);
+          });
+        })();
+
+        /* ============================================================
+           CONVITE PARA CRIAR CONTA (na entrada)
+           ------------------------------------------------------------
+           Aparece uma vez por visitante e nunca mais — a marca no
+           localStorage é gravada na hora de mostrar, não na de fechar,
+           para quem fechar no X também ficar livre dele.
+
+           Não aparece quando: já tem sessão, já veio de um link de
+           e-mail (reset/troca), ou já existe outro modal aberto. Cada
+           um desses casos é alguém no meio de uma tarefa; abrir um
+           "crie sua conta" por cima seria atropelar.
+
+           Espera a intro sair de cena pelo mesmo motivo do banner de
+           cookies: antes disso a tela ainda é da animação de abertura.
+        ============================================================ */
+        (function initConviteConta() {
+          var KEY = 'pantale_convite_conta';
+          function jaViu() {
+            try { return localStorage.getItem(KEY) === 'visto'; } catch (e) { return true; }
+          }
+          function marcarVisto() {
+            try { localStorage.setItem(KEY, 'visto'); } catch (e) {}
+          }
+
+          if (jaViu() || getToken()) return;
+          var q = new URLSearchParams(location.search);
+          if (q.get('reset') || q.get('trocaEmail')) return;
+
+          var intro = document.getElementById('intro');
+          var tentativas = 0;
+          var aguardarIntro = setInterval(function () {
+            var introFora = !intro || intro.classList.contains('intro-hidden');
+            if (!introFora && ++tentativas <= 40) return;
+            clearInterval(aguardarIntro);
+            setTimeout(function () {
+              // Reconfere na hora de abrir: nesses segundos a pessoa pode
+              // ter entrado na conta ou aberto um produto.
+              if (getToken() || jaViu()) return;
+              var algumAberto = document.querySelector(
+                '#produto-modal.is-open, #auth-modal.is-open, #pagamento-modal.is-open, ' +
+                '#dados-modal.is-open, #policy-modal.is-open, #pantech-modal.is-open, #cart-drawer.is-open'
+              );
+              if (algumAberto) return;
+              marcarVisto();
+              openModal('register');
+            }, 600);
+          }, 300);
         })();
       })();
 

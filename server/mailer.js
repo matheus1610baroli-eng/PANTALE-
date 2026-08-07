@@ -194,4 +194,75 @@ async function sendResetEmail(to, name, link) {
   return { sent: true, info: info };
 }
 
-module.exports = { sendOrderEmail, sendResetEmail, isEnabled, buildHtml, buildText, mailTo: config.to };
+/* Confirmação enviada ao endereço NOVO. A troca só vale depois deste clique:
+   é o que prova que o endereço existe e é da pessoa. Sem isso, um e-mail
+   digitado errado tranca a conta para sempre — nem a recuperação de senha
+   salva, porque o link iria para o endereço errado. */
+async function sendEmailChangeEmail(to, name, link) {
+  if (!transporter) return { sent: false, reason: 'mail-nao-configurado' };
+  const html =
+    '<div style="font-family:Arial,Helvetica,sans-serif;color:#241606;max-width:520px;margin:auto;padding:8px">' +
+      '<h2 style="margin:0 0 12px">Confirmar novo e-mail</h2>' +
+      '<p style="line-height:1.6">Olá ' + esc(name) + ', você pediu para passar a usar este endereço na sua conta Pantale.</p>' +
+      '<p style="line-height:1.6">Clique no botão abaixo para confirmar. O link vale por <strong>1 hora</strong>.</p>' +
+      '<p style="margin:24px 0">' +
+        '<a href="' + esc(link) + '" style="background:#C4853A;color:#fff;text-decoration:none;' +
+        'padding:13px 26px;border-radius:999px;font-weight:bold;display:inline-block">Confirmar este e-mail</a>' +
+      '</p>' +
+      '<p style="font-size:13px;color:#7A5C32;word-break:break-all">Ou copie e cole este endereço:<br>' + esc(link) + '</p>' +
+      '<p style="font-size:13px;color:#7A5C32;margin-top:20px">Se não foi você, ignore este e-mail. Nada muda até o link ser aberto.</p>' +
+    '</div>';
+  const text = [
+    'Ola ' + name + ',',
+    '',
+    'Voce pediu para passar a usar este endereco na sua conta Pantale.',
+    'Abra o link abaixo para confirmar (vale por 1 hora):',
+    link,
+    '',
+    'Se nao foi voce, ignore este e-mail. Nada muda ate o link ser aberto.'
+  ].join('\n');
+  const info = await transporter.sendMail({
+    from: config.from ? ('Pantale <' + config.from + '>') : config.user,
+    to: to,
+    subject: 'Confirme seu novo e-mail · Pantale',
+    text: text,
+    html: html
+  });
+  return { sent: true, info: info };
+}
+
+/* Aviso ao endereço ANTIGO, disparado quando a troca se efetiva. Não dá para
+   desfazer pelo e-mail, mas avisa a pessoa a tempo de reagir se ela não pediu
+   a troca — é o sinal de que a conta pode ter sido invadida. */
+async function sendEmailChangedNotice(to, name, novoEmail) {
+  if (!transporter) return { sent: false, reason: 'mail-nao-configurado' };
+  const html =
+    '<div style="font-family:Arial,Helvetica,sans-serif;color:#241606;max-width:520px;margin:auto;padding:8px">' +
+      '<h2 style="margin:0 0 12px">O e-mail da sua conta mudou</h2>' +
+      '<p style="line-height:1.6">Olá ' + esc(name) + ', a sua conta Pantale passou a usar o endereço ' +
+        '<strong>' + esc(novoEmail) + '</strong>. Este endereço aqui não entra mais na conta.</p>' +
+      '<p style="line-height:1.6"><strong>Se não foi você</strong>, responda este e-mail agora mesmo — ' +
+        'vamos recuperar a sua conta.</p>' +
+    '</div>';
+  const text = [
+    'Ola ' + name + ',',
+    '',
+    'A sua conta Pantale passou a usar o endereco ' + novoEmail + '.',
+    'Este endereco aqui nao entra mais na conta.',
+    '',
+    'Se nao foi voce, responda este e-mail agora mesmo.'
+  ].join('\n');
+  const info = await transporter.sendMail({
+    from: config.from ? ('Pantale <' + config.from + '>') : config.user,
+    to: to,
+    subject: 'O e-mail da sua conta Pantale mudou',
+    text: text,
+    html: html
+  });
+  return { sent: true, info: info };
+}
+
+module.exports = {
+  sendOrderEmail, sendResetEmail, sendEmailChangeEmail, sendEmailChangedNotice,
+  isEnabled, buildHtml, buildText, mailTo: config.to
+};

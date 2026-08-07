@@ -104,7 +104,7 @@ const CATALOG = {
   'Golf': 249,
   'Linho Areia': 169,
   'Linho Folha': 169,
-  'Regata Off-white': 149,
+  'Regata Areia': 149,
   'Regata Preta': 149
 };
 
@@ -119,15 +119,14 @@ const SIZES = ['P', 'M', 'G'];
    consegue mandar um pedido direto, sem passar pela tela. Bloqueio
    que só existe no navegador não é bloqueio.
 
-   Para liberar uma peça, tire o nome desta lista e remova a classe
-   "is-bloqueado" do card dela no index.html.
+   Para bloquear uma peça, ponha o nome nesta lista e acrescente a
+   classe "is-bloqueado" ao card dela no index.html (mais o véu
+   .produto-bloqueio, que é o que desenha a mancha por cima).
+
+   Vazia desde a abertura da loja: a coleção inteira está à venda, e
+   quem controla o que aparece agora é o estoque, não esta lista.
 ------------------------------------------------------------ */
-const BLOQUEADOS = new Set([
-  'Pantech Tennis',
-  'Pantech Golf',
-  'Regata Off-white',
-  'Regata Preta'
-]);
+const BLOQUEADOS = new Set([]);
 
 function estaBloqueado(produto) {
   return BLOQUEADOS.has(String(produto));
@@ -221,6 +220,20 @@ db.exec(`
     created_at TEXT    NOT NULL DEFAULT (datetime('now')),
     FOREIGN KEY (user_id) REFERENCES users(id)
   );
+
+  /* Troca de e-mail pendente. O endereço novo fica AQUI, não em users,
+     até a pessoa clicar no link que mandamos para ele. Enquanto isso a
+     conta continua inteira no endereço antigo. */
+  CREATE TABLE IF NOT EXISTS email_changes (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id    INTEGER NOT NULL,
+    new_email  TEXT    NOT NULL,
+    token_hash TEXT    NOT NULL,
+    expires_at INTEGER NOT NULL,
+    used       INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT    NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY (user_id) REFERENCES users(id)
+  );
 `);
 
 // Migrações leves: garantem colunas novas em bancos antigos
@@ -251,6 +264,17 @@ const stmtResetInvalidate = db.prepare('UPDATE password_resets SET used = 1 WHER
 const stmtResetInsert = db.prepare('INSERT INTO password_resets (user_id, token_hash, expires_at) VALUES (?, ?, ?)');
 const stmtResetFind = db.prepare('SELECT id, user_id, expires_at, used FROM password_resets WHERE token_hash = ?');
 const stmtResetMarkUsed = db.prepare('UPDATE password_resets SET used = 1 WHERE id = ?');
+
+/* Troca de e-mail */
+// stmtFindById não traz a senha (de propósito); aqui precisamos dela para conferir.
+const stmtFindWithPasswordById = db.prepare('SELECT id, name, email, password FROM users WHERE id = ?');
+const stmtEmailChangeInvalidate = db.prepare('UPDATE email_changes SET used = 1 WHERE user_id = ? AND used = 0');
+const stmtEmailChangeInsert = db.prepare('INSERT INTO email_changes (user_id, new_email, token_hash, expires_at) VALUES (?, ?, ?, ?)');
+const stmtEmailChangeFind = db.prepare('SELECT id, user_id, new_email, expires_at, used FROM email_changes WHERE token_hash = ?');
+const stmtEmailChangeMarkUsed = db.prepare('UPDATE email_changes SET used = 1 WHERE id = ?');
+/* Troca o endereço e derruba as sessões na MESMA instrução, pela mesma razão
+   da troca de senha: quem tomou a conta não pode continuar dentro dela. */
+const stmtUpdateEmail = db.prepare('UPDATE users SET email = ?, token_version = token_version + 1 WHERE id = ?');
 
 /* Sacola (carrinho) */
 const stmtCartList = db.prepare('SELECT id, product, size, price, qty FROM cart_items WHERE user_id = ? ORDER BY created_at ASC, id ASC');
@@ -313,6 +337,67 @@ function stockAvailable(product, size) {
   const row = stmtStockGet.get(product, size);
   return row ? Number(row.qty) : Infinity;
 }
+
+/* ------------------------------------------------------------
+   CARGA INICIAL DO ESTOQUE (abertura da loja)
+
+   As peças contadas à mão na arara, na ordem [P, M, G].
+
+   Os zeros são obrigatórios, não enfeite: a regra lá em cima é que
+   linha ausente = "sem controle" = ILIMITADO. Se aqui só entrassem
+   os tamanhos que existem, todo tamanho faltante viraria estoque
+   infinito e a loja venderia peça que não existe. Por isso todo
+   produto declara os três tamanhos, e o que não temos vai como 0.
+
+   Roda UMA vez: só quando a tabela está vazia. Sem essa trava, cada
+   publicação no Render repor-ia o estoque por cima das vendas do dia
+   e a loja voltaria a oferecer o que já saiu da arara.
+------------------------------------------------------------ */
+const ESTOQUE_INICIAL = {
+  'Pantech Tennis':   { P: 3, M: 2, G: 0 },
+  'Pantech Golf':     { P: 4, M: 2, G: 0 },
+  'Ski':              { P: 0, M: 4, G: 1 },
+  'Golf':             { P: 1, M: 3, G: 1 },
+  'Linho Areia':      { P: 0, M: 5, G: 0 },
+  'Linho Folha':      { P: 0, M: 3, G: 0 },
+  'Regata Areia':     { P: 1, M: 3, G: 0 },
+  'Regata Preta':     { P: 3, M: 3, G: 0 }
+};
+
+function semearEstoqueInicial() {
+  if (stmtStockAll.all().length > 0) return; // já tem contagem: não encosta
+
+  db.exec('BEGIN IMMEDIATE');
+  try {
+    for (const produto of Object.keys(CATALOG)) {
+      const linha = ESTOQUE_INICIAL[produto] || {};
+      for (const tamanho of SIZES) {
+        stmtStockUpsert.run(produto, tamanho, Number(linha[tamanho]) || 0);
+      }
+    }
+    db.exec('COMMIT');
+  } catch (e) {
+    db.exec('ROLLBACK');
+    console.error('Falhei ao gravar o estoque inicial:', e.message);
+    return;
+  }
+
+  const total = stmtStockAll.all().reduce((s, r) => s + Number(r.qty), 0);
+  console.log('Estoque inicial gravado: ' + total + ' peças no catálogo.');
+}
+/* A "Regata Off-white" virou "Regata Areia" na véspera da abertura. O nome
+   é a chave que liga estoque, sacola e pedido, então um banco que já tivesse
+   gravado o nome antigo ficaria com peças órfãs: fora do CATALOG, invisíveis
+   no painel e impossíveis de vender. Renomear aqui deixa a troca segura em
+   qualquer banco, tenha ele visto o nome velho ou não. */
+try {
+  db.exec("UPDATE stock SET product = 'Regata Areia' WHERE product = 'Regata Off-white'");
+  db.exec("UPDATE cart_items SET product = 'Regata Areia' WHERE product = 'Regata Off-white'");
+} catch (e) {
+  console.warn('Renomeação Off-white → Areia falhou:', e.message);
+}
+
+semearEstoqueInicial();
 
 /* Pedidos */
 const stmtOrderInsert = db.prepare('INSERT INTO orders (user_id, total, items, method, status, customer, freight) VALUES (?, ?, ?, ?, ?, ?, ?)');
@@ -611,7 +696,10 @@ app.use(express.json({ limit: '32kb' })); // limita tamanho do corpo
 
 const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 10, message: 'Muitas tentativas. Aguarde alguns minutos.' });
 const checkoutLimiter = rateLimit({ windowMs: 60 * 60 * 1000, max: 5, message: 'Não foi possível processar agora. Tente novamente mais tarde.' });
-app.use(['/api/login', '/api/register', '/api/forgot', '/api/reset'], authLimiter);
+/* /api/email/confirm entra aqui junto com /api/reset: as duas são anônimas e
+   gastam um token de uso único vindo do e-mail. Sem o limite, dá para
+   martelar palpites de token à vontade. */
+app.use(['/api/login', '/api/register', '/api/forgot', '/api/reset', '/api/email/confirm'], authLimiter);
 app.use('/api/checkout', checkoutLimiter);
 
 /* ------------------------------------------------------------
@@ -637,6 +725,16 @@ const freteLimiter = rateLimit({
 const pagamentoLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, max: 20, key: porUsuario,
   message: 'Muitas tentativas de pagamento. Aguarde um pouco.'
+});
+
+/* Pedir troca de e-mail dispara uma mensagem para um endereço que quem pede
+   escolhe. Com o teto do escritaLimiter (200 em 15 min) isso vira máquina de
+   bombardear a caixa de outra pessoa — e o remetente seria o SMTP da loja,
+   que acabaria marcado como spam. Some a isso a conta de envio: e-mail é
+   chamada externa, igual ao frete e ao pagamento. Daí o teto apertado. */
+const emailTrocaLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, max: 5, key: porUsuario,
+  message: 'Muitos pedidos de troca de e-mail. Aguarde um pouco.'
 });
 
 // Escritas comuns (sacola, perfil): teto alto, só para conter script.
@@ -781,6 +879,116 @@ app.post('/api/reset', async (req, res) => {
   }
 });
 
+/* ------------------------------------------------------------
+   TROCA DE E-MAIL — em dois passos, de propósito
+
+   1) POST /api/email/change   { password, email }  (logado)
+      Confere a senha e guarda o endereço novo como PENDENTE.
+      Manda um link de confirmação para o endereço novo.
+   2) POST /api/email/confirm  { token }
+      Só aqui o endereço muda de verdade.
+
+   A senha é exigida no passo 1 porque o e-mail é a chave de
+   recuperação da conta: quem trocasse o e-mail com uma sessão
+   roubada tomaria a conta para sempre, e o dono não teria como
+   voltar — o "esqueci a senha" passaria a cair na caixa do invasor.
+------------------------------------------------------------ */
+app.post('/api/email/change', authRequired, emailTrocaLimiter, async (req, res) => {
+  try {
+    const { password } = req.body || {};
+    const novo = String((req.body || {}).email || '').trim().toLowerCase();
+
+    if (!EMAIL_RE.test(novo)) {
+      return res.status(400).json({ error: 'Informe um e-mail válido.' });
+    }
+    const atual = stmtFindWithPasswordById.get(req.user.id);
+    if (!atual) return res.status(401).json({ error: 'Sessão inválida.' });
+
+    const ok = await bcrypt.compare(String(password || ''), atual.password);
+    if (!ok) return res.status(401).json({ error: 'Senha atual incorreta.' });
+
+    if (novo === String(atual.email).toLowerCase()) {
+      return res.status(400).json({ error: 'Este já é o e-mail da sua conta.' });
+    }
+    /* E-mail de outra pessoa: recusa aqui, com mensagem clara. Vazar que o
+       endereço existe é aceitável neste ponto — quem pergunta já provou a
+       senha da própria conta, então não dá para varrer a base com isso. */
+    if (stmtFindByEmail.get(novo)) {
+      return res.status(409).json({ error: 'Este e-mail já está em uso por outra conta.' });
+    }
+
+    const token = crypto.randomBytes(32).toString('hex');
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+    const expiresAt = Date.now() + 60 * 60 * 1000; // 1 hora
+    stmtEmailChangeInvalidate.run(atual.id);       // um pedido pendente por vez
+    stmtEmailChangeInsert.run(atual.id, novo, tokenHash, expiresAt);
+
+    const link = `${RESET_LINK_BASE}/?trocaEmail=${token}`;
+    mailer.sendEmailChangeEmail(novo, atual.name, link)
+      .then((r) => { if (!r.sent) console.warn('E-mail de troca não enviado:', r.reason); })
+      .catch((e) => console.error('Erro no e-mail de troca:', e.message));
+
+    const resposta = {
+      ok: true,
+      message: 'Enviamos um link de confirmação para ' + novo + '. O e-mail só muda depois que você abrir esse link.'
+    };
+    if (!mailer.isEnabled()) resposta.aviso = 'E-mail não configurado no servidor (link não enviado).';
+    return res.json(resposta);
+  } catch (err) {
+    console.error('email/change error:', err);
+    return res.status(500).json({ error: 'Erro ao solicitar a troca de e-mail.' });
+  }
+});
+
+/* Confirmação. Sem authRequired: a pessoa pode abrir o link em outro
+   aparelho, onde não está logada — é justamente o caso de quem está
+   migrando de e-mail. O token é a credencial aqui. */
+app.post('/api/email/confirm', async (req, res) => {
+  try {
+    const { token } = req.body || {};
+    if (!token) return res.status(400).json({ error: 'Token ausente.' });
+
+    const tokenHash = crypto.createHash('sha256').update(String(token)).digest('hex');
+    const row = stmtEmailChangeFind.get(tokenHash);
+    if (!row || row.used || row.expires_at < Date.now()) {
+      return res.status(400).json({ error: 'Link inválido ou expirado. Peça a troca de novo.' });
+    }
+
+    const user = stmtFindById.get(row.user_id);
+    if (!user) return res.status(400).json({ error: 'Conta não encontrada.' });
+
+    /* Confere de novo se o endereço continua livre. Entre o pedido e o
+       clique podem ter passado 59 minutos, e outra pessoa pode ter criado
+       conta com ele nesse meio-tempo. Sem esta conferência o UPDATE
+       estouraria no UNIQUE e a pessoa veria só um erro 500. */
+    const ocupado = stmtFindByEmail.get(row.new_email);
+    if (ocupado && ocupado.id !== row.user_id) {
+      stmtEmailChangeMarkUsed.run(row.id);
+      return res.status(409).json({ error: 'Este e-mail já está em uso por outra conta.' });
+    }
+
+    const antigo = user.email;
+    stmtUpdateEmail.run(row.new_email, row.user_id);
+    stmtEmailChangeMarkUsed.run(row.id);
+    /* Pedido de senha em aberto vira lixo perigoso: foi emitido para o
+       endereço antigo e continuaria valendo para esta conta. */
+    stmtResetInvalidate.run(row.user_id);
+
+    mailer.sendEmailChangedNotice(antigo, user.name, row.new_email)
+      .then((r) => { if (!r.sent) console.warn('Aviso de troca não enviado:', r.reason); })
+      .catch((e) => console.error('Erro no aviso de troca:', e.message));
+
+    /* A troca subiu o token_version e derrubou todas as sessões, inclusive a
+       de quem está clicando. Devolvemos um token novo para essa pessoa não
+       ser expulsa do próprio site no meio da ação. */
+    const atualizado = stmtFindById.get(row.user_id);
+    return res.json({ token: signToken(atualizado), user: publicUser(atualizado) });
+  } catch (err) {
+    console.error('email/confirm error:', err);
+    return res.status(500).json({ error: 'Erro ao confirmar o e-mail.' });
+  }
+});
+
 // Dados do usuário logado
 app.get('/api/me', authRequired, (req, res) => {
   return res.json({ user: publicUser(req.user) });
@@ -852,7 +1060,7 @@ app.post('/api/cart', authRequired, escritaLimiter, (req, res) => {
   try {
     let { product, size } = req.body || {};
     product = (product || '').trim();
-    size = (size || '').trim().slice(0, 8);
+    size = (size || '').trim().slice(0, 8).toUpperCase();
 
     if (!product || !size) {
       return res.status(400).json({ error: 'Produto e tamanho são obrigatórios.' });
@@ -861,6 +1069,16 @@ app.post('/api/cart', authRequired, escritaLimiter, (req, res) => {
     const price = CATALOG[product];
     if (!Number.isFinite(price)) {
       return res.status(400).json({ error: 'Produto inválido.' });
+    }
+    /* O tamanho TEM de ser um dos que a loja vende. Sem esta linha, qualquer
+       texto passava ("XG", "p", "banana") e caía na regra de que linha
+       inexistente no estoque = sem controle = ILIMITADO: dava para encher a
+       sacola com 41 camisetas de um tamanho que não existe, furando o estoque
+       inteiro e gerando pedido pago que a loja não teria como despachar.
+       O toUpperCase() acima é parte da mesma correção — "p" minúsculo não
+       casava com a linha "P" do estoque e virava outro tamanho ilimitado. */
+    if (SIZES.indexOf(size) === -1) {
+      return res.status(400).json({ error: 'Tamanho indisponível.' });
     }
     if (estaBloqueado(product)) {
       return res.status(409).json({ error: 'Esta peça ainda não está à venda.', bloqueado: true });
@@ -1054,6 +1272,19 @@ app.post('/api/checkout', authRequired, async (req, res) => {
       });
     }
 
+    /* Tamanho fora do catálogo na sacola. Hoje a entrada já barra, mas uma
+       sacola salva antes desta correção ainda carrega a linha ruim — e um
+       tamanho que não existe no estoque seria lido como "sem controle" e
+       passaria batido pela conferência logo abaixo. */
+    const tamanhoRuim = items.find((it) => SIZES.indexOf(it.size) === -1);
+    if (tamanhoRuim) {
+      return res.status(409).json({
+        error: 'O tamanho ' + tamanhoRuim.size + ' de ' + tamanhoRuim.product +
+               ' não existe. Remova da sacola para continuar.',
+        cart: cartPayload(req.user.id)
+      });
+    }
+
     // Estoque: confere tudo ANTES de cobrar. Se alguma peça acabou entre
     // colocar na sacola e finalizar, a compra é barrada com aviso claro.
     const semEstoque = [];
@@ -1217,6 +1448,7 @@ app.get('/api/admin/stock', adminRequired, (req, res) => {
       stock.push({
         product,
         size,
+        preco: CATALOG[product],
         qty: temControle ? registrados[chave] : null,
         controlado: temControle
       });
@@ -1436,10 +1668,60 @@ app.get('/api/admin/orders.csv', adminRequired, (req, res) => {
   const lines = [cols.map((c) => csvCell(c[0])).join(';')];
   for (const o of orders) lines.push(cols.map((c) => csvCell(o[c[1]])).join(';'));
 
+  return enviarCsv(res, 'pedidos', lines);
+});
+
+/* Monta o arquivo e manda para download. O BOM ('﻿') no começo é o que
+   faz o Excel entender que o arquivo é UTF-8; sem ele "Endereço" chega como
+   "EndereÃ§o" na planilha do cliente. */
+function enviarCsv(res, nome, lines) {
   const stamp = new Date().toISOString().slice(0, 10);
   res.setHeader('Content-Type', 'text/csv; charset=utf-8');
-  res.setHeader('Content-Disposition', `attachment; filename="pedidos-${stamp}.csv"`);
+  res.setHeader('Content-Disposition', `attachment; filename="${nome}-${stamp}.csv"`);
   return res.send('﻿' + lines.join('\r\n') + '\r\n');
+}
+
+/* Planilha do estoque: uma linha por peça e tamanho, com um aviso
+   na última coluna para quem estiver sem controle. */
+app.get('/api/admin/stock.csv', adminRequired, (req, res) => {
+  const registrados = {};
+  for (const row of stmtStockAll.all()) registrados[row.product + '|' + row.size] = Number(row.qty);
+
+  const lines = [['Peça', 'Tamanho', 'Quantidade', 'Preço (R$)', 'Situação'].map(csvCell).join(';')];
+  for (const product of Object.keys(CATALOG)) {
+    for (const size of SIZES) {
+      const chave = product + '|' + size;
+      const tem = Object.prototype.hasOwnProperty.call(registrados, chave);
+      const qty = tem ? registrados[chave] : '';
+      const situacao = !tem ? 'SEM CONTROLE (vende ilimitado)' : (qty <= 0 ? 'Esgotado' : 'À venda');
+      lines.push([product, size, qty, CATALOG[product], situacao].map(csvCell).join(';'));
+    }
+  }
+  return enviarCsv(res, 'estoque', lines);
+});
+
+/* Planilha de clientes: quem é, quanto já comprou e como falar com a pessoa. */
+app.get('/api/admin/customers.csv', adminRequired, (req, res) => {
+  const cols = [
+    ['Cliente', 'id'], ['Nome', 'name'], ['E-mail', 'email'], ['Telefone', 'phone'],
+    ['CEP', 'cep'], ['Endereço', 'endereco'], ['Pedidos', 'pedidos'],
+    ['Total gasto (R$)', 'totalGasto'], ['Ticket médio (R$)', 'ticketMedio'],
+    ['Último pedido', 'ultimoPedido'], ['Cliente desde', 'clienteDesde']
+  ];
+  const rows = stmtAdminCustomers.all().map((r) => {
+    const orders = r.orders || 0;
+    const totalSpent = r.total_spent || 0;
+    return {
+      id: r.id, name: r.name, email: r.email, phone: r.phone || '', cep: r.cep || '',
+      endereco: [r.address, r.number, r.complement, r.district, r.city, r.uf].filter(Boolean).join(', '),
+      pedidos: orders, totalGasto: totalSpent,
+      ticketMedio: orders ? Math.round(totalSpent / orders) : 0,
+      ultimoPedido: r.last_order || '', clienteDesde: r.created_at
+    };
+  });
+  const lines = [cols.map((c) => csvCell(c[0])).join(';')];
+  for (const c of rows) lines.push(cols.map((col) => csvCell(c[col[1]])).join(';'));
+  return enviarCsv(res, 'clientes', lines);
 });
 
 /* ------------------------------------------------------------
@@ -1827,6 +2109,7 @@ app.get('/robots.txt', (req, res) => {
     'User-agent: *\n' +
     'Allow: /\n' +
     'Disallow: /api/\n' +
+    'Disallow: /admin\n' +
     '\n' +
     'Sitemap: ' + SITE_URL + '/sitemap.xml\n'
   );
@@ -1866,6 +2149,15 @@ app.use('/assets', express.static(path.join(ROOT, 'assets'), {
 }));
 app.get(['/', '/index.html'], (req, res) => {
   res.sendFile(path.join(ROOT, 'index.html'));
+});
+
+/* Painel do dono. A PÁGINA é pública de propósito — ela não traz dado
+   nenhum dentro, só o formulário que pede a chave. Todo número aparece
+   depois, vindo das rotas /api/admin/*, que exigem a chave em cada
+   chamada. Proteger o HTML e deixar a API aberta é que seria o erro. */
+app.get('/admin', (req, res) => {
+  res.setHeader('X-Robots-Tag', 'noindex, nofollow');
+  res.sendFile(path.join(ROOT, 'admin.html'));
 });
 
 /* ------------------------------------------------------------

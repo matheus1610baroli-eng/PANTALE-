@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Painel · Pantale</title>
+  <style>
+    :root {
+      --escuro: #241606;
+      --medio: #7A5C32;
+      --caramelo: #C4853A;
+      --bege: #F4EDE1;
+      --claro: #FBF7F0;
+      --linha: #E3D8C6;
+      --verde: #2E7D52;
+      --vermelho: #B3402F;
+      --branco: #fff;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bege);
+      color: var(--escuro);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+      font-size: 15px;
+      line-height: 1.5;
+    }
+    header {
+      background: var(--escuro);
+      color: var(--bege);
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    header h1 { font-size: 17px; margin: 0; letter-spacing: .18em; font-weight: 600; }
+    header .sub { font-size: 12px; color: #C9B79A; letter-spacing: .04em; }
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 20px; }
+
+    /* ---- Tela da chave ---- */
+    #login { max-width: 400px; margin: 60px auto; background: var(--branco);
+             padding: 28px; border-radius: 14px; border: 1px solid var(--linha); }
+    #login h2 { margin: 0 0 6px; font-size: 19px; }
+    #login p { margin: 0 0 18px; color: var(--medio); font-size: 13px; }
+    label { display: block; font-size: 12px; letter-spacing: .08em;
+            text-transform: uppercase; color: var(--medio); margin-bottom: 6px; }
+    input, select {
+      width: 100%; padding: 11px 13px; border: 1.5px solid var(--linha);
+      border-radius: 9px; font-size: 15px; font-family: inherit;
+      background: var(--claro); color: var(--escuro);
+    }
+    input:focus, select:focus { outline: none; border-color: var(--caramelo); }
+    button {
+      font-family: inherit; font-size: 14px; cursor: pointer;
+      border-radius: 9px; border: 1.5px solid transparent; padding: 10px 18px;
+      background: var(--escuro); color: var(--bege); transition: opacity .15s;
+    }
+    button:hover { opacity: .85; }
+    button[disabled] { opacity: .45; cursor: default; }
+    .btn-claro { background: var(--branco); color: var(--escuro); border-color: var(--linha); }
+    .btn-caramelo { background: var(--caramelo); color: #fff; }
+
+    /* ---- Abas ---- */
+    .abas { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
+    .aba {
+      background: var(--branco); color: var(--medio); border: 1.5px solid var(--linha);
+      padding: 9px 18px; border-radius: 999px; font-size: 14px;
+    }
+    .aba.is-active { background: var(--escuro); color: var(--bege); border-color: var(--escuro); }
+
+    /* ---- Cartões de números ---- */
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(165px, 1fr));
+             gap: 12px; margin-bottom: 20px; }
+    .card { background: var(--branco); border: 1px solid var(--linha);
+            border-radius: 12px; padding: 15px 17px; }
+    .card .rotulo { font-size: 11px; text-transform: uppercase; letter-spacing: .09em;
+                    color: var(--medio); margin-bottom: 5px; }
+    .card .valor { font-size: 25px; font-weight: 600; letter-spacing: -.02em; }
+
+    /* ---- Tabelas ---- */
+    .painel { background: var(--branco); border: 1px solid var(--linha);
+              border-radius: 12px; overflow: hidden; }
+    .painel-topo { display: flex; align-items: center; justify-content: space-between;
+                   gap: 12px; padding: 14px 17px; border-bottom: 1px solid var(--linha);
+                   flex-wrap: wrap; }
+    .painel-topo h2 { margin: 0; font-size: 15px; }
+    .tabela-rolagem { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--linha);
+             white-space: nowrap; }
+    th { background: var(--claro); font-size: 11px; text-transform: uppercase;
+         letter-spacing: .07em; color: var(--medio); font-weight: 600; }
+    tbody tr:last-child td { border-bottom: 0; }
+    tbody tr:hover { background: var(--claro); }
+    td.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+    .selo { display: inline-block; padding: 3px 10px; border-radius: 999px;
+            font-size: 11px; letter-spacing: .04em; }
+    .selo-pago { background: #DCEFE3; color: var(--verde); }
+    .selo-espera { background: #F7E9CE; color: #8A6412; }
+    .selo-morto { background: #F6DCD7; color: var(--vermelho); }
+    .selo-enviado { background: #D9E6F5; color: #1F4E79; }
+
+    .qtd-input { width: 74px; padding: 6px 9px; text-align: right; }
+    .esgotado { color: var(--vermelho); font-weight: 600; }
+    .sem-controle { color: var(--vermelho); font-size: 12px; }
+    .aviso { background: #F6DCD7; border: 1px solid #E0B6AE; color: var(--vermelho);
+             padding: 11px 14px; border-radius: 9px; margin-bottom: 16px; font-size: 14px; }
+    .ok-msg { background: #DCEFE3; border: 1px solid #A9D4BC; color: var(--verde);
+              padding: 11px 14px; border-radius: 9px; margin-bottom: 16px; font-size: 14px; }
+    .vazio { padding: 34px; text-align: center; color: var(--medio); }
+    .oculto { display: none !important; }
+    .linha-acoes { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    @media (max-width: 640px) {
+      .wrap { padding: 13px; }
+      th, td { padding: 8px 10px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>PANTALE</h1>
+    <div class="sub">Painel do dono</div>
+  </div>
+  <button id="btn-sair" class="btn-claro oculto">Sair</button>
+</header>
+
+<!-- Tela da chave -->
+<div id="login">
+  <h2>Entrar no painel</h2>
+  <p>Use a chave de administrador do servidor.</p>
+  <form id="form-login">
+    <label for="chave">Chave de administrador</label>
+    <input type="password" id="chave" autocomplete="off" placeholder="••••••••••••">
+    <p id="login-erro" class="aviso oculto" style="margin:14px 0 0"></p>
+    <button type="submit" style="width:100%;margin-top:14px">Entrar</button>
+  </form>
+</div>
+
+<!-- Painel -->
+<div class="wrap oculto" id="painel">
+  <div class="abas">
+    <button class="aba is-active" data-aba="estoque">Estoque</button>
+    <button class="aba" data-aba="pedidos">Pedidos</button>
+    <button class="aba" data-aba="clientes">Clientes</button>
+  </div>
+
+  <div id="msg"></div>
+
+  <!-- ESTOQUE -->
+  <section data-secao="estoque">
+    <div class="cards" id="cards-estoque"></div>
+    <div class="painel">
+      <div class="painel-topo">
+        <h2>Estoque por peça e tamanho</h2>
+        <div class="linha-acoes">
+          <button class="btn-claro" id="btn-baixar-estoque">Baixar planilha</button>
+          <button class="btn-caramelo" id="btn-salvar-estoque" disabled>Salvar alterações</button>
+        </div>
+      </div>
+      <div class="tabela-rolagem">
+        <table>
+          <thead>
+            <tr><th>Peça</th><th>Preço</th><th>P</th><th>M</th><th>G</th><th>Total</th></tr>
+          </thead>
+          <tbody id="tbody-estoque"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- PEDIDOS -->
+  <section data-secao="pedidos" class="oculto">
+    <div class="cards" id="cards-pedidos"></div>
+    <div class="painel">
+      <div class="painel-topo">
+        <h2>Quem comprou o quê</h2>
+        <div class="linha-acoes">
+          <button class="btn-claro" id="btn-baixar-pedidos">Baixar planilha</button>
+          <button class="btn-claro" id="btn-baixar-pedidos-pagos">Só os pagos</button>
+        </div>
+      </div>
+      <div class="tabela-rolagem">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th><th>Data</th><th>Cliente</th><th>Itens</th>
+              <th>Total</th><th>Pgto</th><th>Situação</th><th>Entrega</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-pedidos"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- CLIENTES -->
+  <section data-secao="clientes" class="oculto">
+    <div class="cards" id="cards-clientes"></div>
+    <div class="painel">
+      <div class="painel-topo">
+        <h2>Contas criadas</h2>
+        <button class="btn-claro" id="btn-baixar-clientes">Baixar planilha</button>
+      </div>
+      <div class="tabela-rolagem">
+        <table>
+          <thead>
+            <tr>
+              <th>Nome</th><th>E-mail</th><th>Telefone</th><th>Cidade</th>
+              <th>Pedidos</th><th>Total gasto</th><th>Cliente desde</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-clientes"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var CHAVE_KEY = 'pantale_admin_key';
+  var chave = null;
+  var alteracoes = {};   // "Peça|P" -> quantidade nova, só o que o dono mexeu
+
+  var el = function (id) { return document.getElementById(id); };
+
+  /* Escapa antes de jogar na tela. Nome de cliente e endereço vêm do que a
+     pessoa digitou no checkout: sem isto, um nome com <script> viraria código
+     rodando no painel do dono, que é justamente quem tem a chave. */
+  function esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+  function brl(n) {
+    return 'R$ ' + Number(n || 0).toLocaleString('pt-BR');
+  }
+  function data(s) {
+    if (!s) return '—';
+    var d = new Date(String(s).replace(' ', 'T') + (String(s).length <= 19 ? 'Z' : ''));
+    return isNaN(d) ? String(s).slice(0, 10) : d.toLocaleDateString('pt-BR');
+  }
+
+  async function api(caminho, opcoes) {
+    opcoes = opcoes || {};
+    opcoes.headers = Object.assign({ 'x-admin-key': chave }, opcoes.headers || {});
+    var r = await fetch(caminho, opcoes);
+    if (r.status === 401) { sair('Chave recusada pelo servidor.'); throw new Error('401'); }
+    var d = {};
+    try { d = await r.json(); } catch (e) {}
+    if (!r.ok) throw new Error(d.error || ('Erro ' + r.status));
+    return d;
+  }
+
+  /* Download autenticado: a planilha exige o cabeçalho da chave, então não dá
+     para usar um link normal — o navegador não manda cabeçalho em <a href>.
+     Buscamos o arquivo, viramos blob e disparamos o download na mão. */
+  async function baixar(caminho, nomeArquivo) {
+    try {
+      var r = await fetch(caminho, { headers: { 'x-admin-key': chave } });
+      if (!r.ok) throw new Error('Erro ' + r.status);
+      var blob = await r.blob();
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url; a.download = nomeArquivo;
+      document.body.appendChild(a); a.click(); a.remove();
+      URL.revokeObjectURL(url);
+    } catch (e) { aviso(e.message, true); }
+  }
+
+  function aviso(texto, erro) {
+    el('msg').innerHTML = '<div class="' + (erro ? 'aviso' : 'ok-msg') + '">' + esc(texto) + '</div>';
+    if (!erro) setTimeout(function () { el('msg').innerHTML = ''; }, 4000);
+  }
+
+  /* ---------------- ESTOQUE ---------------- */
+  async function carregarEstoque() {
+    var d = await api('/api/admin/stock');
+    var porPeca = {};
+    d.stock.forEach(function (linha) {
+      if (!porPeca[linha.product]) porPeca[linha.product] = {};
+      porPeca[linha.product][linha.size] = linha;
+    });
+
+    var html = '', totalPecas = 0, esgotadas = 0, semControle = 0;
+    Object.keys(porPeca).forEach(function (peca) {
+      var linhas = porPeca[peca];
+      var soma = 0, todasZero = true, preco = 0;
+      var celulas = ['P', 'M', 'G'].map(function (t) {
+        var linha = linhas[t] || {};
+        preco = linha.preco || preco;
+        if (!linha.controlado) {
+          semControle++;
+          todasZero = false;
+          return '<td><input class="qtd-input" type="number" min="0" placeholder="—" ' +
+                 'data-peca="' + esc(peca) + '" data-tam="' + t + '">' +
+                 '<div class="sem-controle">sem controle</div></td>';
+        }
+        var q = Number(linha.qty) || 0;
+        soma += q;
+        if (q > 0) todasZero = false;
+        return '<td><input class="qtd-input" type="number" min="0" value="' + q + '" ' +
+               'data-peca="' + esc(peca) + '" data-tam="' + t + '"></td>';
+      }).join('');
+      totalPecas += soma;
+      if (todasZero) esgotadas++;
+      html += '<tr><td><strong>' + esc(peca) + '</strong></td>' +
+              '<td class="num">' + brl(preco) + '</td>' + celulas +
+              '<td class="num' + (todasZero ? ' esgotado' : '') + '">' + soma + '</td></tr>';
+    });
+
+    el('tbody-estoque').innerHTML = html;
+    el('cards-estoque').innerHTML =
+      cartao('Peças na arara', totalPecas) +
+      cartao('Modelos esgotados', esgotadas) +
+      cartao('Sem controle', semControle);
+
+    alteracoes = {};
+    el('btn-salvar-estoque').disabled = true;
+  }
+
+  function cartao(rotulo, valor) {
+    return '<div class="card"><div class="rotulo">' + esc(rotulo) + '</div>' +
+           '<div class="valor">' + esc(valor) + '</div></div>';
+  }
+
+  el('tbody-estoque').addEventListener('input', function (e) {
+    var alvo = e.target;
+    if (!alvo.classList.contains('qtd-input')) return;
+    var chaveLinha = alvo.dataset.peca + '|' + alvo.dataset.tam;
+    if (alvo.value === '') delete alteracoes[chaveLinha];
+    else alteracoes[chaveLinha] = Math.max(0, parseInt(alvo.value, 10) || 0);
+    el('btn-salvar-estoque').disabled = Object.keys(alteracoes).length === 0;
+  });
+
+  el('btn-salvar-estoque').addEventListener('click', async function () {
+    var items = Object.keys(alteracoes).map(function (k) {
+      var partes = k.split('|');
+      return { product: partes[0], size: partes[1], qty: alteracoes[k] };
+    });
+    if (!items.length) return;
+    this.disabled = true;
+    try {
+      await api('/api/admin/stock', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items: items })
+      });
+      aviso(items.length + ' quantidade(s) salva(s).');
+      await carregarEstoque();
+    } catch (e) {
+      aviso(e.message, true);
+      this.disabled = false;
+    }
+  });
+
+  /* ---------------- PEDIDOS ---------------- */
+  var SELOS = {
+    pago: 'selo-pago', enviado: 'selo-enviado',
+    aguardando_pagamento: 'selo-espera',
+    cancelado: 'selo-morto', estornado: 'selo-morto'
+  };
+  var NOMES_STATUS = {
+    pago: 'Pago', enviado: 'Enviado', aguardando_pagamento: 'Aguardando',
+    cancelado: 'Cancelado', estornado: 'Estornado'
+  };
+
+  async function carregarPedidos() {
+    var d = await api('/api/admin/orders');
+    el('cards-pedidos').innerHTML =
+      cartao('Pedidos', d.totalPedidos) +
+      cartao('Pagos', d.totalPagos) +
+      cartao('Receita paga', brl(d.receitaPaga));
+
+    if (!d.orders.length) {
+      el('tbody-pedidos').innerHTML =
+        '<tr><td colspan="8"><div class="vazio">Nenhum pedido ainda.</div></td></tr>';
+      return;
+    }
+    el('tbody-pedidos').innerHTML = d.orders.map(function (o) {
+      var opcoes = ['aguardando_pagamento', 'pago', 'enviado', 'cancelado', 'estornado']
+        .map(function (s) {
+          return '<option value="' + s + '"' + (s === o.status ? ' selected' : '') + '>' +
+                 NOMES_STATUS[s] + '</option>';
+        }).join('');
+      return '<tr>' +
+        '<td>' + o.id + '</td>' +
+        '<td>' + data(o.createdAt) + '</td>' +
+        '<td><strong>' + esc(o.name || '—') + '</strong><br>' +
+          '<span style="color:var(--medio);font-size:12px">' + esc(o.email || o.accountEmail) + '</span></td>' +
+        '<td>' + esc(o.items) + '</td>' +
+        '<td class="num">' + brl(o.total) + '</td>' +
+        '<td>' + esc(o.method) + '</td>' +
+        '<td><span class="selo ' + (SELOS[o.status] || '') + '">' +
+          esc(NOMES_STATUS[o.status] || o.status) + '</span></td>' +
+        '<td><select class="sel-status" data-id="' + o.id + '">' + opcoes + '</select></td>' +
+      '</tr>';
+    }).join('');
+  }
+
+  el('tbody-pedidos').addEventListener('change', async function (e) {
+    var alvo = e.target;
+    if (!alvo.classList.contains('sel-status')) return;
+    alvo.disabled = true;
+    try {
+      await api('/api/admin/orders/' + alvo.dataset.id + '/status', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: alvo.value })
+      });
+      aviso('Pedido ' + alvo.dataset.id + ' atualizado.');
+      await carregarPedidos();
+      await carregarEstoque();  // cancelar/estornar devolve peça à prateleira
+    } catch (err) {
+      aviso(err.message, true);
+      alvo.disabled = false;
+    }
+  });
+
+  /* ---------------- CLIENTES ---------------- */
+  async function carregarClientes() {
+    var d = await api('/api/admin/customers');
+    el('cards-clientes').innerHTML =
+      cartao('Contas criadas', d.totalClientes) +
+      cartao('Receita total', brl(d.receitaTotal));
+
+    if (!d.customers.length) {
+      el('tbody-clientes').innerHTML =
+        '<tr><td colspan="7"><div class="vazio">Nenhuma conta ainda.</div></td></tr>';
+      return;
+    }
+    el('tbody-clientes').innerHTML = d.customers.map(function (c) {
+      var cidade = (c.endereco || '').split(', ').slice(-2).join(', ');
+      return '<tr>' +
+        '<td><strong>' + esc(c.name) + '</strong></td>' +
+        '<td>' + esc(c.email) + '</td>' +
+        '<td>' + esc(c.phone || '—') + '</td>' +
+        '<td>' + esc(cidade || '—') + '</td>' +
+        '<td class="num">' + c.pedidos + '</td>' +
+        '<td class="num">' + brl(c.totalGasto) + '</td>' +
+        '<td>' + data(c.clienteDesde) + '</td>' +
+      '</tr>';
+    }).join('');
+  }
+
+  /* ---------------- Abas, entrada e saída ---------------- */
+  document.querySelectorAll('.aba').forEach(function (b) {
+    b.addEventListener('click', function () {
+      document.querySelectorAll('.aba').forEach(function (x) { x.classList.remove('is-active'); });
+      b.classList.add('is-active');
+      document.querySelectorAll('[data-secao]').forEach(function (s) {
+        s.classList.toggle('oculto', s.dataset.secao !== b.dataset.aba);
+      });
+    });
+  });
+
+  el('btn-baixar-estoque').addEventListener('click', function () { baixar('/api/admin/stock.csv', 'estoque.csv'); });
+  el('btn-baixar-clientes').addEventListener('click', function () { baixar('/api/admin/customers.csv', 'clientes.csv'); });
+  el('btn-baixar-pedidos').addEventListener('click', function () { baixar('/api/admin/orders.csv', 'pedidos.csv'); });
+  el('btn-baixar-pedidos-pagos').addEventListener('click', function () { baixar('/api/admin/orders.csv?pagos=1', 'pedidos-pagos.csv'); });
+
+  async function carregarTudo() {
+    await Promise.all([carregarEstoque(), carregarPedidos(), carregarClientes()]);
+  }
+
+  function entrar() {
+    el('login').classList.add('oculto');
+    el('painel').classList.remove('oculto');
+    el('btn-sair').classList.remove('oculto');
+  }
+  function sair(motivo) {
+    try { localStorage.removeItem(CHAVE_KEY); } catch (e) {}
+    chave = null;
+    el('painel').classList.add('oculto');
+    el('btn-sair').classList.add('oculto');
+    el('login').classList.remove('oculto');
+    if (motivo) {
+      el('login-erro').textContent = motivo;
+      el('login-erro').classList.remove('oculto');
+    }
+  }
+
+  el('btn-sair').addEventListener('click', function () { sair(''); });
+
+  el('form-login').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    chave = el('chave').value.trim();
+    el('login-erro').classList.add('oculto');
+    if (!chave) return;
+    try {
+      await api('/api/admin/stock');           // valida a chave antes de entrar
+      try { localStorage.setItem(CHAVE_KEY, chave); } catch (err) {}
+      entrar();
+      await carregarTudo();
+    } catch (err) {
+      if (err.message !== '401') {
+        el('login-erro').textContent = err.message;
+        el('login-erro').classList.remove('oculto');
+      }
+    }
+  });
+
+  // Volta direto se a chave já estiver guardada neste navegador
+  (async function restaurar() {
+    var guardada = null;
+    try { guardada = localStorage.getItem(CHAVE_KEY); } catch (e) {}
+    if (!guardada) return;
+    chave = guardada;
+    try {
+      await api('/api/admin/stock');
+      entrar();
+      await carregarTudo();
+    } catch (e) { /* sair() já tratou o 401 */ }
+  })();
+})();
+</script>
+</body>
+</html>
