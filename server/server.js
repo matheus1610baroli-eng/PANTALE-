@@ -920,12 +920,25 @@ app.patch('/api/cart/:id', authRequired, escritaLimiter, (req, res) => {
   return res.json(cartPayload(req.user.id));
 });
 
-// Estoque público — o site usa para marcar tamanhos esgotados.
-// Só expõe o que está esgotado ou com pouca peça; não revela números altos.
+/* Estoque público — o site usa para marcar tamanhos esgotados e avisar
+   "últimas peças". Esta rota não tem login: é a vitrine.
+
+   O número sai limitado no teto. O comentário aqui sempre disse que
+   não revelava números altos, mas o código devolvia a quantidade
+   exata — quem chamasse /api/stock via com precisão quanto a loja tem
+   de cada peça, e dava para acompanhar quanto vende por dia só
+   comparando as respostas ao longo do tempo. Isso é relatório de
+   vendas de graça para quem quiser.
+
+   O front só reage a "esgotado" (<= 0) e a "poucas peças" (<= 3),
+   então limitar em 6 não muda nada na tela. */
+const ESTOQUE_TETO_PUBLICO = 6;
+
 app.get('/api/stock', (req, res) => {
   const out = {};
   for (const row of stmtStockAll.all()) {
-    out[row.product + '|' + row.size] = Math.max(0, Number(row.qty));
+    const qty = Math.max(0, Number(row.qty));
+    out[row.product + '|' + row.size] = Math.min(qty, ESTOQUE_TETO_PUBLICO);
   }
   return res.json({ stock: out });
 });
